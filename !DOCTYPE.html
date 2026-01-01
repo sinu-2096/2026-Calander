@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>2026 Ultimate Pop Culture & Sports Calendar</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Inter, system-ui, sans-serif;
+  background: #121212;
+  color: #eaeaea;
+}
+
+header {
+  padding: 16px;
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #00eaff;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  padding: 10px;
+}
+
+.controls button {
+  background: #1f1f1f;
+  border: 1px solid #333;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.controls button.active {
+  background: #00eaff;
+  color: #000;
+}
+
+.controls input {
+  background: #1f1f1f;
+  border: 1px solid #333;
+  color: #fff;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+  padding: 16px;
+}
+
+.card {
+  background: #1a1a1a;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 0 12px rgba(0,255,255,0.15);
+  transition: transform 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+.card img {
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+}
+
+.card-content {
+  padding: 10px;
+}
+
+.card-content h3 {
+  font-size: 0.95rem;
+  margin: 0 0 6px;
+}
+
+.card-content p {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.movie { border-left: 4px solid cyan; }
+.anime { border-left: 4px solid purple; }
+.sports { border-left: 4px solid #00ff6a; }
+
+footer {
+  border-top: 1px solid #333;
+  padding: 16px;
+  text-align: center;
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+footer img {
+  height: 30px;
+  margin-bottom: 8px;
+}
+</style>
+</head>
+
+<body>
+
+<header>2026 Ultimate Pop Culture & Sports Calendar</header>
+
+<div class="controls">
+  <button class="active" data-filter="all">Show All</button>
+  <button data-filter="movie">Movies</button>
+  <button data-filter="anime">Anime</button>
+  <button data-filter="sports">Sports</button>
+  <input type="text" id="search" placeholder="Search events..." />
+</div>
+
+<div class="grid" id="grid"></div>
+
+<footer>
+  <img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" />
+  <div>This product uses the TMDB API but is not endorsed or certified by TMDB.</div>
+  <div>Anime data provided by Jikan API.</div>
+</footer>
+
+<script>
+/* ============================
+   🔑 ADD YOUR TMDB API KEY HERE
+============================ */
+const TMDB_API_KEY = "PASTE_YOUR_TMDB_KEY_HERE";
+
+/* ============================
+   HARD-CODED SPORTS EVENTS
+============================ */
+const sportsEvents = [
+  {
+    title: "Winter Olympics 2026",
+    date: "2026-02-06 → 2026-02-22",
+    type: "sports",
+    poster: "https://upload.wikimedia.org/wikipedia/commons/5/5c/Olympic_rings_without_rims.svg"
+  },
+  {
+    title: "ICC T20 World Cup 2026 (India)",
+    date: "2026-02-08 → 2026-03-08",
+    type: "sports",
+    poster: "https://upload.wikimedia.org/wikipedia/commons/3/3b/Cricket_ball.svg"
+  },
+  {
+    title: "FIFA World Cup 2026",
+    date: "2026-06-11 → 2026-07-19",
+    type: "sports",
+    poster: "https://upload.wikimedia.org/wikipedia/commons/d/d3/FIFA_World_Cup_Logo.svg"
+  }
+];
+
+let allEvents = [];
+
+const grid = document.getElementById("grid");
+const searchInput = document.getElementById("search");
+
+/* ============================
+   FETCH MOVIES FROM TMDB
+============================ */
+async function fetchMovies() {
+  const url = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&primary_release_year=2026&sort_by=popularity.desc`;
+  const res = await fetch(url);
+  const data = await res.json();
+
+  return data.results.map(m => ({
+    title: m.title,
+    date: m.release_date,
+    type: "movie",
+    poster: m.poster_path
+      ? `https://image.tmdb.org/t/p/w500${m.poster_path}`
+      : ""
+  }));
+}
+
+/* ============================
+   FETCH ANIME FROM JIKAN
+============================ */
+async function fetchAnime() {
+  const res = await fetch("https://api.jikan.moe/v4/seasons/upcoming");
+  const data = await res.json();
+
+  return data.data.map(a => ({
+    title: a.title,
+    date: a.aired?.from?.slice(0,10) || "2026",
+    type: "anime",
+    poster: a.images.jpg.large_image_url
+  }));
+}
+
+/* ============================
+   RENDER
+============================ */
+function render(filter = "all", query = "") {
+  grid.innerHTML = "";
+
+  allEvents
+    .filter(e => filter === "all" || e.type === filter)
+    .filter(e => e.title.toLowerCase().includes(query.toLowerCase()))
+    .sort((a,b) => new Date(a.date) - new Date(b.date))
+    .forEach(e => {
+      const card = document.createElement("div");
+      card.className = `card ${e.type}`;
+      card.innerHTML = `
+        <img src="${e.poster}" />
+        <div class="card-content">
+          <h3>${e.title}</h3>
+          <p>${e.date}</p>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+}
+
+/* ============================
+   INIT
+============================ */
+async function init() {
+  const movies = await fetchMovies();
+  const anime = await fetchAnime();
+
+  allEvents = [...movies, ...anime, ...sportsEvents];
+  render();
+}
+
+init();
+
+/* ============================
+   FILTERS & SEARCH
+============================ */
+document.querySelectorAll(".controls button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".controls button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    render(btn.dataset.filter, searchInput.value);
+  });
+});
+
+searchInput.addEventListener("input", e => {
+  const active = document.querySelector(".controls button.active").dataset.filter;
+  render(active, e.target.value);
+});
+</script>
+
+</body>
+</html>
