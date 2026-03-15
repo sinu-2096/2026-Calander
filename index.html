@@ -2,285 +2,312 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pali FT Hatchlings Telemetry Dashboard</title>
-
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-
 <style>
-
 :root{
---map-height:70vh;
---header-bg:#2c3e50;
---bg:#f4f6f9;
---border:#ccc;
+  --map-height:68vh;
+  --primary-bg:#f0f2f5;
+  --header-bg:#1a2a3a;
+  --accent:#2980b9;
+  --text-color:#333;
+  --border-color:#ddd;
 }
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Segoe UI,Arial;
-}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;}
 
-body{
-background:var(--bg);
-display:flex;
-flex-direction:column;
-min-height:100vh;
-}
+body{background:var(--primary-bg);color:var(--text-color);display:flex;flex-direction:column;min-height:100vh;}
 
 /* HEADER */
-
 header{
-background:var(--header-bg);
-color:white;
-padding:12px 20px;
-display:grid;
-grid-template-columns:auto auto 1fr;
-align-items:center;
-gap:12px;
+  background:var(--header-bg);
+  color:white;
+  padding:10px 20px;
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:12px;
 }
-
-header img{
-height:42px;
-}
-
+.header-logos{display:flex;align-items:center;gap:10px;}
+header img{height:44px;object-fit:contain;}
 header h1{
-text-align:center;
-font-size:1.5rem;
+  text-align:center;
+  font-size:1.35rem;
+  font-weight:700;
+  letter-spacing:0.3px;
+  line-height:1.3;
 }
+.header-right{display:flex;align-items:center;justify-content:flex-end;}
 
-/* TOP PANEL */
-
+/* TOP CONTROLS */
 .top-panel{
-background:white;
-padding:12px 20px;
-border-bottom:1px solid var(--border);
-display:flex;
-align-items:center;
-gap:20px;
-flex-wrap:wrap;
+  background:white;
+  padding:10px 20px;
+  border-bottom:1px solid var(--border-color);
+  display:flex;
+  align-items:center;
+  gap:20px;
+  flex-wrap:wrap;
+  box-shadow:0 1px 4px rgba(0,0,0,0.07);
 }
-
-.filter-group{
-display:flex;
-align-items:center;
-gap:8px;
+.filter-group{display:flex;align-items:center;gap:8px;}
+.filter-group label{font-weight:600;font-size:0.9rem;color:#555;}
+.filter-group select{
+  padding:7px 12px;
+  border:1px solid var(--border-color);
+  border-radius:5px;
+  font-size:0.9rem;
+  background:#fafafa;
+  cursor:pointer;
 }
-
-select{
-padding:6px 10px;
-border-radius:4px;
-border:1px solid #bbb;
+.field-btn{
+  padding:7px 16px;
+  background:var(--header-bg);
+  color:white;
+  border:none;
+  border-radius:5px;
+  cursor:pointer;
+  font-size:0.9rem;
+  font-weight:600;
+  transition:background 0.2s;
 }
+.field-btn:hover{background:#2c3e50;}
 
-button{
-padding:7px 12px;
-background:#2c3e50;
-color:white;
-border:none;
-border-radius:4px;
-cursor:pointer;
+/* LEGEND */
+.legend-bar{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  margin-left:auto;
+  font-size:0.82rem;
 }
+.legend-item{display:flex;align-items:center;gap:5px;}
+.legend-dot{width:13px;height:13px;border-radius:50%;border:2px solid rgba(255,255,255,0.7);box-shadow:0 0 3px rgba(0,0,0,0.4);}
+.dot-blue{background:#007bff;}
+.dot-red{background:#e74c3c;}
 
-/* ANALYTICS */
-
+/* ANALYTICS PANEL */
 .analytics-panel{
-display:none;
-background:#fff8dc;
-padding:10px 20px;
-border-bottom:1px solid #ddd;
+  display:none;
+  background:linear-gradient(135deg,#fff8dc,#fffbe6);
+  padding:12px 20px;
+  border-bottom:2px solid #f0c040;
+  font-size:0.9rem;
+  line-height:1.7;
 }
+.analytics-panel b{font-size:1rem;color:#7d5800;}
 
 /* STATUS BAR */
-
 .status-bar{
-background:#ecf0f1;
-padding:8px 20px;
-font-size:0.9rem;
+  background:#ecf0f1;
+  padding:7px 20px;
+  font-size:0.85rem;
+  color:#555;
+  border-bottom:1px solid var(--border-color);
 }
 
 /* MAP */
-
-.map-container{
-height:var(--map-height);
-}
-
-#map{
-height:100%;
-width:100%;
-}
+.map-container{height:var(--map-height);}
+#map{width:100%;height:100%;}
 
 /* TABLE */
-
 .table-hint{
-font-size:0.85rem;
-padding:8px 20px;
-background:white;
+  font-size:0.82rem;
+  color:#888;
+  padding:8px 20px 4px;
+  background:white;
 }
-
 .table-container{
-background:white;
-padding:20px;
-overflow-x:auto;
+  padding:0 20px 30px;
+  overflow-x:auto;
+  background:white;
 }
-
-table{
-width:100%;
-border-collapse:collapse;
-font-size:0.9rem;
+.telemetry-table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:0.88rem;
 }
-
-th,td{
-padding:10px;
-border-bottom:1px solid #ddd;
-text-align:left;
+.telemetry-table th,
+.telemetry-table td{
+  padding:9px 12px;
+  border-bottom:1px solid #eee;
+  text-align:left;
+  white-space:nowrap;
 }
-
-th{
-background:#2c3e50;
-color:white;
-position:sticky;
-top:0;
+.telemetry-table th{
+  background:var(--header-bg);
+  color:white;
+  position:sticky;
+  top:0;
+  z-index:1;
 }
-
-tbody tr:hover{
-background:#dce8f5;
-cursor:pointer;
-}
+.telemetry-table tbody tr:hover{background:#dce8f5;cursor:pointer;}
 
 /* MARKERS */
-
-.marker{
-width:28px;
-height:28px;
-border-radius:50%;
-display:flex;
-align-items:center;
-justify-content:center;
-color:white;
-font-weight:bold;
-border:2px solid white;
-box-shadow:0 0 5px rgba(0,0,0,0.6);
+.animal-marker{
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:white;
+  font-weight:700;
+  font-size:11px;
+  border:2px solid rgba(255,255,255,0.85);
+  box-shadow:0 2px 6px rgba(0,0,0,0.5);
 }
+.marker-live{background:#007bff;}
+.marker-dead{background:#e74c3c;}
+.star-marker{font-size:22px;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.5));}
 
-.blue{
-background:#007bff;
-}
+/* POPUP */
+.popup-table{border-collapse:collapse;font-size:0.88rem;min-width:200px;}
+.popup-table td{padding:3px 6px;border-bottom:1px solid #f0f0f0;vertical-align:top;}
+.popup-table td:first-child{font-weight:600;color:#444;white-space:nowrap;padding-right:10px;}
+.popup-id{font-size:1rem;font-weight:700;color:#1a2a3a;margin-bottom:5px;}
 
-.red{
-background:#e74c3c;
-}
-
-.star{
-font-size:20px;
-color:#ffcc00;
-}
-
-/* FIELD PANEL */
-
+/* FIELD UPDATE PANEL */
 .field-panel{
-position:fixed;
-top:0;
-right:-360px;
-width:360px;
-height:100%;
-background:white;
-box-shadow:-3px 0 10px rgba(0,0,0,0.2);
-padding:20px;
-overflow:auto;
-transition:right .3s;
-z-index:999;
+  position:fixed;
+  top:0;
+  right:-380px;
+  width:360px;
+  height:100%;
+  background:white;
+  box-shadow:-4px 0 16px rgba(0,0,0,0.18);
+  padding:0;
+  transition:right 0.3s ease;
+  overflow:hidden;
+  z-index:1100;
+  display:flex;
+  flex-direction:column;
 }
-
-.field-panel.open{
-right:0;
+.field-panel.open{right:0;}
+.field-panel-header{
+  background:var(--header-bg);
+  color:white;
+  padding:14px 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
 }
-
-.field-header{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:15px;
-}
-
+.field-panel-header h3{font-size:1rem;font-weight:700;}
 .close-btn{
-cursor:pointer;
-font-size:20px;
+  background:none;
+  border:none;
+  color:white;
+  font-size:1.3rem;
+  cursor:pointer;
+  line-height:1;
+  padding:2px 6px;
+  border-radius:3px;
+  transition:background 0.2s;
 }
-
-.update-item{
-margin-bottom:10px;
-padding-bottom:8px;
-border-bottom:1px solid #ddd;
+.close-btn:hover{background:rgba(255,255,255,0.2);}
+.field-panel-latest{
+  padding:14px 18px;
+  background:#fffbe6;
+  border-bottom:2px solid #f0c040;
 }
+.field-panel-latest .fu-date{font-weight:700;color:#7d5800;font-size:0.9rem;}
+.field-panel-latest .fu-text{margin-top:4px;font-size:0.93rem;line-height:1.5;}
+.field-panel-scroll{flex:1;overflow-y:auto;padding:10px 18px;}
+.field-panel-scroll h4{font-size:0.85rem;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;}
+.fu-item{
+  padding:10px 0;
+  border-bottom:1px solid #f0f0f0;
+}
+.fu-item .fu-date{font-weight:600;color:#555;font-size:0.85rem;}
+.fu-item .fu-text{margin-top:3px;font-size:0.9rem;line-height:1.4;color:#333;}
 
+/* OVERLAY for field panel */
+.panel-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.3);
+  z-index:1099;
+}
+.panel-overlay.open{display:block;}
+
+@media(max-width:700px){
+  header{grid-template-columns:auto 1fr;}
+  .header-right{display:none;}
+  header h1{font-size:1rem;}
+}
 </style>
 </head>
 
 <body>
 
 <header>
-<img src="image.png">
-<img src="unnamed.png">
-<h1>🐊 Pali FT Hatchlings Telemetry Dashboard</h1>
+  <div class="header-logos">
+    <img src="image.png" alt="Logo 1">
+    <img src="unnamed.png" alt="Logo 2">
+  </div>
+  <h1>🐊 Pali FT Hatchlings Telemetry Dashboard</h1>
+  <div class="header-right"></div>
 </header>
 
 <div class="top-panel">
+  <div class="filter-group">
+    <label for="animalFilter">Select Animal</label>
+    <select id="animalFilter">
+      <option value="all">All Animals</option>
+    </select>
+  </div>
 
-<div class="filter-group">
-<label>Select Animal</label>
-<select id="animalFilter">
-<option value="all">All Animals</option>
-</select>
-</div>
+  <div class="legend-bar">
+    <div class="legend-item"><div class="legend-dot dot-blue"></div><span>Active</span></div>
+    <div class="legend-item"><div class="legend-dot dot-red"></div><span>Dead / Missing</span></div>
+  </div>
 
-<button onclick="toggleFieldPanel()">Field Updates</button>
-
+  <button class="field-btn" onclick="toggleFieldPanel()">📋 Field Updates</button>
 </div>
 
 <div class="analytics-panel" id="analyticsPanel"></div>
 
-<div class="status-bar" id="statusBar">
-Loading telemetry...
-</div>
+<div class="status-bar" id="statusBar">Latest Telemetry: loading…</div>
 
 <div class="map-container">
-<div id="map"></div>
+  <div id="map"></div>
 </div>
 
-<p class="table-hint">💡 Click any row to jump to map location</p>
+<p class="table-hint">💡 Click any row to zoom to that location and open the marker popup</p>
 
 <div class="table-container">
-<table id="dataTable">
-
-<thead>
-<tr>
-<th>Animal ID</th>
-<th>Timestamp</th>
-<th>Place</th>
-<th>Activity</th>
-<th>Signal</th>
-<th>Latitude</th>
-<th>Longitude</th>
-<th>Remarks</th>
-</tr>
-</thead>
-
-<tbody></tbody>
-
-</table>
+  <table class="telemetry-table" id="dataTable">
+    <thead>
+      <tr>
+        <th>Animal ID</th>
+        <th>Timestamp</th>
+        <th>Place</th>
+        <th>Activity</th>
+        <th>Signal</th>
+        <th>Latitude</th>
+        <th>Longitude</th>
+        <th>Remarks</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 </div>
 
+<!-- Field Update Panel -->
+<div class="panel-overlay" id="panelOverlay" onclick="closeFieldPanel()"></div>
 <div class="field-panel" id="fieldPanel">
-
-<div class="field-header">
-<h3>Field Updates</h3>
-<span class="close-btn" onclick="toggleFieldPanel()">✖</span>
-</div>
-
-<div id="updatesContainer"></div>
-
+  <div class="field-panel-header">
+    <h3>📋 Field Updates</h3>
+    <button class="close-btn" onclick="closeFieldPanel()">✕</button>
+  </div>
+  <div class="field-panel-latest" id="fieldLatest">
+    <div class="fu-date" id="latestFuDate">Loading…</div>
+    <div class="fu-text" id="latestFuText"></div>
+  </div>
+  <div class="field-panel-scroll">
+    <h4>Previous Updates</h4>
+    <div id="fieldUpdatesList"></div>
+  </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -288,444 +315,415 @@ Loading telemetry...
 <script src="https://cdnjs.cloudflare.com/ajax/libs/OverlappingMarkerSpiderfier-Leaflet/0.2.6/oms.min.js"></script>
 
 <script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+const CSV_URL    = 'https://docs.google.com/spreadsheets/d/10maxgDHDOISlVaN3kuc0_BjxOwPVysci5AiFL-WAxoQ/export?format=csv&gid=0';
+const UPDATE_URL = 'https://docs.google.com/spreadsheets/d/10maxgDHDOISlVaN3kuc0_BjxOwPVysci5AiFL-WAxoQ/export?format=csv&gid=238985281';
+const MAP_CENTER = [25.84, 76.56];
+const MAP_ZOOM   = 13;
 
-const CSV_URL='https://docs.google.com/spreadsheets/d/10maxgDHDOISlVaN3kuc0_BjxOwPVysci5AiFL-WAxoQ/export?format=csv&gid=0';
-const UPDATE_URL='https://docs.google.com/spreadsheets/d/10maxgDHDOISlVaN3kuc0_BjxOwPVysci5AiFL-WAxoQ/export?format=csv&gid=238985281';
+// IDs that are dead or missing — must show as RED
+const DEAD_IDS = new Set(['30','33','34','38','96','64','98']);
 
-const DEAD_IDS=["30","33","34","38","96","64","98"];
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let map, oms;
+let rawData       = [];
+let animalsData   = {};   // id → sorted array (newest first)
+let latestRecords = {};   // id → most recent record
+let markers       = [];
+let markerMapping = {};   // "id_timestamp" → marker
+let trackLayers   = [];
 
-const MAP_CENTER=[25.84,76.56];
-const MAP_ZOOM=13;
-
-let map;
-let oms;
-
-let rawData=[];
-let animalsData={};
-let latestRecords={};
-
-let markers=[];
-let markerMapping={};
-
+// ─── INIT ─────────────────────────────────────────────────────────────────────
 function init(){
-
-initMap();
-loadTelemetry();
-loadUpdates();
-
-document.getElementById("animalFilter")
-.addEventListener("change",e=>{
-updateDashboard(e.target.value);
-});
-
+  initMap();
+  loadTelemetry();
+  loadFieldUpdates();
+  document.getElementById('animalFilter')
+    .addEventListener('change', e => updateDashboard(e.target.value));
 }
 
 function initMap(){
-
-map=L.map("map").setView(MAP_CENTER,MAP_ZOOM);
-
-L.tileLayer(
-"http://mt0.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
-{maxZoom:20}
-).addTo(map);
-
-oms=new OverlappingMarkerSpiderfier(map,{keepSpiderfied:true});
-
+  map = L.map('map').setView(MAP_CENTER, MAP_ZOOM);
+  L.tileLayer('http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}', {
+    maxZoom: 20,
+    attribution: '© Google'
+  }).addTo(map);
+  oms = new OverlappingMarkerSpiderfier(map, { keepSpiderfied: true, nearbyDistance: 20 });
 }
 
+// ─── DATA LOADING ─────────────────────────────────────────────────────────────
 function loadTelemetry(){
-
-Papa.parse(CSV_URL,{
-download:true,
-header:true,
-skipEmptyLines:true,
-
-complete:function(results){
-
-rawData=results.data;
-
-processData();
-populateDropdown();
-
-updateDashboard("all");
-updateStatus();
-
+  Papa.parse(CSV_URL, {
+    download: true,
+    header: true,
+    skipEmptyLines: true,
+    complete: function(results){
+      rawData = results.data;
+      processData();
+      populateDropdown();
+      updateDashboard('all');
+      updateStatus();
+    }
+  });
 }
 
-});
+function loadFieldUpdates(){
+  Papa.parse(UPDATE_URL, {
+    download: true,
+    header: true,
+    skipEmptyLines: true,
+    complete: function(results){
+      let rows = results.data.filter(r => r['Date'] && r['Date'].trim() !== '');
 
+      // Sort newest first
+      rows.sort((a,b) => parseDate(b['Date']) - parseDate(a['Date']));
+
+      if(rows.length === 0) return;
+
+      // Latest
+      let latest = rows[0];
+      document.getElementById('latestFuDate').textContent = formatDateOnly(parseDate(latest['Date']));
+      document.getElementById('latestFuText').textContent = latest['Update'] || '';
+
+      // Previous
+      let list = document.getElementById('fieldUpdatesList');
+      if(rows.length <= 1){
+        list.innerHTML = '<p style="color:#aaa;font-size:0.85rem;">No previous updates.</p>';
+        return;
+      }
+      rows.slice(1).forEach(r => {
+        let d = document.createElement('div');
+        d.className = 'fu-item';
+        d.innerHTML = `<div class="fu-date">${formatDateOnly(parseDate(r['Date']))}</div>
+                       <div class="fu-text">${r['Update']||''}</div>`;
+        list.appendChild(d);
+      });
+    }
+  });
 }
 
+// ─── DATA PROCESSING ──────────────────────────────────────────────────────────
 function processData(){
+  animalsData   = {};
+  latestRecords = {};
 
-animalsData={};
-latestRecords={};
+  rawData.forEach(row => {
+    let id = (row['Animal ID']||'').trim();
+    if(!id) return;
+    row._id     = id;
+    row._parsed = parseDate(row['Timestamp']);
+    if(!animalsData[id]) animalsData[id] = [];
+    animalsData[id].push(row);
+  });
 
-rawData.forEach(r=>{
-
-let id=r["Animal ID"];
-if(!id) return;
-
-r.parsedDate=parseDate(r.Timestamp);
-
-if(!animalsData[id]) animalsData[id]=[];
-
-animalsData[id].push(r);
-
-});
-
-for(let id in animalsData){
-
-animalsData[id].sort((a,b)=>b.parsedDate-a.parsedDate);
-
-latestRecords[id]=animalsData[id][0];
-
+  for(let id in animalsData){
+    animalsData[id].sort((a,b) => b._parsed - a._parsed); // newest first
+    latestRecords[id] = animalsData[id][0];
+  }
 }
 
-}
-
-function populateDropdown(){
-
-let sel=document.getElementById("animalFilter");
-
-Object.keys(animalsData).sort((a,b)=>a-b)
-.forEach(id=>{
-
-let o=document.createElement("option");
-o.value=id;
-o.textContent=id;
-
-sel.appendChild(o);
-
-});
-
-}
-
+// ─── DATE HELPERS ─────────────────────────────────────────────────────────────
 function parseDate(s){
-
-if(!s) return new Date(0);
-
-let p=s.split(" ");
-
-let d=p[0].split("-");
-let t=p[1].split(":");
-
-return new Date(d[2],d[1]-1,d[0],t[0],t[1]);
-
+  if(!s || s.trim() === '') return new Date(0);
+  let p = s.trim().split(' ');
+  let dateParts = p[0].split('-');
+  if(dateParts.length < 3) return new Date(0);
+  let timeParts = p[1] ? p[1].split(':') : ['0','0'];
+  return new Date(
+    parseInt(dateParts[2]),
+    parseInt(dateParts[1]) - 1,
+    parseInt(dateParts[0]),
+    parseInt(timeParts[0]),
+    parseInt(timeParts[1])
+  );
 }
 
-function formatDate(d){
-
-return d.toLocaleDateString("en-GB",{
-day:"numeric",
-month:"long",
-year:"numeric"
-})+" "+
-d.toLocaleTimeString("en-GB",{
-hour:"2-digit",
-minute:"2-digit"
-});
-
+function formatDateTime(d){
+  if(!d || d.getFullYear() < 2000) return '';
+  return d.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}) +
+         ' ' +
+         d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
 }
 
+function formatDateOnly(d){
+  if(!d || d.getFullYear() < 2000) return '';
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
+}
+
+// ─── DROPDOWN ─────────────────────────────────────────────────────────────────
+function populateDropdown(){
+  let sel = document.getElementById('animalFilter');
+  Object.keys(animalsData)
+    .sort((a,b) => parseInt(a) - parseInt(b))
+    .forEach(id => {
+      let o = document.createElement('option');
+      o.value = id;
+      o.textContent = 'ID ' + id + (DEAD_IDS.has(id) ? ' ⚠' : '');
+      sel.appendChild(o);
+    });
+}
+
+// ─── MAP RENDERING ────────────────────────────────────────────────────────────
 function clearMap(){
-
-markers.forEach(m=>map.removeLayer(m));
-markers=[];
-
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+  markerMapping = {};
+  trackLayers.forEach(l => map.removeLayer(l));
+  trackLayers = [];
 }
 
-function updateDashboard(id){
-
-clearMap();
-
-renderMap(id);
-renderTable(id);
-
+function updateDashboard(selectedId){
+  clearMap();
+  document.getElementById('analyticsPanel').style.display = 'none';
+  renderMap(selectedId);
+  renderTable(selectedId);
 }
 
-function renderMap(selected){
+function renderMap(selectedId){
+  if(selectedId === 'all'){
+    for(let id in latestRecords) addMarker(latestRecords[id]);
+  } else {
+    let records = animalsData[selectedId] || [];
+    if(records.length === 0) return;
 
-if(selected==="all"){
+    // Track line: oldest → newest
+    let ordered = [...records].sort((a,b) => a._parsed - b._parsed);
+    let latlngs = ordered
+      .map(r => [parseFloat(r['Latitude']), parseFloat(r['Longitude'])])
+      .filter(ll => !isNaN(ll[0]) && !isNaN(ll[1]));
 
-for(let id in latestRecords){
+    if(latlngs.length > 1){
+      let line = L.polyline(latlngs, {
+        color: '#ffc107',
+        weight: 3,
+        dashArray: '6,10',
+        opacity: 0.9
+      }).addTo(map);
+      trackLayers.push(line);
+    }
 
-addMarker(latestRecords[id]);
+    // Place all markers for this animal
+    records.forEach(r => addMarker(r));
 
+    // Release marker (oldest record)
+    addReleaseMarker(ordered[0]);
+
+    // Fit map to track
+    if(latlngs.length > 0) map.fitBounds(L.latLngBounds(latlngs), { padding:[40,40] });
+
+    computeAnalytics(selectedId);
+  }
 }
 
-document.getElementById("analyticsPanel").style.display="none";
-
+function makeMarkerIcon(id){
+  let isDead = DEAD_IDS.has(String(id).trim());
+  return L.divIcon({
+    className: 'animal-marker ' + (isDead ? 'marker-dead' : 'marker-live'),
+    html: id,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14]
+  });
 }
 
-else{
-
-let rec=animalsData[selected];
-
-let latlngs=[];
-
-for(let i=rec.length-1;i>=0;i--){
-
-let r=rec[i];
-
-addMarker(r);
-
-latlngs.push([r.Latitude,r.Longitude]);
-
+function makePopup(r){
+  return `
+    <div class="popup-id">🐊 Animal ID: ${r['Animal ID']}</div>
+    <table class="popup-table">
+      <tr><td>Timestamp</td><td>${r['Timestamp']||'—'}</td></tr>
+      <tr><td>Place</td><td>${r['Place']||'—'}</td></tr>
+      <tr><td>Activity</td><td>${r['Activity']||'—'}</td></tr>
+      <tr><td>Signal</td><td>${r['Signal Stength']||'—'}</td></tr>
+      <tr><td>Latitude</td><td>${r['Latitude']||'—'}</td></tr>
+      <tr><td>Longitude</td><td>${r['Longitude']||'—'}</td></tr>
+      <tr><td>Remarks</td><td>${r['Remarks']||'—'}</td></tr>
+    </table>`;
 }
 
-if(latlngs.length>1){
+function addMarker(record){
+  let lat = parseFloat(record['Latitude']);
+  let lng = parseFloat(record['Longitude']);
+  if(isNaN(lat) || isNaN(lng)) return null;
 
-L.polyline(latlngs,{
-color:"#ffc107",
-weight:3,
-dashArray:"6,10"
-}).addTo(map);
+  let id  = record['Animal ID'];
+  let m   = L.marker([lat, lng], { icon: makeMarkerIcon(id) }).addTo(map);
 
+  m.bindPopup(makePopup(record), { maxWidth: 280 });
+
+  markers.push(m);
+  oms.addMarker(m);
+
+  let key = id + '_' + record['Timestamp'];
+  markerMapping[key] = m;
+
+  return m;
 }
 
-addRelease(rec[rec.length-1]);
+function addReleaseMarker(record){
+  if(!record) return;
+  let lat = parseFloat(record['Latitude']);
+  let lng = parseFloat(record['Longitude']);
+  if(isNaN(lat) || isNaN(lng)) return;
 
-computeAnalytics(selected);
+  let icon = L.divIcon({
+    className: 'star-marker',
+    html: '⭐',
+    iconSize: [24, 24],
+    iconAnchor: [12, 12]
+  });
 
+  let m = L.marker([lat, lng], { icon, zIndexOffset: 1000 }).addTo(map);
+  m.bindPopup('<b>⭐ Release Point</b><br>Animal ID: ' + record['Animal ID']);
+  trackLayers.push(m);
 }
 
+// ─── ANALYTICS ────────────────────────────────────────────────────────────────
+function haversine(a, b){
+  const R = 6371000;
+  let lat1 = a[0] * Math.PI / 180;
+  let lat2 = b[0] * Math.PI / 180;
+  let dlat = (b[0] - a[0]) * Math.PI / 180;
+  let dlon = (b[1] - a[1]) * Math.PI / 180;
+  let x = Math.sin(dlat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dlon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1-x));
 }
 
-function addMarker(r){
+function classifyMovement(records){
+  // Records sorted newest first; get last 10
+  let last10 = [...records].slice(0, 10);
+  let validPts = last10
+    .map(r => [parseFloat(r['Latitude']), parseFloat(r['Longitude'])])
+    .filter(ll => !isNaN(ll[0]) && !isNaN(ll[1]));
 
-let lat=parseFloat(r.Latitude);
-let lng=parseFloat(r.Longitude);
+  if(validPts.length < 2) return 'Settler';
 
-if(isNaN(lat)||isNaN(lng)) return;
+  // Max pairwise distance among last 10 to see spread
+  let maxSpread = 0;
+  for(let i = 0; i < validPts.length; i++){
+    for(let j = i+1; j < validPts.length; j++){
+      let d = haversine(validPts[i], validPts[j]);
+      if(d > maxSpread) maxSpread = d;
+    }
+  }
 
-let id=r["Animal ID"];
+  // Max displacement from release (oldest record = last in newest-first array)
+  let release = [
+    parseFloat(records[records.length-1]['Latitude']),
+    parseFloat(records[records.length-1]['Longitude'])
+  ];
+  let maxDisp = 0;
+  records.forEach(r => {
+    let pt = [parseFloat(r['Latitude']), parseFloat(r['Longitude'])];
+    if(!isNaN(pt[0])){
+      let d = haversine(release, pt);
+      if(d > maxDisp) maxDisp = d;
+    }
+  });
 
-let color=DEAD_IDS.includes(id)?"red":"blue";
-
-let icon=L.divIcon({
-className:"",
-html:`<div class="marker ${color}">${id}</div>`,
-iconSize:[28,28]
-});
-
-let m=L.marker([lat,lng],{icon}).addTo(map);
-
-m.bindPopup(`
-<b>Animal ID:</b> ${r["Animal ID"]}<br>
-<b>Timestamp:</b> ${r["Timestamp"]}<br>
-<b>Latitude:</b> ${r["Latitude"]}<br>
-<b>Longitude:</b> ${r["Longitude"]}<br>
-<b>Place:</b> ${r["Place"]}<br>
-<b>Activity:</b> ${r["Activity"]}<br>
-<b>Signal:</b> ${r["Signal Strength"]}<br>
-<b>Remarks:</b> ${r["Remarks"]||""}
-`);
-
-markers.push(m);
-oms.addMarker(m);
-
-markerMapping[id+"_"+r.Timestamp]=m;
-
-}
-
-function addRelease(r){
-
-let icon=L.divIcon({
-html:`<div class="star">⭐</div>`,
-iconSize:[20,20]
-});
-
-L.marker([r.Latitude,r.Longitude],{icon})
-.addTo(map)
-.bindPopup("Release Point");
-
-}
-
-function haversine(a,b){
-
-let R=6371000;
-
-let lat1=a[0]*Math.PI/180;
-let lat2=b[0]*Math.PI/180;
-
-let dlat=(b[0]-a[0])*Math.PI/180;
-let dlon=(b[1]-a[1])*Math.PI/180;
-
-let x=Math.sin(dlat/2)**2+
-Math.cos(lat1)*Math.cos(lat2)*Math.sin(dlon/2)**2;
-
-let c=2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
-
-return R*c;
-
+  if(maxDisp > 1500) return 'Disperser';
+  if(maxSpread > 300) return 'Explorer';
+  return 'Settler';
 }
 
 function computeAnalytics(id){
+  let rec = animalsData[id];
+  if(!rec || rec.length < 1) return;
 
-let rec=animalsData[id];
+  // Oldest record = release point
+  let ordered = [...rec].sort((a,b) => a._parsed - b._parsed);
+  let release = [parseFloat(ordered[0]['Latitude']), parseFloat(ordered[0]['Longitude'])];
+  let latest  = [parseFloat(rec[0]['Latitude']),     parseFloat(rec[0]['Longitude'])];
 
-if(rec.length<2) return;
+  if(isNaN(release[0]) || isNaN(latest[0])) return;
 
-let release=[rec[rec.length-1].Latitude,rec[rec.length-1].Longitude];
-let latest=[rec[0].Latitude,rec[0].Longitude];
+  let maxDisp = 0;
+  rec.forEach(r => {
+    let pt = [parseFloat(r['Latitude']), parseFloat(r['Longitude'])];
+    if(!isNaN(pt[0])){ let d = haversine(release, pt); if(d>maxDisp) maxDisp=d; }
+  });
 
-let max=0;
+  let currentDist = haversine(release, latest);
 
-rec.forEach(r=>{
-let d=haversine(release,[r.Latitude,r.Longitude]);
-if(d>max) max=d;
-});
+  let prevDist = 0;
+  if(rec.length >= 2){
+    let prev = [parseFloat(rec[1]['Latitude']), parseFloat(rec[1]['Longitude'])];
+    if(!isNaN(prev[0])) prevDist = haversine(prev, latest);
+  }
 
-let current=haversine(release,latest);
+  let movType = classifyMovement(rec);
 
-let prev=haversine(
-[rec[1].Latitude,rec[1].Longitude],
-latest
-);
-
-let type="Settler";
-
-if(max>1500) type="Disperser";
-else{
-
-let recent=rec.slice(0,10);
-
-let maxRecent=0;
-
-recent.forEach(r=>{
-let d=haversine(release,[r.Latitude,r.Longitude]);
-if(d>maxRecent) maxRecent=d;
-});
-
-if(maxRecent>300) type="Explorer";
-
+  let panel = document.getElementById('analyticsPanel');
+  panel.style.display = 'block';
+  panel.innerHTML = `
+    <b>Movement Analytics — ID ${id}</b><br>
+    Maximum displacement from release: <b>${Math.round(maxDisp)} m</b> &nbsp;|&nbsp;
+    Current distance from release: <b>${Math.round(currentDist)} m</b> &nbsp;|&nbsp;
+    Distance from previous fix: <b>${Math.round(prevDist)} m</b> &nbsp;|&nbsp;
+    Movement type: <b>${movType}</b>`;
 }
 
-let panel=document.getElementById("analyticsPanel");
-
-panel.style.display="block";
-
-panel.innerHTML=`
-<b>Movement Analytics — ID ${id}</b><br>
-Maximum displacement from release: ${Math.round(max)} m<br>
-Current distance from release: ${Math.round(current)} m<br>
-Distance from previous fix: ${Math.round(prev)} m<br>
-Movement type: ${type}
-`;
-
-}
-
+// ─── STATUS BAR ───────────────────────────────────────────────────────────────
 function updateStatus(){
-
-let latest=null;
-
-rawData.forEach(r=>{
-let d=parseDate(r.Timestamp);
-if(!latest||d>latest) latest=d;
-});
-
-document.getElementById("statusBar")
-.innerText="Latest Telemetry: "+formatDate(latest);
-
+  let latest = null;
+  rawData.forEach(r => {
+    let d = parseDate(r['Timestamp']);
+    if(!latest || d > latest) latest = d;
+  });
+  if(latest){
+    document.getElementById('statusBar').textContent =
+      '📡 Latest Telemetry: ' + formatDateTime(latest);
+  }
 }
 
-function renderTable(selected){
+// ─── TABLE ────────────────────────────────────────────────────────────────────
+function renderTable(selectedId){
+  let tbody = document.querySelector('#dataTable tbody');
+  tbody.innerHTML = '';
 
-let tbody=document.querySelector("#dataTable tbody");
+  let data = selectedId === 'all'
+    ? Object.values(latestRecords)
+    : (animalsData[selectedId] || []);
 
-tbody.innerHTML="";
+  // Sort newest first
+  data = [...data].sort((a,b) => b._parsed - a._parsed);
 
-let data=[];
+  data.forEach(r => {
+    let tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${r['Animal ID']}</td>
+      <td>${r['Timestamp']||''}</td>
+      <td>${r['Place']||''}</td>
+      <td>${r['Activity']||''}</td>
+      <td>${r['Signal Stength']||''}</td>
+      <td>${r['Latitude']||''}</td>
+      <td>${r['Longitude']||''}</td>
+      <td>${r['Remarks']||''}</td>`;
 
-if(selected==="all")
-data=Object.values(latestRecords);
-else
-data=animalsData[selected];
+    tr.onclick = function(){
+      let key = r['Animal ID'] + '_' + r['Timestamp'];
+      let m = markerMapping[key];
+      if(m){
+        map.setView(m.getLatLng(), 17);
+        m.openPopup();
+        oms.unspiderfy();
+      }
+    };
 
-data.sort((a,b)=>b.parsedDate-a.parsedDate);
-
-data.forEach(r=>{
-
-let tr=document.createElement("tr");
-
-tr.innerHTML=`
-<td>${r["Animal ID"]}</td>
-<td>${r["Timestamp"]}</td>
-<td>${r["Place"]}</td>
-<td>${r["Activity"]}</td>
-<td>${r["Signal Strength"]}</td>
-<td>${r["Latitude"]}</td>
-<td>${r["Longitude"]}</td>
-<td>${r["Remarks"]||""}</td>
-`;
-
-tr.onclick=function(){
-
-let key=r["Animal ID"]+"_"+r.Timestamp;
-
-let m=markerMapping[key];
-
-if(m){
-
-map.setView(m.getLatLng(),16);
-m.openPopup();
-
+    tbody.appendChild(tr);
+  });
 }
 
-};
-
-tbody.appendChild(tr);
-
-});
-
-}
-
-function loadUpdates(){
-
-Papa.parse(UPDATE_URL,{
-download:true,
-header:true,
-skipEmptyLines:true,
-
-complete:function(results){
-
-let rows=results.data;
-
-let container=document.getElementById("updatesContainer");
-
-rows.sort((a,b)=>parseDate(b.Date)-parseDate(a.Date));
-
-rows.forEach(r=>{
-
-if(!r.Date||!r.Update) return;
-
-let d=parseDate(r.Date);
-
-let div=document.createElement("div");
-
-div.className="update-item";
-
-div.innerHTML=`<b>${d.toLocaleDateString("en-GB")}</b><br>${r.Update}`;
-
-container.appendChild(div);
-
-});
-
-}
-
-});
-
-}
-
+// ─── FIELD PANEL ──────────────────────────────────────────────────────────────
 function toggleFieldPanel(){
-
-document.getElementById("fieldPanel").classList.toggle("open");
-
+  document.getElementById('fieldPanel').classList.toggle('open');
+  document.getElementById('panelOverlay').classList.toggle('open');
+}
+function closeFieldPanel(){
+  document.getElementById('fieldPanel').classList.remove('open');
+  document.getElementById('panelOverlay').classList.remove('open');
 }
 
-document.addEventListener("DOMContentLoaded",init);
-
+// ─── BOOT ─────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', init);
 </script>
 
 </body>
