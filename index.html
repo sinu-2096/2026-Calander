@@ -1,258 +1,455 @@
-const TMDB_API_KEY = "a79ea9637bb65cb4d287adf00192bd10";
-
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>2026 Ultimate Pop Culture & Sports Calendar</title>
+
+<meta charset="UTF-8">
+<title>Pali FT Hatchlings Telemetry Dashboard</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/OverlappingMarkerSpiderfier-Leaflet/0.2.6/oms.min.js"></script>
 
 <style>
-body {
-  margin: 0;
-  font-family: Inter, system-ui, sans-serif;
-  background: #121212;
-  color: #eaeaea;
+
+body{
+margin:0;
+font-family:Segoe UI,Arial;
+background:#f4f6f9;
+color:#333;
 }
 
-header {
-  padding: 16px;
-  text-align: center;
-  font-size: 1.4rem;
-  font-weight: 600;
-  color: #00eaff;
+header{
+height:70px;
+background:#2c3e50;
+color:white;
+display:flex;
+align-items:center;
+justify-content:center;
+position:relative;
 }
 
-.controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
-  padding: 10px;
+header h1{
+font-size:20px;
+margin:0;
 }
 
-.controls button {
-  background: #1f1f1f;
-  border: 1px solid #333;
-  color: #fff;
-  padding: 8px 14px;
-  border-radius: 6px;
-  cursor: pointer;
+.logo-left img{
+position:absolute;
+left:20px;
+height:42px;
 }
 
-.controls button.active {
-  background: #00eaff;
-  color: #000;
+.logo-right img{
+position:absolute;
+right:20px;
+height:42px;
 }
 
-.controls input {
-  background: #1f1f1f;
-  border: 1px solid #333;
-  color: #fff;
-  padding: 8px;
-  border-radius: 6px;
+.top-panel{
+display:flex;
+align-items:center;
+gap:15px;
+padding:10px 20px;
+background:white;
+border-bottom:1px solid #ddd;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 16px;
-  padding: 16px;
+select{
+padding:6px;
 }
 
-.card {
-  background: #1a1a1a;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 0 12px rgba(0,255,255,0.15);
-  transition: transform 0.2s;
+button{
+padding:6px 12px;
+background:#27ae60;
+border:none;
+color:white;
+border-radius:4px;
+cursor:pointer;
 }
 
-.card:hover {
-  transform: translateY(-4px);
+button:hover{
+background:#1f8d4e;
 }
 
-.card img {
-  width: 100%;
-  height: 240px;
-  object-fit: cover;
+.status-dot{
+width:8px;
+height:8px;
+background:#27ae60;
+border-radius:50%;
+display:inline-block;
+margin-right:5px;
+animation:blink 2s infinite;
 }
 
-.card-content {
-  padding: 10px;
+@keyframes blink{
+0%{opacity:1}
+50%{opacity:.2}
+100%{opacity:1}
 }
 
-.card-content h3 {
-  font-size: 0.95rem;
-  margin: 0 0 6px;
+.map-container{
+padding:20px;
 }
 
-.card-content p {
-  font-size: 0.75rem;
-  opacity: 0.8;
+#map{
+height:70vh;
+border-radius:8px;
+box-shadow:0 5px 15px rgba(0,0,0,0.2);
 }
 
-.movie { border-left: 4px solid cyan; }
-.anime { border-left: 4px solid purple; }
-.sports { border-left: 4px solid #00ff6a; }
-
-footer {
-  border-top: 1px solid #333;
-  padding: 16px;
-  text-align: center;
-  font-size: 0.75rem;
-  opacity: 0.8;
+.table-container{
+padding:20px;
 }
 
-footer img {
-  height: 30px;
-  margin-bottom: 8px;
+table{
+width:100%;
+border-collapse:collapse;
+background:white;
 }
+
+th{
+background:#2c3e50;
+color:white;
+padding:10px;
+}
+
+td{
+padding:8px;
+border-bottom:1px solid #eee;
+}
+
+tr:hover{
+background:#f1f1f1;
+}
+
+#updatesPanel{
+position:fixed;
+right:-350px;
+top:0;
+width:350px;
+height:100%;
+background:white;
+box-shadow:-5px 0 20px rgba(0,0,0,0.2);
+transition:0.3s;
+padding:20px;
+overflow-y:auto;
+}
+
+#updatesPanel.open{
+right:0;
+}
+
+.update-item{
+margin-bottom:15px;
+border-left:3px solid #27ae60;
+padding-left:10px;
+}
+
 </style>
+
 </head>
 
 <body>
 
-<header>2026 Ultimate Pop Culture & Sports Calendar</header>
+<header>
 
-<div class="controls">
-  <button class="active" data-filter="all">Show All</button>
-  <button data-filter="movie">Movies</button>
-  <button data-filter="anime">Anime</button>
-  <button data-filter="sports">Sports</button>
-  <input type="text" id="search" placeholder="Search events..." />
+<div class="logo-left">
+<img src="unnamed.png">
 </div>
 
-<div class="grid" id="grid"></div>
+<h1>🐊 Pali FT Hatchlings Telemetry Dashboard</h1>
 
-<footer>
-  <img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" />
-  <div>This product uses the TMDB API but is not endorsed or certified by TMDB.</div>
-  <div>Anime data provided by Jikan API.</div>
-</footer>
+<div class="logo-right">
+<img src="image.png">
+</div>
+
+</header>
+
+<div class="top-panel">
+
+<select id="animalFilter">
+<option value="all">All Hatchlings</option>
+</select>
+
+<button onclick="toggleUpdates()">Field Updates</button>
+
+<div>
+<span class="status-dot"></span>
+<span id="statusText">Loading telemetry...</span>
+</div>
+
+</div>
+
+<div class="map-container">
+<div id="map"></div>
+</div>
+
+<div class="table-container">
+
+<table id="dataTable">
+
+<thead>
+<tr>
+<th>Animal ID</th>
+<th>Timestamp</th>
+<th>Place</th>
+<th>Activity</th>
+<th>Signal</th>
+<th>Latitude</th>
+<th>Longitude</th>
+<th>Remarks</th>
+</tr>
+</thead>
+
+<tbody></tbody>
+
+</table>
+
+</div>
+
+<div id="updatesPanel">
+
+<h3>Field Updates</h3>
+<div id="updatesContent"></div>
+
+</div>
 
 <script>
-/* ============================
-   🔑 ADD YOUR TMDB API KEY HERE
-============================ */
-const TMDB_API_KEY = "PASTE_YOUR_TMDB_KEY_HERE";
 
-/* ============================
-   HARD-CODED SPORTS EVENTS
-============================ */
-const sportsEvents = [
-  {
-    title: "Winter Olympics 2026",
-    date: "2026-02-06 → 2026-02-22",
-    type: "sports",
-    poster: "https://upload.wikimedia.org/wikipedia/commons/5/5c/Olympic_rings_without_rims.svg"
-  },
-  {
-    title: "ICC T20 World Cup 2026 (India)",
-    date: "2026-02-08 → 2026-03-08",
-    type: "sports",
-    poster: "https://upload.wikimedia.org/wikipedia/commons/3/3b/Cricket_ball.svg"
-  },
-  {
-    title: "FIFA World Cup 2026",
-    date: "2026-06-11 → 2026-07-19",
-    type: "sports",
-    poster: "https://upload.wikimedia.org/wikipedia/commons/d/d3/FIFA_World_Cup_Logo.svg"
-  }
-];
+/* GOOGLE SHEET CSV LINKS */
 
-let allEvents = [];
+const TELEMETRY_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-f3JOwQZSlcBmpp4JO_Owut9JogW7KZYfJj5PONOc1TXE73xjvypZ1w6mWvvNzjFTaShiR6oYtzdt/pub?gid=0&single=true&output=csv";
 
-const grid = document.getElementById("grid");
-const searchInput = document.getElementById("search");
+const UPDATES_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-f3JOwQZSlcBmpp4JO_Owut9JogW7KZYfJj5PONOc1TXE73xjvypZ1w6mWvvNzjFTaShiR6oYtzdt/pub?gid=238985281&single=true&output=csv";
 
-/* ============================
-   FETCH MOVIES FROM TMDB
-============================ */
-async function fetchMovies() {
-  const url = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&primary_release_year=2026&sort_by=popularity.desc`;
-  const res = await fetch(url);
-  const data = await res.json();
+let map;
+let markerLayer;
+let oms;
 
-  return data.results.map(m => ({
-    title: m.title,
-    date: m.release_date,
-    type: "movie",
-    poster: m.poster_path
-      ? `https://image.tmdb.org/t/p/w500${m.poster_path}`
-      : ""
-  }));
+let telemetry=[];
+let animals={};
+
+/* INITIALIZE MAP */
+
+function init(){
+
+map=L.map("map").setView([25.84,76.56],13);
+
+L.tileLayer(
+"http://mt0.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
+).addTo(map);
+
+markerLayer=L.layerGroup().addTo(map);
+
+oms=new OverlappingMarkerSpiderfier(map);
+
+loadTelemetry();
+
 }
 
-/* ============================
-   FETCH ANIME FROM JIKAN
-============================ */
-async function fetchAnime() {
-  const res = await fetch("https://api.jikan.moe/v4/seasons/upcoming");
-  const data = await res.json();
+/* LOAD TELEMETRY */
 
-  return data.data.map(a => ({
-    title: a.title,
-    date: a.aired?.from?.slice(0,10) || "2026",
-    type: "anime",
-    poster: a.images.jpg.large_image_url
-  }));
+function loadTelemetry(){
+
+Papa.parse(TELEMETRY_CSV,{
+download:true,
+header:true,
+complete:function(res){
+
+telemetry=res.data;
+
+processData();
+
+renderDashboard("all");
+
+document.getElementById("statusText").textContent="Telemetry Loaded";
+
 }
-
-/* ============================
-   RENDER
-============================ */
-function render(filter = "all", query = "") {
-  grid.innerHTML = "";
-
-  allEvents
-    .filter(e => filter === "all" || e.type === filter)
-    .filter(e => e.title.toLowerCase().includes(query.toLowerCase()))
-    .sort((a,b) => new Date(a.date) - new Date(b.date))
-    .forEach(e => {
-      const card = document.createElement("div");
-      card.className = `card ${e.type}`;
-      card.innerHTML = `
-        <img src="${e.poster}" />
-        <div class="card-content">
-          <h3>${e.title}</h3>
-          <p>${e.date}</p>
-        </div>
-      `;
-      grid.appendChild(card);
-    });
-}
-
-/* ============================
-   INIT
-============================ */
-async function init() {
-  const movies = await fetchMovies();
-  const anime = await fetchAnime();
-
-  allEvents = [...movies, ...anime, ...sportsEvents];
-  render();
-}
-
-init();
-
-/* ============================
-   FILTERS & SEARCH
-============================ */
-document.querySelectorAll(".controls button").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".controls button").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    render(btn.dataset.filter, searchInput.value);
-  });
 });
 
-searchInput.addEventListener("input", e => {
-  const active = document.querySelector(".controls button.active").dataset.filter;
-  render(active, e.target.value);
+}
+
+/* PROCESS DATA */
+
+function processData(){
+
+animals={};
+
+telemetry.forEach(r=>{
+
+const id=r["Animal ID"];
+const lat=parseFloat(r["Latitude"]);
+const lon=parseFloat(r["Longitude"]);
+
+if(!id||isNaN(lat)||isNaN(lon)||lat===0) return;
+
+if(!animals[id]) animals[id]=[];
+
+animals[id].push(r);
+
 });
+
+populateDropdown();
+
+}
+
+/* DROPDOWN */
+
+function populateDropdown(){
+
+const select=document.getElementById("animalFilter");
+
+Object.keys(animals).forEach(id=>{
+
+const option=document.createElement("option");
+option.value=id;
+option.textContent=id;
+
+select.appendChild(option);
+
+});
+
+select.addEventListener("change",e=>{
+renderDashboard(e.target.value);
+});
+
+}
+
+/* RENDER DASHBOARD */
+
+function renderDashboard(id){
+
+markerLayer.clearLayers();
+
+if(id==="all"){
+
+Object.keys(animals).forEach(a=>{
+createMarker(animals[a][0]);
+});
+
+}else{
+
+animals[id].forEach(r=>createMarker(r));
+
+}
+
+renderTable(id);
+
+}
+
+/* CREATE MARKER */
+
+function createMarker(r){
+
+const lat=parseFloat(r["Latitude"]);
+const lon=parseFloat(r["Longitude"]);
+
+const marker=L.circleMarker([lat,lon],{
+radius:7,
+color:"#007bff",
+fillOpacity:0.8
+});
+
+marker.bindPopup(
+"<b>ID:</b> "+r["Animal ID"]+
+"<br><b>Place:</b> "+r["Place"]+
+"<br><b>Activity:</b> "+r["Activity"]
+);
+
+marker.addTo(markerLayer);
+
+oms.addMarker(marker);
+
+}
+
+/* RENDER TABLE */
+
+function renderTable(selected){
+
+const tbody=document.querySelector("#dataTable tbody");
+
+tbody.innerHTML="";
+
+let rows=[];
+
+if(selected==="all"){
+rows=telemetry;
+}else{
+rows=animals[selected];
+}
+
+rows.forEach(r=>{
+
+const signal=r["Signal Strength"]||r["Signal Stength"]||"";
+
+const tr=document.createElement("tr");
+
+tr.innerHTML=`
+<td>${r["Animal ID"]}</td>
+<td>${r["Timestamp"]}</td>
+<td>${r["Place"]}</td>
+<td>${r["Activity"]}</td>
+<td>${signal}</td>
+<td>${r["Latitude"]}</td>
+<td>${r["Longitude"]}</td>
+<td>${r["Remarks"]}</td>
+`;
+
+tbody.appendChild(tr);
+
+});
+
+}
+
+/* FIELD UPDATES */
+
+function toggleUpdates(){
+
+const panel=document.getElementById("updatesPanel");
+
+panel.classList.toggle("open");
+
+if(panel.classList.contains("open")){
+loadUpdates();
+}
+
+}
+
+function loadUpdates(){
+
+Papa.parse(UPDATES_CSV,{
+download:true,
+header:true,
+complete:function(res){
+
+const container=document.getElementById("updatesContent");
+
+container.innerHTML="";
+
+res.data.reverse().forEach(r=>{
+
+const div=document.createElement("div");
+
+div.className="update-item";
+
+div.innerHTML="<b>"+r["Date"]+"</b><br>"+r["Update"];
+
+container.appendChild(div);
+
+});
+
+}
+});
+
+}
+
+document.addEventListener("DOMContentLoaded",init);
+
 </script>
 
 </body>
 </html>
-
+```
