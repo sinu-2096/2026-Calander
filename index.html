@@ -18,70 +18,61 @@
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;}
 html,body{height:100%;overflow:hidden;}
 body{display:flex;flex-direction:column;background:#f0f2f5;color:#333;}
- 
+
 /* ── HEADER ── */
 header{
   background:var(--hdr);color:white;
   padding:9px 16px;
-  display:grid;grid-template-columns:auto 1fr auto;
-  align-items:center;gap:10px;flex-shrink:0;z-index:500;
+  position:relative;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;z-index:500;min-height:62px;
 }
-.hdr-logos{display:flex;align-items:center;gap:8px;}
+.hdr-logos{display:flex;align-items:center;gap:8px;flex-shrink:0;}
 header img{height:42px;object-fit:contain;}
-header h1{text-align:center;font-size:1.25rem;font-weight:700;line-height:1.3;}
-.hdr-right{display:flex;align-items:center;gap:10px;justify-content:flex-end;flex-wrap:wrap;}
- 
-/* ── LEGEND PILLS (clickable) ── */
-.legend-bar{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+
+/* PERFECTLY CENTERED TITLE — absolute so logos/legend don't push it */
+.hdr-title{
+  position:absolute;
+  left:50%;transform:translateX(-50%);
+  text-align:center;
+  font-size:1.25rem;font-weight:700;line-height:1.3;
+  white-space:nowrap;pointer-events:none;
+}
+
+.hdr-right{
+  display:flex;align-items:center;gap:8px;
+  flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;
+}
+
+/* ── LEGEND PILLS (counts only, clickable) ── */
+.legend-bar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
 .legend-pill{
-  display:flex;align-items:center;gap:5px;
-  padding:4px 10px;border-radius:20px;
+  display:flex;align-items:center;gap:4px;
+  padding:3px 9px;border-radius:20px;
   border:2px solid transparent;
-  cursor:pointer;font-size:0.8rem;
-  transition:background .18s, border-color .18s, transform .1s;
-  user-select:none;
-  background:rgba(255,255,255,0.08);
+  cursor:pointer;font-size:0.78rem;
+  transition:background .18s,border-color .18s,transform .1s;
+  user-select:none;background:rgba(255,255,255,0.08);
 }
 .legend-pill:hover{background:rgba(255,255,255,0.18);transform:scale(1.04);}
-.legend-pill.active-filter{
-  border-color:white;
-  background:rgba(255,255,255,0.22);
-  box-shadow:0 0 0 1px rgba(255,255,255,0.4);
-}
-.ldot{width:11px;height:11px;border-radius:50%;flex-shrink:0;
+.legend-pill.active-filter{border-color:white;background:rgba(255,255,255,0.22);}
+.ldot{width:10px;height:10px;border-radius:50%;flex-shrink:0;
   border:2px solid rgba(255,255,255,0.5);box-shadow:0 0 3px rgba(0,0,0,0.35);}
 .ldot-blue  {background:var(--blue);}
 .ldot-red   {background:var(--red);}
 .ldot-orange{background:var(--orange);}
 .ldot-grey  {background:var(--grey);}
-.lcount{
-  background:rgba(255,255,255,0.22);
-  border-radius:10px;padding:0 6px;
-  font-weight:700;font-size:0.76rem;
-  min-width:18px;text-align:center;
-}
-.filter-tag{
-  display:none;
-  background:#e8f4fd;color:#1a2a3a;
-  border-radius:4px;padding:3px 10px;
-  font-size:0.82rem;font-weight:600;
-  border:1px solid #b8d9f0;
-  align-items:center;gap:6px;
-}
-.filter-tag.visible{display:flex;}
-.filter-tag button{
-  background:none;border:none;cursor:pointer;
-  font-size:1rem;color:#555;line-height:1;padding:0 2px;
-}
- 
+.lcount{background:rgba(255,255,255,0.22);border-radius:10px;padding:0 6px;
+  font-weight:700;font-size:0.74rem;min-width:16px;text-align:center;}
+
 .field-btn{
-  padding:6px 13px;background:#2c3e50;color:white;
+  padding:6px 12px;background:#2c3e50;color:white;
   border:none;border-radius:5px;cursor:pointer;
-  font-size:0.86rem;font-weight:600;white-space:nowrap;
-  transition:background .2s;
+  font-size:0.84rem;font-weight:600;white-space:nowrap;
+  transition:background .2s;flex-shrink:0;
 }
 .field-btn:hover{background:#3d5166;}
- 
+
 /* ── TOP PANEL ── */
 .top-panel{
   background:white;padding:7px 16px;
@@ -89,11 +80,25 @@ header h1{text-align:center;font-size:1.25rem;font-weight:700;line-height:1.3;}
   display:flex;align-items:center;gap:12px;flex-wrap:wrap;
   flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,0.06);
 }
-.filter-group{display:flex;align-items:center;gap:7px;}
-.filter-group label{font-weight:600;font-size:0.87rem;color:#555;}
-.filter-group select{padding:5px 10px;border:1px solid var(--border);
-  border-radius:5px;font-size:0.87rem;background:#fafafa;cursor:pointer;}
- 
+.filter-group{display:flex;align-items:center;gap:6px;}
+.filter-group label{font-weight:600;font-size:0.85rem;color:#555;white-space:nowrap;}
+.filter-group select{
+  padding:5px 9px;border:1px solid var(--border);
+  border-radius:5px;font-size:0.85rem;background:#fafafa;cursor:pointer;
+}
+.filter-divider{width:1px;height:24px;background:#ddd;margin:0 4px;}
+
+/* active filter badge */
+.active-filters{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-left:auto;}
+.filter-chip{
+  display:flex;align-items:center;gap:5px;
+  background:#e8f4fd;color:#1a2a3a;
+  border:1px solid #b8d9f0;border-radius:12px;
+  padding:2px 9px;font-size:0.78rem;font-weight:600;
+}
+.filter-chip button{background:none;border:none;cursor:pointer;font-size:0.9rem;
+  color:#555;line-height:1;padding:0 1px;}
+
 /* ── ANALYTICS ── */
 .analytics-panel{
   display:none;
@@ -102,18 +107,18 @@ header h1{text-align:center;font-size:1.25rem;font-weight:700;line-height:1.3;}
   font-size:0.87rem;line-height:1.9;flex-shrink:0;
 }
 .analytics-panel b{color:#7d5800;}
- 
+
 /* ── STATUS BAR ── */
 .status-bar{
   background:#ecf0f1;padding:5px 16px;
   font-size:0.82rem;color:#555;
   border-bottom:1px solid var(--border);flex-shrink:0;
 }
- 
+
 /* ── MAP ── */
 .map-container{flex:1;min-height:0;overflow:hidden;position:relative;}
 #map{width:100%;height:100%;}
- 
+
 /* ── TABLE SECTION ── */
 .table-section{
   display:flex;flex-direction:column;
@@ -145,16 +150,18 @@ header h1{text-align:center;font-size:1.25rem;font-weight:700;line-height:1.3;}
 .telemetry-table td{padding:7px 11px;border-bottom:1px solid #eee;text-align:left;white-space:nowrap;}
 .telemetry-table th{background:var(--hdr);color:white;position:sticky;top:0;z-index:1;}
 .telemetry-table tbody tr:hover{background:#dce8f5;cursor:pointer;}
-.sig-strong   {color:#27ae60;font-weight:600;}
-.sig-medium   {color:#e67e22;font-weight:600;}
-.sig-weak     {color:#e74c3c;font-weight:600;}
- 
+.sig-strong{color:#27ae60;font-weight:600;}
+.sig-medium{color:#e67e22;font-weight:600;}
+.sig-weak  {color:#e74c3c;font-weight:600;}
 .badge{display:inline-block;padding:1px 7px;border-radius:10px;
   font-size:0.72rem;font-weight:700;color:white;vertical-align:middle;}
 .badge-tmiss{background:var(--orange);}
 .badge-gone {background:var(--grey);}
 .badge-dead {background:var(--red);}
- 
+.badge-active{background:var(--blue);}
+.badge-settler{background:#8e44ad;}
+.badge-explorer{background:#16a085;}
+
 /* ── MARKERS ── */
 .animal-marker{
   border-radius:50%;display:flex;align-items:center;justify-content:center;
@@ -166,14 +173,14 @@ header h1{text-align:center;font-size:1.25rem;font-weight:700;line-height:1.3;}
 .mk-red   {background:var(--red);}
 .mk-orange{background:var(--orange);}
 .mk-grey  {background:var(--grey);}
-.star-lbl {font-size:20px;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.5));}
- 
+.star-lbl{font-size:20px;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.5));}
+
 /* ── POPUP ── */
 .popup-id{font-size:1rem;font-weight:700;color:var(--hdr);margin-bottom:6px;}
 .popup-tbl{border-collapse:collapse;font-size:0.86rem;min-width:210px;}
 .popup-tbl td{padding:3px 6px;border-bottom:1px solid #f0f0f0;vertical-align:top;}
 .popup-tbl td:first-child{font-weight:600;color:#444;white-space:nowrap;padding-right:10px;}
- 
+
 /* ── FIELD PANEL ── */
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:1099;}
 .overlay.open{display:block;}
@@ -203,58 +210,86 @@ header h1{text-align:center;font-size:1.25rem;font-weight:700;line-height:1.3;}
 </style>
 </head>
 <body>
- 
+
 <header>
   <div class="hdr-logos">
     <img src="image.png" alt="Logo 1">
     <img src="unnamed.png" alt="Logo 2">
   </div>
-  <h1>🐊 Pali FT Hatchlings Telemetry Dashboard</h1>
+
+  <!-- Absolutely centered title -->
+  <div class="hdr-title">🐊 Pali FT Hatchlings Telemetry Dashboard</div>
+
   <div class="hdr-right">
     <div class="legend-bar">
-      <div class="legend-pill" id="pill-active" onclick="toggleCategoryFilter('active')" title="Click to filter active animals">
-        <div class="ldot ldot-blue"></div>
-        <span>Active</span>
+      <div class="legend-pill" id="pill-active"  onclick="setPillFilter('active')"  title="Show Active">
+        <div class="ldot ldot-blue"></div><span>Active</span>
         <span class="lcount" id="countActive">—</span>
       </div>
-      <div class="legend-pill" id="pill-dead" onclick="toggleCategoryFilter('dead')" title="Click to filter dead/missing">
-        <div class="ldot ldot-red"></div>
-        <span>Dead/Missing</span>
+      <div class="legend-pill" id="pill-dead"   onclick="setPillFilter('dead')"   title="Show Dead/Missing">
+        <div class="ldot ldot-red"></div><span>Dead/Missing</span>
         <span class="lcount" id="countDead">—</span>
       </div>
-      <div class="legend-pill" id="pill-tmiss" onclick="toggleCategoryFilter('tmiss')" title="Click to filter temp missing">
-        <div class="ldot ldot-orange"></div>
-        <span>Temp Missing</span>
+      <div class="legend-pill" id="pill-tmiss"  onclick="setPillFilter('tmiss')"  title="Show Temp Missing">
+        <div class="ldot ldot-orange"></div><span>Temp Missing</span>
         <span class="lcount" id="countTmiss">—</span>
       </div>
-      <div class="legend-pill" id="pill-gone" onclick="toggleCategoryFilter('gone')" title="Click to filter gone >30d">
-        <div class="ldot ldot-grey"></div>
-        <span>Gone &gt;30d</span>
+      <div class="legend-pill" id="pill-gone"   onclick="setPillFilter('gone')"   title="Show Gone >30d">
+        <div class="ldot ldot-grey"></div><span>Gone &gt;30d</span>
         <span class="lcount" id="countGone">—</span>
       </div>
     </div>
     <button class="field-btn" onclick="toggleFP()">📋 Field Updates</button>
   </div>
 </header>
- 
-<div class="top-panel">
+
+<!-- FILTER BAR -->
+<div class="top-panel" id="topPanel">
+  <!-- Animal ID -->
   <div class="filter-group">
-    <label for="animalFilter">Select Animal</label>
-    <select id="animalFilter"><option value="all">All Animals</option></select>
+    <label for="animalFilter">Animal ID</label>
+    <select id="animalFilter">
+      <option value="all">All Animals</option>
+    </select>
   </div>
-  <div class="filter-tag" id="filterTag">
-    <span id="filterTagLabel"></span>
-    <button onclick="clearCategoryFilter()" title="Clear filter">✕</button>
+
+  <div class="filter-divider"></div>
+
+  <!-- Status -->
+  <div class="filter-group">
+    <label for="statusFilter">Status</label>
+    <select id="statusFilter">
+      <option value="all">All</option>
+      <option value="active">Active</option>
+      <option value="dead">Dead / Missing</option>
+      <option value="tmiss">Temp Missing</option>
+      <option value="gone">Gone &gt;30d</option>
+    </select>
   </div>
+
+  <div class="filter-divider"></div>
+
+  <!-- Category -->
+  <div class="filter-group">
+    <label for="categoryFilter">Category</label>
+    <select id="categoryFilter">
+      <option value="all">All</option>
+      <option value="settler">Settler</option>
+      <option value="explorer">Explorer</option>
+    </select>
+  </div>
+
+  <!-- Active filter chips -->
+  <div class="active-filters" id="activeFilters"></div>
 </div>
- 
+
 <div class="analytics-panel" id="analyticsPanel"></div>
 <div class="status-bar" id="statusBar">📡 Latest Telemetry: loading…</div>
- 
+
 <div class="map-container">
   <div id="map"></div>
 </div>
- 
+
 <div class="table-section" id="tableSection">
   <div class="resize-handle" id="resizeHandle"></div>
   <div class="table-header-row">
@@ -266,7 +301,7 @@ header h1{text-align:center;font-size:1.25rem;font-weight:700;line-height:1.3;}
       <thead>
         <tr>
           <th>Animal ID</th><th>Timestamp</th><th>Place</th>
-          <th>Activity</th><th>Signal</th><th>Status</th>
+          <th>Activity</th><th>Signal</th><th>Status</th><th>Category</th>
           <th>Latitude</th><th>Longitude</th><th>Remarks</th>
         </tr>
       </thead>
@@ -274,7 +309,7 @@ header h1{text-align:center;font-size:1.25rem;font-weight:700;line-height:1.3;}
     </table>
   </div>
 </div>
- 
+
 <div class="overlay" id="overlay" onclick="closeFP()"></div>
 <div class="field-panel" id="fieldPanel">
   <div class="fp-hdr">
@@ -291,134 +326,159 @@ header h1{text-align:center;font-size:1.25rem;font-weight:700;line-height:1.3;}
     <div id="fuList"></div>
   </div>
 </div>
- 
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/OverlappingMarkerSpiderfier-Leaflet/0.2.6/oms.min.js"></script>
- 
+
 <script>
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CSV_URL    = 'https://docs.google.com/spreadsheets/d/10maxgDHDOISlVaN3kuc0_BjxOwPVysci5AiFL-WAxoQ/export?format=csv&gid=0';
 const UPDATE_URL = 'https://docs.google.com/spreadsheets/d/10maxgDHDOISlVaN3kuc0_BjxOwPVysci5AiFL-WAxoQ/export?format=csv&gid=238985281';
 const MAP_CENTER = [25.84, 76.56];
 const MAP_ZOOM   = 13;
- 
-const DEAD_IDS    = new Set(['30','33','34','38','96','64','98']);
+const TODAY      = new Date();
+const DEFAULT_ROWS = 5;
+
+// Confirmed dead / missing
+const DEAD_IDS = new Set(['30','33','34','38','96','64','98']);
+
+// Researcher-defined Settlers
 const SETTLER_IDS = new Set(['32','35','84','92','90','88','72','74','66',
                               '76','37','36','31','68','86','78','94','39','62','70']);
+
+// Explorers = active animals not in SETTLER_IDS (computed after data loads)
+// We'll identify them dynamically
+
 const TEMP_MISSING_DAYS = 10;
 const GONE_DAYS         = 30;
-const TODAY             = new Date();
-const DEFAULT_ROWS      = 5;
- 
+
 // ── STATE ─────────────────────────────────────────────────────────────────────
 let map, oms;
 let rawData        = [];
 let animalsData    = {};
 let latestRecords  = {};
-let statusMap      = {};
+let statusMap      = {};     // id → 'active'|'dead'|'tmiss'|'gone'
+let categoryMapFn  = {};     // id → 'settler'|'explorer'|'dead'
 let markers        = [];
 let markerMapping  = {};
 let trackLayers    = [];
 let allTableRows   = [];
 let tableExpanded  = false;
-let categoryFilter = null;   // null | 'active' | 'dead' | 'tmiss' | 'gone'
 let justSpiderfied = false;
- 
+
+// Current filter state
+let f_animal   = 'all';
+let f_status   = 'all';
+let f_category = 'all';
+
 // ── BOOT ──────────────────────────────────────────────────────────────────────
 function init(){
   initMap();
   initResize();
   loadTelemetry();
   loadFieldUpdates();
-  document.getElementById('animalFilter')
-    .addEventListener('change', e => {
-      clearCategoryFilterSilent();
-      updateDashboard(e.target.value);
-    });
+
+  document.getElementById('animalFilter').addEventListener('change', e => {
+    f_animal = e.target.value;
+    syncPillsToStatus('all');
+    document.getElementById('statusFilter').value   = 'all';
+    document.getElementById('categoryFilter').value = 'all';
+    f_status   = 'all';
+    f_category = 'all';
+    applyFilters();
+  });
+  document.getElementById('statusFilter').addEventListener('change', e => {
+    f_status = e.target.value;
+    f_animal = 'all';
+    document.getElementById('animalFilter').value = 'all';
+    syncPillsToStatus(f_status);
+    applyFilters();
+  });
+  document.getElementById('categoryFilter').addEventListener('change', e => {
+    f_category = e.target.value;
+    f_animal   = 'all';
+    document.getElementById('animalFilter').value = 'all';
+    syncPillsToStatus('all');
+    applyFilters();
+  });
 }
- 
+
 // ── MAP ───────────────────────────────────────────────────────────────────────
 function initMap(){
   map = L.map('map').setView(MAP_CENTER, MAP_ZOOM);
   L.tileLayer('http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',{
     maxZoom:20, attribution:'© Google'
   }).addTo(map);
- 
-  // Larger nearbyDistance so ALL visually-overlapping markers join one spiderfy group.
-  // circleFootSeparation / spiral params kept wide so the spread is clear.
+
+  // ── OMS: large nearbyDistance catches ALL visually overlapping markers ───────
   oms = new OverlappingMarkerSpiderfier(map, {
     keepSpiderfied         : true,
-    nearbyDistance         : 35,          // px — catch all tightly grouped markers
-    circleSpiralSwitchover : 9,           // use circle up to 9 markers, spiral after
-    circleFootSeparation   : 52,
-    spiralFootSeparation   : 36,
-    spiralLengthStart      : 24,
+    nearbyDistance         : 40,      // px — wide enough to catch tight clusters
+    circleSpiralSwitchover : 12,      // circle layout up to 12, spiral beyond
+    circleFootSeparation   : 58,      // wide circle spread
+    spiralFootSeparation   : 38,
+    spiralLengthStart      : 26,
     spiralLengthFactor     : 7,
     legWeight              : 2.5,
     legColors              : { usual:'#FFD700', highlighted:'#FF8800' }
   });
- 
-  // First click on overlapping group → spiderfy only, no popup
+
+  // Spiderfy → block popup on first click, only spread markers
   oms.addListener('spiderfy', function(spiderfied){
     justSpiderfied = true;
-    spiderfied.forEach(m => m.closePopup && m.closePopup());
-    setTimeout(() => { justSpiderfied = false; }, 400);
+    spiderfied.forEach(m => { try{ m.closePopup(); }catch(e){} });
+    setTimeout(() => { justSpiderfied = false; }, 450);
   });
 }
- 
+
 // ── RESIZE ────────────────────────────────────────────────────────────────────
 function initResize(){
   const handle  = document.getElementById('resizeHandle');
   const section = document.getElementById('tableSection');
-  let drag=false, startY=0, startH=0;
-  const onStart = y => { drag=true; startY=y; startH=section.offsetHeight; document.body.style.cursor='ns-resize'; };
-  const onMove  = y => {
+  let drag=false,startY=0,startH=0;
+  const onStart=y=>{drag=true;startY=y;startH=section.offsetHeight;document.body.style.cursor='ns-resize';};
+  const onMove =y=>{
     if(!drag) return;
-    const newH = Math.min(Math.max(55, startH+(startY-y)), window.innerHeight*0.70);
-    section.style.height = newH+'px';
+    section.style.height=Math.min(Math.max(55,startH+(startY-y)),window.innerHeight*.70)+'px';
   };
-  const onEnd = () => { drag=false; document.body.style.cursor=''; };
-  handle.addEventListener('mousedown',  e => { onStart(e.clientY); e.preventDefault(); });
-  document.addEventListener('mousemove',e => onMove(e.clientY));
+  const onEnd=()=>{drag=false;document.body.style.cursor='';};
+  handle.addEventListener('mousedown', e=>{onStart(e.clientY);e.preventDefault();});
+  document.addEventListener('mousemove',e=>onMove(e.clientY));
   document.addEventListener('mouseup',  onEnd);
-  handle.addEventListener('touchstart', e => onStart(e.touches[0].clientY), {passive:true});
-  document.addEventListener('touchmove',e => { if(drag) onMove(e.touches[0].clientY); },{passive:true});
-  document.addEventListener('touchend', onEnd);
+  handle.addEventListener('touchstart', e=>onStart(e.touches[0].clientY),{passive:true});
+  document.addEventListener('touchmove', e=>{if(drag)onMove(e.touches[0].clientY);},{passive:true});
+  document.addEventListener('touchend',  onEnd);
 }
- 
-// ── DATA LOADING ──────────────────────────────────────────────────────────────
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
 function loadTelemetry(){
   Papa.parse(CSV_URL,{
-    download:true, header:true, skipEmptyLines:true,
+    download:true,header:true,skipEmptyLines:true,
     complete(results){
-      rawData = results.data;
+      rawData=results.data;
       processData();
       populateDropdown();
-      updateDashboard('all');
+      applyFilters();
       updateStatus();
     }
   });
 }
- 
+
 function loadFieldUpdates(){
   Papa.parse(UPDATE_URL,{
-    download:true, header:true, skipEmptyLines:true,
+    download:true,header:true,skipEmptyLines:true,
     complete(results){
-      let rows = results.data.filter(r => (r['Date']||'').trim());
-      rows.sort((a,b) => parseDT(b['Date'])-parseDT(a['Date']));
+      let rows=results.data.filter(r=>(r['Date']||'').trim());
+      rows.sort((a,b)=>parseDT(b['Date'])-parseDT(a['Date']));
       if(!rows.length) return;
-      const lat = rows[0];
-      document.getElementById('latestFuDate').textContent = fmtDateOnly(parseDT(lat['Date']));
-      document.getElementById('latestFuText').textContent = lat['Update']||'';
-      const list = document.getElementById('fuList');
-      if(rows.length<=1){
-        list.innerHTML='<p style="color:#bbb;font-size:.84rem;">No previous updates.</p>';
-        return;
-      }
+      const lat=rows[0];
+      document.getElementById('latestFuDate').textContent=fmtDateOnly(parseDT(lat['Date']));
+      document.getElementById('latestFuText').textContent=lat['Update']||'';
+      const list=document.getElementById('fuList');
+      if(rows.length<=1){list.innerHTML='<p style="color:#bbb;font-size:.84rem;">No previous updates.</p>';return;}
       rows.slice(1).forEach(r=>{
-        const d=document.createElement('div');
-        d.className='fu-item';
+        const d=document.createElement('div');d.className='fu-item';
         d.innerHTML=`<div class="fu-date">${fmtDateOnly(parseDT(r['Date']))}</div>
                      <div class="fu-text">${r['Update']||''}</div>`;
         list.appendChild(d);
@@ -426,14 +486,13 @@ function loadFieldUpdates(){
     }
   });
 }
- 
-// ── PROCESS ───────────────────────────────────────────────────────────────────
+
 function processData(){
-  animalsData={}; latestRecords={}; statusMap={};
+  animalsData={};latestRecords={};statusMap={};categoryMapFn={};
   rawData.forEach(row=>{
     const id=(row['Animal ID']||'').trim();
     if(!id) return;
-    row._id=id; row._parsed=parseDT(row['Timestamp']);
+    row._id=id;row._parsed=parseDT(row['Timestamp']);
     if(!animalsData[id]) animalsData[id]=[];
     animalsData[id].push(row);
   });
@@ -441,19 +500,29 @@ function processData(){
     animalsData[id].sort((a,b)=>b._parsed-a._parsed);
     latestRecords[id]=animalsData[id][0];
   }
-  for(const id in latestRecords) statusMap[id]=computeStatus(id, latestRecords[id]);
+  // Status & category
+  for(const id in latestRecords){
+    statusMap[id]=computeStatus(id,latestRecords[id]);
+    categoryMapFn[id]=computeCategory(id);
+  }
   updateCounts();
 }
- 
-// ── STATUS ────────────────────────────────────────────────────────────────────
-function computeStatus(id, rec){
+
+// ── COMPUTE STATUS & CATEGORY ─────────────────────────────────────────────────
+function computeStatus(id,rec){
   if(DEAD_IDS.has(id)) return 'dead';
   const days=(TODAY-rec._parsed)/86400000;
   if(days>GONE_DAYS)         return 'gone';
   if(days>TEMP_MISSING_DAYS) return 'tmiss';
   return 'active';
 }
- 
+
+function computeCategory(id){
+  if(DEAD_IDS.has(id)) return 'dead';
+  if(SETTLER_IDS.has(id)) return 'settler';
+  return 'explorer'; // everything else that's not dead is explorer
+}
+
 function updateCounts(){
   let nA=0,nD=0,nT=0,nG=0;
   for(const id in statusMap){
@@ -468,95 +537,119 @@ function updateCounts(){
   document.getElementById('countTmiss').textContent=nT;
   document.getElementById('countGone').textContent=nG;
 }
- 
+
+// ── STATUS BADGES ─────────────────────────────────────────────────────────────
 function statusLabel(s){
-  if(s==='dead')  return '<span class="badge badge-dead">Dead/Missing</span>';
-  if(s==='tmiss') return '<span class="badge badge-tmiss">Temp Missing</span>';
-  if(s==='gone')  return '<span class="badge badge-gone">Gone &gt;30d</span>';
-  return '<span style="color:#27ae60;font-size:.78rem;font-weight:600;">Active</span>';
+  if(s==='dead')   return '<span class="badge badge-dead">Dead/Missing</span>';
+  if(s==='tmiss')  return '<span class="badge badge-tmiss">Temp Missing</span>';
+  if(s==='gone')   return '<span class="badge badge-gone">Gone &gt;30d</span>';
+  return '<span class="badge badge-active">Active</span>';
 }
- 
-// ── CATEGORY FILTER (legend pills) ────────────────────────────────────────────
-const CATEGORY_LABELS = {
-  active:'Active Animals',
-  dead:'Dead / Missing',
-  tmiss:'Temporarily Missing (>10d)',
-  gone:'Gone >30 Days'
-};
- 
-function toggleCategoryFilter(cat){
-  // If already active → clear
-  if(categoryFilter===cat){ clearCategoryFilter(); return; }
-  categoryFilter=cat;
- 
-  // Reset animal dropdown to "all"
+function categoryLabel(cat){
+  if(cat==='settler')  return '<span class="badge badge-settler">Settler</span>';
+  if(cat==='explorer') return '<span class="badge badge-explorer">Explorer</span>';
+  return '';
+}
+
+// ── PILL SYNC ─────────────────────────────────────────────────────────────────
+function syncPillsToStatus(s){
+  document.querySelectorAll('.legend-pill').forEach(p=>p.classList.remove('active-filter'));
+  if(s!=='all') document.getElementById('pill-'+s)?.classList.add('active-filter');
+}
+
+function setPillFilter(cat){
+  // Clicking a pill sets the status dropdown
+  const sel=document.getElementById('statusFilter');
+  if(f_status===cat){ sel.value='all'; f_status='all'; syncPillsToStatus('all'); }
+  else { sel.value=cat; f_status=cat; syncPillsToStatus(cat); }
+  f_animal='all';
   document.getElementById('animalFilter').value='all';
+  document.getElementById('categoryFilter').value='all';
+  f_category='all';
+  applyFilters();
+}
+
+// ── APPLY FILTERS (central routing) ──────────────────────────────────────────
+function applyFilters(){
+  clearMap();
   document.getElementById('analyticsPanel').style.display='none';
- 
-  // Highlight pill
-  document.querySelectorAll('.legend-pill').forEach(p=>p.classList.remove('active-filter'));
-  document.getElementById('pill-'+cat).classList.add('active-filter');
- 
-  // Show tag
-  const tag=document.getElementById('filterTag');
-  tag.classList.add('visible');
-  document.getElementById('filterTagLabel').textContent='Showing: '+CATEGORY_LABELS[cat];
- 
-  renderMapFiltered(cat);
-  renderTableFiltered(cat);
+  updateFilterChips();
+
+  // Single animal selected → show full track, ignore status/category
+  if(f_animal!=='all'){
+    renderSingleAnimal(f_animal);
+    renderTableRows(animalsData[f_animal]||[]);
+    return;
+  }
+
+  // Multi-animal: apply status + category filters on latest records
+  const pool=getFilteredPool();
+  renderPoolOnMap(pool);
+  renderTableRows(pool);
 }
- 
-function clearCategoryFilter(){
-  clearCategoryFilterSilent();
-  updateDashboard('all');
+
+function getFilteredPool(){
+  return Object.values(latestRecords).filter(r=>{
+    const id=r._id;
+    if(f_status!=='all'   && statusMap[id]!==f_status)       return false;
+    if(f_category!=='all' && categoryMapFn[id]!==f_category) return false;
+    return true;
+  });
 }
- 
-function clearCategoryFilterSilent(){
-  categoryFilter=null;
-  document.querySelectorAll('.legend-pill').forEach(p=>p.classList.remove('active-filter'));
-  document.getElementById('filterTag').classList.remove('visible');
+
+function updateFilterChips(){
+  const el=document.getElementById('activeFilters');
+  el.innerHTML='';
+  if(f_status!=='all'){
+    const labels={active:'Active',dead:'Dead/Missing',tmiss:'Temp Missing',gone:'Gone >30d'};
+    const chip=makeChip('Status: '+labels[f_status],()=>{
+      document.getElementById('statusFilter').value='all';
+      f_status='all'; syncPillsToStatus('all'); applyFilters();
+    });
+    el.appendChild(chip);
+  }
+  if(f_category!=='all'){
+    const labels={settler:'Category: Settler',explorer:'Category: Explorer'};
+    const chip=makeChip(labels[f_category],()=>{
+      document.getElementById('categoryFilter').value='all';
+      f_category='all'; applyFilters();
+    });
+    el.appendChild(chip);
+  }
+  if(f_animal!=='all'){
+    const chip=makeChip('Animal: ID '+f_animal,()=>{
+      document.getElementById('animalFilter').value='all';
+      f_animal='all'; applyFilters();
+    });
+    el.appendChild(chip);
+  }
 }
- 
-// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+
+function makeChip(label,onClose){
+  const div=document.createElement('div');
+  div.className='filter-chip';
+  div.innerHTML=`<span>${label}</span><button title="Clear">✕</button>`;
+  div.querySelector('button').onclick=onClose;
+  return div;
+}
+
+// ── MAP RENDERING ─────────────────────────────────────────────────────────────
 function clearMap(){
   markers.forEach(m=>map.removeLayer(m));
   markers=[]; markerMapping={};
   trackLayers.forEach(l=>map.removeLayer(l));
   trackLayers=[];
 }
- 
-function updateDashboard(sid){
-  clearMap();
-  document.getElementById('analyticsPanel').style.display='none';
-  if(sid==='all'){
-    renderMapAll();
-    renderTable('all');
-  } else {
-    renderMapSingle(sid);
-    renderTable(sid);
-  }
-}
- 
-// ── MAP: ALL ANIMALS ──────────────────────────────────────────────────────────
-function renderMapAll(){
-  for(const id in latestRecords) addMarker(latestRecords[id]);
-}
- 
-// ── MAP: CATEGORY FILTER ──────────────────────────────────────────────────────
-function renderMapFiltered(cat){
-  clearMap();
-  const filtered = Object.values(latestRecords).filter(r=>statusMap[r._id]===cat);
-  filtered.forEach(r=>addMarker(r));
-  if(filtered.length>0){
-    const lls=filtered
-      .map(r=>[parseFloat(r['Latitude']),parseFloat(r['Longitude'])])
-      .filter(ll=>!isNaN(ll[0])&&!isNaN(ll[1]));
+
+function renderPoolOnMap(pool){
+  pool.forEach(r=>addMarker(r));
+  if(pool.length>0){
+    const lls=pool.map(r=>[parseFloat(r['Latitude']),parseFloat(r['Longitude'])]).filter(ll=>!isNaN(ll[0])&&!isNaN(ll[1]));
     if(lls.length>0) map.fitBounds(L.latLngBounds(lls),{padding:[60,60]});
   }
 }
- 
-// ── MAP: SINGLE ANIMAL ────────────────────────────────────────────────────────
-function renderMapSingle(sid){
+
+function renderSingleAnimal(sid){
   const records=animalsData[sid]||[];
   if(!records.length) return;
   const ordered=[...records].sort((a,b)=>a._parsed-b._parsed);
@@ -572,35 +665,32 @@ function renderMapSingle(sid){
   if(lls.length) map.fitBounds(L.latLngBounds(lls),{padding:[50,50]});
   computeAnalytics(sid,records,ordered);
 }
- 
-// ── MARKER ────────────────────────────────────────────────────────────────────
+
 function mkIcon(id){
   const s=statusMap[id]||'active';
-  const cls = s==='dead'?'mk-red': s==='tmiss'?'mk-orange': s==='gone'?'mk-grey':'mk-blue';
-  return L.divIcon({
-    className:'animal-marker '+cls,
-    html:id, iconSize:[28,28], iconAnchor:[14,14]
-  });
+  const cls=s==='dead'?'mk-red':s==='tmiss'?'mk-orange':s==='gone'?'mk-grey':'mk-blue';
+  return L.divIcon({className:'animal-marker '+cls,html:id,iconSize:[28,28],iconAnchor:[14,14]});
 }
- 
+
 function popupHTML(r){
   const sig=getSignal(r);
-  const cls=sigClass(sig);
   const id=r['Animal ID'];
   const s=statusMap[id]||'active';
+  const cat=categoryMapFn[id]||'';
   return `<div class="popup-id">🐊 Animal ID: ${id}</div>
     <table class="popup-tbl">
       <tr><td>Timestamp</td><td>${r['Timestamp']||'—'}</td></tr>
       <tr><td>Place</td><td>${r['Place']||'—'}</td></tr>
       <tr><td>Activity</td><td>${r['Activity']||'—'}</td></tr>
-      <tr><td>Signal</td><td><span class="${cls}">${sig||'—'}</span></td></tr>
+      <tr><td>Signal</td><td><span class="${sigClass(sig)}">${sig||'—'}</span></td></tr>
+      <tr><td>Status</td><td>${statusLabel(s)}</td></tr>
+      <tr><td>Category</td><td>${categoryLabel(cat)}</td></tr>
       <tr><td>Latitude</td><td>${r['Latitude']||'—'}</td></tr>
       <tr><td>Longitude</td><td>${r['Longitude']||'—'}</td></tr>
       <tr><td>Remarks</td><td>${r['Remarks']||'—'}</td></tr>
-      ${s!=='active'?`<tr><td>Status</td><td>${statusLabel(s)}</td></tr>`:''}
     </table>`;
 }
- 
+
 function addMarker(record){
   const lat=parseFloat(record['Latitude']);
   const lng=parseFloat(record['Longitude']);
@@ -608,18 +698,18 @@ function addMarker(record){
   const id=record['Animal ID'];
   const m=L.marker([lat,lng],{icon:mkIcon(id)}).addTo(map);
   m.bindPopup(popupHTML(record),{maxWidth:290});
- 
-  // First click on overlapping group → spiderfy only; second click → popup
-  m.on('click', function(){
+
+  // Spiderfy on first click, popup on second
+  m.on('click',function(){
     if(justSpiderfied) this.closePopup();
   });
- 
+
   markers.push(m);
   oms.addMarker(m);
   markerMapping[id+'|'+record['Timestamp']]=m;
   return m;
 }
- 
+
 function addStarMarker(record){
   if(!record) return;
   const lat=parseFloat(record['Latitude']);
@@ -630,7 +720,7 @@ function addStarMarker(record){
   m.bindPopup('<b>⭐ Release Point</b><br>Animal ID: '+record['Animal ID']);
   trackLayers.push(m);
 }
- 
+
 // ── ANALYTICS ─────────────────────────────────────────────────────────────────
 function haversine(a,b){
   const R=6371000,toR=Math.PI/180;
@@ -639,7 +729,7 @@ function haversine(a,b){
   const x=Math.sin(dlat/2)**2+Math.cos(lat1)*Math.cos(lat2)*Math.sin(dlon/2)**2;
   return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
 }
- 
+
 function classifyMovement(id,records){
   if(SETTLER_IDS.has(id)) return 'Settler';
   if(DEAD_IDS.has(id))    return '—';
@@ -664,7 +754,7 @@ function classifyMovement(id,records){
   if(maxSpread>300) return 'Explorer';
   return 'Settler';
 }
- 
+
 function computeAnalytics(id,records,ordered){
   if(!records.length) return;
   const release=[parseFloat(ordered[0]['Latitude']),parseFloat(ordered[0]['Longitude'])];
@@ -693,46 +783,35 @@ function computeAnalytics(id,records,ordered){
      Movement type: <b>${movType}</b>&emsp;
      Last fix: <b>${daysSince} day${daysSince!==1?'s':''} ago</b>`;
 }
- 
+
 // ── STATUS BAR ────────────────────────────────────────────────────────────────
 function updateStatus(){
   let latest=null;
-  rawData.forEach(r=>{ const d=parseDT(r['Timestamp']); if(!latest||d>latest) latest=d; });
+  rawData.forEach(r=>{const d=parseDT(r['Timestamp']);if(!latest||d>latest)latest=d;});
   if(latest) document.getElementById('statusBar').textContent='📡 Latest Telemetry: '+fmtDT(latest);
 }
- 
+
 // ── TABLE ─────────────────────────────────────────────────────────────────────
-function renderTable(sid){
-  allTableRows=sid==='all'
-    ? [...Object.values(latestRecords)]
-    : [...(animalsData[sid]||[])];
-  allTableRows.sort((a,b)=>b._parsed-a._parsed);
+function renderTableRows(rows){
+  allTableRows=[...rows].sort((a,b)=>b._parsed-a._parsed);
   tableExpanded=false;
   paintTable();
 }
- 
-function renderTableFiltered(cat){
-  allTableRows=Object.values(latestRecords)
-    .filter(r=>statusMap[r._id]===cat)
-    .sort((a,b)=>b._parsed-a._parsed);
-  tableExpanded=false;
-  paintTable();
-}
- 
+
 function toggleTableExpand(){
   tableExpanded=!tableExpanded;
   paintTable();
 }
- 
+
 function paintTable(){
   const tbody=document.querySelector('#dataTable tbody');
   tbody.innerHTML='';
   const visible=tableExpanded?allTableRows:allTableRows.slice(0,DEFAULT_ROWS);
   visible.forEach(r=>{
     const sig=getSignal(r);
-    const cls=sigClass(sig);
     const id=r['Animal ID'];
     const s=statusMap[id]||'active';
+    const cat=categoryMapFn[id]||'';
     const tr=document.createElement('tr');
     if(s==='tmiss') tr.style.background='#fff6ee';
     if(s==='gone')  tr.style.background='#f5f5f5';
@@ -742,27 +821,39 @@ function paintTable(){
       <td>${r['Timestamp']||''}</td>
       <td>${r['Place']||''}</td>
       <td>${r['Activity']||''}</td>
-      <td><span class="${cls}">${sig||''}</span></td>
+      <td><span class="${sigClass(sig)}">${sig||''}</span></td>
       <td>${statusLabel(s)}</td>
+      <td>${categoryLabel(cat)}</td>
       <td>${r['Latitude']||''}</td>
       <td>${r['Longitude']||''}</td>
       <td>${r['Remarks']||''}</td>`;
     tr.onclick=()=>{
       const key=id+'|'+r['Timestamp'];
       const m=markerMapping[key];
-      if(m){ map.setView(m.getLatLng(),17); m.openPopup(); oms.unspiderfy(); }
+      if(m){map.setView(m.getLatLng(),17);m.openPopup();oms.unspiderfy();}
     };
     tbody.appendChild(tr);
   });
   const btn=document.getElementById('seeMoreBtn');
   if(allTableRows.length>DEFAULT_ROWS){
     btn.style.display='block';
-    btn.textContent=tableExpanded
-      ?'▲ See less'
-      :`▼ See more (${allTableRows.length-DEFAULT_ROWS} more)`;
+    btn.textContent=tableExpanded?'▲ See less':`▼ See more (${allTableRows.length-DEFAULT_ROWS} more)`;
   } else { btn.style.display='none'; }
 }
- 
+
+// ── DROPDOWN ──────────────────────────────────────────────────────────────────
+function populateDropdown(){
+  const sel=document.getElementById('animalFilter');
+  Object.keys(animalsData).sort((a,b)=>+a-+b).forEach(id=>{
+    const o=document.createElement('option');
+    o.value=id;
+    const s=statusMap[id];
+    const tag=s==='dead'?'⚰ ':s==='tmiss'?'⚠ ':s==='gone'?'☁ ':'';
+    o.textContent=tag+'ID '+id;
+    sel.appendChild(o);
+  });
+}
+
 // ── HELPERS ───────────────────────────────────────────────────────────────────
 function parseDT(s){
   if(!s||!s.trim()) return new Date(0);
@@ -790,20 +881,7 @@ function sigClass(s){
   if(v.includes('weak'))   return 'sig-weak';
   return '';
 }
- 
-// ── DROPDOWN ──────────────────────────────────────────────────────────────────
-function populateDropdown(){
-  const sel=document.getElementById('animalFilter');
-  Object.keys(animalsData).sort((a,b)=>+a-+b).forEach(id=>{
-    const o=document.createElement('option');
-    o.value=id;
-    const s=statusMap[id];
-    const tag=s==='dead'?'⚰ ':s==='tmiss'?'⚠ ':s==='gone'?'☁ ':'';
-    o.textContent=tag+'ID '+id;
-    sel.appendChild(o);
-  });
-}
- 
+
 // ── FIELD PANEL ───────────────────────────────────────────────────────────────
 function toggleFP(){
   document.getElementById('fieldPanel').classList.toggle('open');
@@ -813,7 +891,7 @@ function closeFP(){
   document.getElementById('fieldPanel').classList.remove('open');
   document.getElementById('overlay').classList.remove('open');
 }
- 
+
 document.addEventListener('DOMContentLoaded',init);
 </script>
 </body>
