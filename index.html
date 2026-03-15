@@ -3,558 +3,661 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Pali FT Hatchlings Telemetry Dashboard</title>
-
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-
 <style>
-
 :root{
---map-height:68vh;
---primary-bg:#f4f6f9;
---header-bg:#1a2a3a;
---accent:#2980b9;
---border:#ddd;
+  --hdr:#1a2a3a;
+  --blue:#1a7fe8;
+  --red:#e74c3c;
+  --gold:#f0c040;
+  --border:#ddd;
 }
-
-*{
-box-sizing:border-box;
-margin:0;
-padding:0;
-font-family:Segoe UI,Tahoma,Verdana;
-}
-
-body{
-background:var(--primary-bg);
-display:flex;
-flex-direction:column;
-min-height:100vh;
-}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;}
+html,body{height:100%;overflow:hidden;}
+body{display:flex;flex-direction:column;background:#f0f2f5;color:#333;}
 
 /* HEADER */
-
 header{
-background:var(--header-bg);
-color:white;
-padding:10px 20px;
-display:grid;
-grid-template-columns:auto 1fr auto;
-align-items:center;
+  background:var(--hdr);color:white;
+  padding:9px 18px;
+  display:grid;grid-template-columns:auto 1fr auto;
+  align-items:center;gap:12px;flex-shrink:0;z-index:500;
 }
-
-header img{
-height:40px;
+.hdr-logos{display:flex;align-items:center;gap:8px;}
+header img{height:42px;object-fit:contain;}
+header h1{text-align:center;font-size:1.3rem;font-weight:700;line-height:1.3;}
+.hdr-right{display:flex;align-items:center;gap:14px;justify-content:flex-end;}
+.legend-bar{display:flex;align-items:center;gap:12px;font-size:0.82rem;}
+.legend-item{display:flex;align-items:center;gap:5px;}
+.ldot{width:12px;height:12px;border-radius:50%;border:2px solid rgba(255,255,255,0.6);box-shadow:0 0 4px rgba(0,0,0,0.4);}
+.ldot-blue{background:var(--blue);}
+.ldot-red{background:var(--red);}
+.field-btn{
+  padding:7px 14px;background:#2c3e50;color:white;
+  border:none;border-radius:5px;cursor:pointer;
+  font-size:0.88rem;font-weight:600;white-space:nowrap;
+  transition:background .2s;
 }
+.field-btn:hover{background:#3d5166;}
 
-header h1{
-text-align:center;
-font-size:1.35rem;
-}
-
-/* CONTROLS */
-
+/* TOP PANEL */
 .top-panel{
-background:white;
-padding:10px 20px;
-display:flex;
-gap:20px;
-align-items:center;
-border-bottom:1px solid var(--border);
+  background:white;padding:8px 18px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+  flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,0.06);
 }
-
-.filter-group{
-display:flex;
-gap:10px;
-align-items:center;
-}
-
-select{
-padding:6px 10px;
-}
-
-/* MAP */
-
-.map-container{
-height:var(--map-height);
-}
-
-#map{
-height:100%;
+.filter-group{display:flex;align-items:center;gap:8px;}
+.filter-group label{font-weight:600;font-size:0.88rem;color:#555;}
+.filter-group select{
+  padding:6px 10px;border:1px solid var(--border);
+  border-radius:5px;font-size:0.88rem;background:#fafafa;cursor:pointer;
 }
 
 /* ANALYTICS */
-
-.analytics{
-background:#fff8dc;
-padding:12px 20px;
-font-size:0.9rem;
-border-bottom:2px solid #f0c040;
+.analytics-panel{
+  display:none;
+  background:linear-gradient(135deg,#fff8dc,#fffbe6);
+  padding:10px 18px;border-bottom:2px solid var(--gold);
+  font-size:0.88rem;line-height:1.8;flex-shrink:0;
 }
+.analytics-panel b{color:#7d5800;}
+
+/* STATUS */
+.status-bar{
+  background:#ecf0f1;padding:6px 18px;
+  font-size:0.83rem;color:#555;
+  border-bottom:1px solid var(--border);flex-shrink:0;
+}
+
+/* MAP */
+.map-container{flex:1;min-height:0;overflow:hidden;}
+#map{width:100%;height:100%;}
+
+/* TABLE SECTION */
+.table-section{
+  display:flex;flex-direction:column;
+  background:white;border-top:1px solid var(--border);
+  flex-shrink:0;height:230px;min-height:60px;max-height:70vh;
+}
+.resize-handle{
+  height:9px;
+  background:linear-gradient(to bottom,#e8e8e8,#d0d0d0);
+  cursor:ns-resize;border-bottom:1px solid #c0c0c0;
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+}
+.resize-handle::after{
+  content:'';width:40px;height:3px;
+  background:#aaa;border-radius:2px;
+}
+.table-header-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:4px 16px;background:#f8f9fa;
+  border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.table-hint{font-size:0.79rem;color:#888;}
+.see-more-btn{
+  padding:4px 14px;background:var(--hdr);color:white;
+  border:none;border-radius:4px;font-size:0.8rem;
+  cursor:pointer;display:none;transition:background .2s;
+}
+.see-more-btn:hover{background:#2c3e50;}
+.table-scroll{flex:1;overflow-y:auto;overflow-x:auto;}
+.telemetry-table{width:100%;border-collapse:collapse;font-size:0.85rem;}
+.telemetry-table th,
+.telemetry-table td{padding:8px 12px;border-bottom:1px solid #eee;text-align:left;white-space:nowrap;}
+.telemetry-table th{background:var(--hdr);color:white;position:sticky;top:0;z-index:1;}
+.telemetry-table tbody tr:hover{background:#dce8f5;cursor:pointer;}
+.sig-strong{color:#27ae60;font-weight:600;}
+.sig-medium{color:#e67e22;font-weight:600;}
+.sig-weak{color:#e74c3c;font-weight:600;}
 
 /* MARKERS */
-
 .animal-marker{
-border-radius:50%;
-display:flex;
-align-items:center;
-justify-content:center;
-color:white;
-font-weight:bold;
-font-size:12px;
-width:30px;
-height:30px;
-border:2px solid white;
-box-shadow:0 2px 6px rgba(0,0,0,0.5);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  color:white;font-weight:700;font-size:11px;
+  border:2.5px solid rgba(255,255,255,0.9);
+  box-shadow:0 2px 7px rgba(0,0,0,0.55);cursor:pointer;
 }
+.mk-blue{background:var(--blue);}
+.mk-red{background:var(--red);}
+.star-lbl{font-size:20px;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.5));}
 
-.marker-live{
-background:#007bff;
-}
-
-.marker-dead{
-background:#e74c3c;
-}
-
-/* TABLE */
-
-.table-container{
-background:white;
-padding:10px 20px;
-max-height:260px;
-overflow:auto;
-resize:vertical;
-}
-
-table{
-width:100%;
-border-collapse:collapse;
-font-size:0.85rem;
-}
-
-th{
-background:#1a2a3a;
-color:white;
-padding:8px;
-position:sticky;
-top:0;
-}
-
-td{
-padding:8px;
-border-bottom:1px solid #eee;
-}
-
-tr:hover{
-background:#dce8f5;
-cursor:pointer;
-}
+/* POPUP */
+.popup-id{font-size:1rem;font-weight:700;color:var(--hdr);margin-bottom:6px;}
+.popup-tbl{border-collapse:collapse;font-size:0.87rem;min-width:210px;}
+.popup-tbl td{padding:3px 6px;border-bottom:1px solid #f0f0f0;vertical-align:top;}
+.popup-tbl td:first-child{font-weight:600;color:#444;white-space:nowrap;padding-right:10px;}
 
 /* FIELD PANEL */
-
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:1099;}
+.overlay.open{display:block;}
 .field-panel{
-position:fixed;
-right:-350px;
-top:0;
-width:340px;
-height:100%;
-background:white;
-box-shadow:-4px 0 10px rgba(0,0,0,0.2);
-transition:right 0.3s;
-overflow:auto;
-padding:20px;
-z-index:999;
+  position:fixed;top:0;right:-385px;width:360px;height:100%;
+  background:white;box-shadow:-4px 0 18px rgba(0,0,0,0.2);
+  transition:right .3s ease;overflow:hidden;z-index:1100;
+  display:flex;flex-direction:column;
 }
-
-.field-panel.open{
-right:0;
+.field-panel.open{right:0;}
+.fp-hdr{
+  background:var(--hdr);color:white;padding:13px 18px;
+  display:flex;align-items:center;justify-content:space-between;
 }
-
-.field-btn{
-padding:6px 14px;
-background:#1a2a3a;
-color:white;
-border:none;
-cursor:pointer;
+.fp-hdr h3{font-size:0.98rem;font-weight:700;}
+.close-btn{
+  background:none;border:none;color:white;font-size:1.3rem;
+  cursor:pointer;padding:2px 6px;border-radius:3px;
+  transition:background .2s;line-height:1;
 }
-
+.close-btn:hover{background:rgba(255,255,255,0.2);}
+.fp-latest{
+  padding:13px 18px;background:#fffbe6;
+  border-bottom:2px solid var(--gold);flex-shrink:0;
+}
+.fp-latest .fu-label{font-size:0.75rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.5px;color:#999;margin-bottom:4px;}
+.fp-latest .fu-date{font-weight:700;color:#7d5800;font-size:0.9rem;}
+.fp-latest .fu-text{margin-top:4px;font-size:0.92rem;line-height:1.5;}
+.fp-scroll{flex:1;overflow-y:auto;padding:10px 18px;}
+.fp-scroll h4{font-size:0.78rem;color:#aaa;margin-bottom:8px;
+  text-transform:uppercase;letter-spacing:.5px;}
+.fu-item{padding:10px 0;border-bottom:1px solid #f0f0f0;}
+.fu-item .fu-date{font-weight:600;color:#555;font-size:0.84rem;}
+.fu-item .fu-text{margin-top:3px;font-size:0.9rem;line-height:1.4;color:#333;}
 </style>
 </head>
-
 <body>
 
 <header>
-
-<div>
-<img src="image.png">
-</div>
-
-<h1>🐊 Pali FT Hatchlings Telemetry Dashboard</h1>
-
-<div></div>
-
+  <div class="hdr-logos">
+    <img src="image.png" alt="Logo 1">
+    <img src="unnamed.png" alt="Logo 2">
+  </div>
+  <h1>🐊 Pali FT Hatchlings Telemetry Dashboard</h1>
+  <div class="hdr-right">
+    <div class="legend-bar">
+      <div class="legend-item"><div class="ldot ldot-blue"></div><span style="color:#ccc">Active</span></div>
+      <div class="legend-item"><div class="ldot ldot-red"></div><span style="color:#ccc">Dead / Missing</span></div>
+    </div>
+    <button class="field-btn" onclick="toggleFP()">📋 Field Updates</button>
+  </div>
 </header>
 
 <div class="top-panel">
-
-<div class="filter-group">
-<label>Select Animal</label>
-<select id="animalFilter">
-<option value="all">All Animals</option>
-</select>
+  <div class="filter-group">
+    <label for="animalFilter">Select Animal</label>
+    <select id="animalFilter"><option value="all">All Animals</option></select>
+  </div>
 </div>
 
-<button class="field-btn" onclick="toggleField()">Field Updates</button>
+<div class="analytics-panel" id="analyticsPanel"></div>
+<div class="status-bar" id="statusBar">📡 Latest Telemetry: loading…</div>
 
+<div class="map-container"><div id="map"></div></div>
+
+<div class="table-section" id="tableSection">
+  <div class="resize-handle" id="resizeHandle"></div>
+  <div class="table-header-row">
+    <span class="table-hint">💡 Drag handle above to resize · Click row to zoom to marker</span>
+    <button class="see-more-btn" id="seeMoreBtn" onclick="toggleTableExpand()"></button>
+  </div>
+  <div class="table-scroll">
+    <table class="telemetry-table" id="dataTable">
+      <thead>
+        <tr>
+          <th>Animal ID</th><th>Timestamp</th><th>Place</th>
+          <th>Activity</th><th>Signal</th><th>Latitude</th>
+          <th>Longitude</th><th>Remarks</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 </div>
 
-<div class="analytics" id="analytics">
-Loading analytics...
-</div>
-
-<div class="map-container">
-<div id="map"></div>
-</div>
-
-<div class="table-container">
-
-<table id="table">
-
-<thead>
-<tr>
-<th>ID</th>
-<th>Timestamp</th>
-<th>Place</th>
-<th>Activity</th>
-<th>Signal</th>
-<th>Latitude</th>
-<th>Longitude</th>
-<th>Remarks</th>
-</tr>
-</thead>
-
-<tbody></tbody>
-
-</table>
-
-<button id="expandBtn">See More</button>
-
-</div>
-
+<div class="overlay" id="overlay" onclick="closeFP()"></div>
 <div class="field-panel" id="fieldPanel">
-
-<h3>Field Updates</h3>
-
-<div id="updates"></div>
-
+  <div class="fp-hdr">
+    <h3>📋 Field Updates</h3>
+    <button class="close-btn" onclick="closeFP()">✕</button>
+  </div>
+  <div class="fp-latest">
+    <div class="fu-label">Latest Update</div>
+    <div class="fu-date" id="latestFuDate">Loading…</div>
+    <div class="fu-text" id="latestFuText"></div>
+  </div>
+  <div class="fp-scroll">
+    <h4>Previous Updates</h4>
+    <div id="fuList"></div>
+  </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/OverlappingMarkerSpiderfier-Leaflet/0.2.6/oms.min.js"></script>
-
 <script>
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const CSV_URL    = 'https://docs.google.com/spreadsheets/d/10maxgDHDOISlVaN3kuc0_BjxOwPVysci5AiFL-WAxoQ/export?format=csv&gid=0';
+const UPDATE_URL = 'https://docs.google.com/spreadsheets/d/10maxgDHDOISlVaN3kuc0_BjxOwPVysci5AiFL-WAxoQ/export?format=csv&gid=238985281';
+const MAP_CENTER = [25.84, 76.56];
+const MAP_ZOOM   = 13;
 
-/* CONFIG */
+// Red markers — dead / missing
+const DEAD_IDS = new Set(['30','33','34','38','96','64','98']);
 
-const CSV_URL="https://docs.google.com/spreadsheets/d/10maxgDHDOISlVaN3kuc0_BjxOwPVysci5AiFL-WAxoQ/export?format=csv&gid=0";
+// Researcher-classified Settlers (hardcoded)
+const SETTLER_IDS = new Set(['32','35','84','92','90','88','72','74','66',
+                              '76','37','36','31','68','86','78','94','39','62','70']);
 
-const UPDATE_URL="https://docs.google.com/spreadsheets/d/10maxgDHDOISlVaN3kuc0_BjxOwPVysci5AiFL-WAxoQ/export?format=csv&gid=238985281";
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let map, oms;
+let rawData       = [];
+let animalsData   = {};
+let latestRecords = {};
+let markers       = [];
+let markerMapping = {};
+let trackLayers   = [];
+let allTableRows  = [];
+let tableExpanded = false;
+const DEFAULT_ROWS = 5;
 
-const MAP_CENTER=[25.84,76.56];
-
-/* DEAD */
-
-const DEAD_IDS=new Set(['30','33','34','38','96','64','98']);
-
-/* STATE */
-
-let map;
-let oms;
-
-let rawData=[];
-let animals={};
-
-let markers=[];
-let lines=[];
-
-let showAllRows=false;
-
-/* INIT */
-
+// ── BOOT ──────────────────────────────────────────────────────────────────────
 function init(){
-
-map=L.map("map").setView(MAP_CENTER,13);
-
-L.tileLayer('http://mt0.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',{
-maxZoom:20
-}).addTo(map);
-
-oms=new OverlappingMarkerSpiderfier(map,{
-nearbyDistance:40,
-circleFootSeparation:50,
-spiralFootSeparation:45
-});
-
-loadTelemetry();
-
-loadUpdates();
-
-document.getElementById("animalFilter").addEventListener("change",e=>{
-updateDashboard(e.target.value)
-})
-
+  initMap();
+  initResize();
+  loadTelemetry();
+  loadFieldUpdates();
+  document.getElementById('animalFilter')
+    .addEventListener('change', e => updateDashboard(e.target.value));
 }
 
-/* LOAD DATA */
+// ── MAP INIT ──────────────────────────────────────────────────────────────────
+function initMap(){
+  map = L.map('map').setView(MAP_CENTER, MAP_ZOOM);
+  L.tileLayer('http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',{
+    maxZoom:20, attribution:'© Google'
+  }).addTo(map);
 
+  // OMS with wider spiderfy so expanded markers are clearly separated
+  oms = new OverlappingMarkerSpiderfier(map, {
+    keepSpiderfied         : true,
+    nearbyDistance         : 18,
+    circleSpiralSwitchover : 6,
+    circleFootSeparation   : 42,
+    spiralFootSeparation   : 34,
+    spiralLengthStart      : 22,
+    spiralLengthFactor     : 6,
+    legWeight              : 2.5,
+    legColors              : { usual:'#FFD700', highlighted:'#FF8800' }
+  });
+}
+
+// ── RESIZE TABLE ──────────────────────────────────────────────────────────────
+function initResize(){
+  const handle  = document.getElementById('resizeHandle');
+  const section = document.getElementById('tableSection');
+  let drag = false, startY = 0, startH = 0;
+
+  function onStart(y){ drag=true; startY=y; startH=section.offsetHeight; document.body.style.cursor='ns-resize'; }
+  function onMove(y){
+    if(!drag) return;
+    const dy   = startY - y;
+    const newH = Math.min(Math.max(60, startH + dy), window.innerHeight * 0.70);
+    section.style.height = newH + 'px';
+  }
+  function onEnd(){ drag=false; document.body.style.cursor=''; }
+
+  handle.addEventListener('mousedown',  e => { onStart(e.clientY); e.preventDefault(); });
+  document.addEventListener('mousemove',e => onMove(e.clientY));
+  document.addEventListener('mouseup',  onEnd);
+
+  handle.addEventListener('touchstart', e => onStart(e.touches[0].clientY), {passive:true});
+  document.addEventListener('touchmove', e => onMove(e.touches[0].clientY),  {passive:true});
+  document.addEventListener('touchend',  onEnd);
+}
+
+// ── DATA LOADING ──────────────────────────────────────────────────────────────
 function loadTelemetry(){
-
-Papa.parse(CSV_URL,{
-download:true,
-header:true,
-skipEmptyLines:true,
-complete:r=>{
-
-rawData=r.data;
-
-process();
-
-populateFilter();
-
-updateDashboard("all");
-
-}
-})
-
+  Papa.parse(CSV_URL,{
+    download:true, header:true, skipEmptyLines:true,
+    complete(results){
+      rawData = results.data;
+      processData();
+      populateDropdown();
+      updateDashboard('all');
+      updateStatus();
+    }
+  });
 }
 
-/* PROCESS */
+function loadFieldUpdates(){
+  Papa.parse(UPDATE_URL,{
+    download:true, header:true, skipEmptyLines:true,
+    complete(results){
+      let rows = results.data.filter(r => (r['Date']||'').trim());
+      rows.sort((a,b) => parseDT(b['Date']) - parseDT(a['Date']));
+      if(!rows.length) return;
 
-function process(){
+      const lat = rows[0];
+      document.getElementById('latestFuDate').textContent = fmtDateOnly(parseDT(lat['Date']));
+      document.getElementById('latestFuText').textContent = lat['Update'] || '';
 
-animals={};
-
-rawData.forEach(r=>{
-
-let id=r["Animal ID"];
-
-if(!animals[id])animals[id]=[];
-
-animals[id].push(r);
-
-})
-
+      const list = document.getElementById('fuList');
+      if(rows.length <= 1){
+        list.innerHTML = '<p style="color:#bbb;font-size:.85rem;">No previous updates.</p>';
+        return;
+      }
+      rows.slice(1).forEach(r => {
+        const d = document.createElement('div');
+        d.className = 'fu-item';
+        d.innerHTML = `<div class="fu-date">${fmtDateOnly(parseDT(r['Date']))}</div>
+                       <div class="fu-text">${r['Update']||''}</div>`;
+        list.appendChild(d);
+      });
+    }
+  });
 }
 
-/* FILTER */
-
-function populateFilter(){
-
-let sel=document.getElementById("animalFilter");
-
-Object.keys(animals).forEach(id=>{
-
-let o=document.createElement("option");
-
-o.value=id;
-
-o.textContent="ID "+id;
-
-sel.appendChild(o);
-
-})
-
+// ── PROCESS ───────────────────────────────────────────────────────────────────
+function processData(){
+  animalsData = {}; latestRecords = {};
+  rawData.forEach(row => {
+    const id = (row['Animal ID']||'').trim();
+    if(!id) return;
+    row._id     = id;
+    row._parsed = parseDT(row['Timestamp']);
+    if(!animalsData[id]) animalsData[id] = [];
+    animalsData[id].push(row);
+  });
+  for(const id in animalsData){
+    animalsData[id].sort((a,b) => b._parsed - a._parsed);
+    latestRecords[id] = animalsData[id][0];
+  }
 }
 
-/* MAP */
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function parseDT(s){
+  if(!s||!s.trim()) return new Date(0);
+  const p  = s.trim().split(' ');
+  const dp = p[0].split('-');
+  if(dp.length < 3) return new Date(0);
+  const tp = p[1] ? p[1].split(':') : ['0','0'];
+  return new Date(+dp[2], +dp[1]-1, +dp[0], +tp[0], +tp[1]);
+}
+function fmtDT(d){
+  if(!d||d.getFullYear()<2000) return '';
+  return d.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})
+       + ' ' + d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+}
+function fmtDateOnly(d){
+  if(!d||d.getFullYear()<2000) return '';
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
+}
 
+// Read signal — handles sheet typo "Signal Stength" and correct spelling as fallback
+function getSignal(r){
+  return (r['Signal Stength']||r['Signal Strength']||r['signal stength']||r['signal strength']||'').trim();
+}
+function sigClass(s){
+  if(!s) return '';
+  const v = s.toLowerCase();
+  if(v.includes('strong')) return 'sig-strong';
+  if(v.includes('medium')) return 'sig-medium';
+  if(v.includes('weak'))   return 'sig-weak';
+  return '';
+}
+
+// ── DROPDOWN ──────────────────────────────────────────────────────────────────
+function populateDropdown(){
+  const sel = document.getElementById('animalFilter');
+  Object.keys(animalsData).sort((a,b) => +a - +b).forEach(id => {
+    const o = document.createElement('option');
+    o.value = id;
+    o.textContent = 'ID ' + id + (DEAD_IDS.has(id) ? ' ⚠' : '');
+    sel.appendChild(o);
+  });
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
 function clearMap(){
-
-markers.forEach(m=>map.removeLayer(m));
-
-lines.forEach(l=>map.removeLayer(l));
-
-markers=[];
-lines=[];
-
+  markers.forEach(m => map.removeLayer(m));
+  markers = []; markerMapping = {};
+  trackLayers.forEach(l => map.removeLayer(l));
+  trackLayers = [];
 }
 
-/* ICON */
-
-function icon(id){
-
-let dead=DEAD_IDS.has(id);
-
-return L.divIcon({
-
-className:"animal-marker "+(dead?"marker-dead":"marker-live"),
-
-html:id,
-
-iconSize:[30,30],
-
-iconAnchor:[15,15]
-
-})
-
+function updateDashboard(sid){
+  clearMap();
+  document.getElementById('analyticsPanel').style.display = 'none';
+  renderMap(sid);
+  renderTable(sid);
 }
 
-/* DASHBOARD */
+// ── MAP RENDER ────────────────────────────────────────────────────────────────
+function renderMap(sid){
+  if(sid === 'all'){
+    for(const id in latestRecords) addMarker(latestRecords[id]);
+  } else {
+    const records = animalsData[sid] || [];
+    if(!records.length) return;
 
-function updateDashboard(id){
+    const ordered = [...records].sort((a,b) => a._parsed - b._parsed);
+    const lls = ordered
+      .map(r => [parseFloat(r['Latitude']), parseFloat(r['Longitude'])])
+      .filter(ll => !isNaN(ll[0]) && !isNaN(ll[1]));
 
-clearMap();
+    if(lls.length > 1){
+      const line = L.polyline(lls,{
+        color:'#FFD700', weight:3, dashArray:'7,11', opacity:.9
+      }).addTo(map);
+      trackLayers.push(line);
+    }
 
-let rows=id==="all"?rawData:animals[id];
+    records.forEach(r => addMarker(r));
+    addStarMarker(ordered[0]);
 
-renderMap(rows);
-
-renderTable(rows);
-
-computeAnalytics();
-
+    if(lls.length) map.fitBounds(L.latLngBounds(lls), {padding:[50,50]});
+    computeAnalytics(sid, records, ordered);
+  }
 }
 
-/* MAP */
-
-function renderMap(rows){
-
-rows.forEach(r=>{
-
-let lat=parseFloat(r.Latitude);
-
-let lon=parseFloat(r.Longitude);
-
-if(!lat||!lon)return;
-
-let m=L.marker([lat,lon],{icon:icon(r["Animal ID"])}).addTo(map);
-
-m.bindPopup(
-
-"<b>ID "+r["Animal ID"]+"</b><br>"+
-
-r.Timestamp+"<br>"+
-
-r.Place+"<br>"+
-
-r.Activity+"<br>"+
-
-"Signal: "+(r["Signal Strength"]||"")
-
-)
-
-markers.push(m);
-
-oms.addMarker(m);
-
-})
-
+function mkIcon(id){
+  return L.divIcon({
+    className : 'animal-marker ' + (DEAD_IDS.has(id) ? 'mk-red' : 'mk-blue'),
+    html      : id,
+    iconSize  : [28,28],
+    iconAnchor: [14,14]
+  });
 }
 
-/* TABLE */
-
-function renderTable(rows){
-
-let tbody=document.querySelector("#table tbody");
-
-tbody.innerHTML="";
-
-let limit=showAllRows?rows.length:5;
-
-rows.slice(0,limit).forEach(r=>{
-
-let tr=document.createElement("tr");
-
-tr.innerHTML=
-
-`<td>${r["Animal ID"]}</td>
-<td>${r.Timestamp}</td>
-<td>${r.Place}</td>
-<td>${r.Activity}</td>
-<td>${r["Signal Strength"]||""}</td>
-<td>${r.Latitude}</td>
-<td>${r.Longitude}</td>
-<td>${r.Remarks||""}</td>`;
-
-tbody.appendChild(tr);
-
-})
-
+function popupHTML(r){
+  const sig = getSignal(r);
+  const cls = sigClass(sig);
+  return `<div class="popup-id">🐊 Animal ID: ${r['Animal ID']}</div>
+    <table class="popup-tbl">
+      <tr><td>Timestamp</td><td>${r['Timestamp']||'—'}</td></tr>
+      <tr><td>Place</td><td>${r['Place']||'—'}</td></tr>
+      <tr><td>Activity</td><td>${r['Activity']||'—'}</td></tr>
+      <tr><td>Signal</td><td><span class="${cls}">${sig||'—'}</span></td></tr>
+      <tr><td>Latitude</td><td>${r['Latitude']||'—'}</td></tr>
+      <tr><td>Longitude</td><td>${r['Longitude']||'—'}</td></tr>
+      <tr><td>Remarks</td><td>${r['Remarks']||'—'}</td></tr>
+    </table>`;
 }
 
-/* EXPAND */
+function addMarker(record){
+  const lat = parseFloat(record['Latitude']);
+  const lng = parseFloat(record['Longitude']);
+  if(isNaN(lat)||isNaN(lng)) return null;
 
-document.getElementById("expandBtn").onclick=()=>{
+  const id = record['Animal ID'];
+  const m  = L.marker([lat,lng], {icon:mkIcon(id)}).addTo(map);
+  m.bindPopup(popupHTML(record), {maxWidth:290});
 
-showAllRows=true;
+  markers.push(m);
+  oms.addMarker(m);
 
-updateDashboard(document.getElementById("animalFilter").value);
-
+  const key = id + '|' + record['Timestamp'];
+  markerMapping[key] = m;
+  return m;
 }
 
-/* ANALYTICS */
-
-function computeAnalytics(){
-
-let alive=0;
-
-let dead=0;
-
-let maxMove=0;
-
-Object.keys(animals).forEach(id=>{
-
-if(DEAD_IDS.has(id))dead++;
-
-else alive++;
-
-})
-
-document.getElementById("analytics").innerHTML=
-
-"<b>Survival:</b> "+alive+" alive | "+dead+" dead / missing";
-
+function addStarMarker(record){
+  if(!record) return;
+  const lat = parseFloat(record['Latitude']);
+  const lng = parseFloat(record['Longitude']);
+  if(isNaN(lat)||isNaN(lng)) return;
+  const icon = L.divIcon({
+    className:'star-lbl', html:'⭐', iconSize:[24,24], iconAnchor:[12,12]
+  });
+  const m = L.marker([lat,lng],{icon,zIndexOffset:1000}).addTo(map);
+  m.bindPopup('<b>⭐ Release Point</b><br>Animal ID: '+record['Animal ID']);
+  trackLayers.push(m);
 }
 
-/* FIELD UPDATES */
-
-function loadUpdates(){
-
-Papa.parse(UPDATE_URL,{
-download:true,
-header:true,
-complete:r=>{
-
-let div=document.getElementById("updates");
-
-r.data.forEach(u=>{
-
-if(!u.Date)return;
-
-let p=document.createElement("p");
-
-p.innerHTML="<b>"+u.Date+"</b><br>"+u.Update;
-
-div.appendChild(p);
-
-})
-
+// ── ANALYTICS ─────────────────────────────────────────────────────────────────
+function haversine(a,b){
+  const R=6371000, toR=Math.PI/180;
+  const lat1=a[0]*toR, lat2=b[0]*toR;
+  const dlat=(b[0]-a[0])*toR, dlon=(b[1]-a[1])*toR;
+  const x=Math.sin(dlat/2)**2+Math.cos(lat1)*Math.cos(lat2)*Math.sin(dlon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
 }
 
-})
+function classifyMovement(id, records){
+  if(SETTLER_IDS.has(id)) return 'Settler';
+  if(DEAD_IDS.has(id))    return '—';
 
+  // Algorithm for unclassified IDs: evaluate last 10 fixes
+  const last10 = records.slice(0,10)
+    .map(r => [parseFloat(r['Latitude']),parseFloat(r['Longitude'])])
+    .filter(ll => !isNaN(ll[0]));
+
+  if(last10.length < 2) return 'Settler';
+
+  let maxSpread = 0;
+  for(let i=0;i<last10.length;i++)
+    for(let j=i+1;j<last10.length;j++){
+      const d = haversine(last10[i],last10[j]);
+      if(d > maxSpread) maxSpread = d;
+    }
+
+  const ordered = [...records].sort((a,b)=>a._parsed-b._parsed);
+  const release = [parseFloat(ordered[0]['Latitude']),parseFloat(ordered[0]['Longitude'])];
+  let maxDisp = 0;
+  records.forEach(r=>{
+    const pt=[parseFloat(r['Latitude']),parseFloat(r['Longitude'])];
+    if(!isNaN(pt[0])){ const d=haversine(release,pt); if(d>maxDisp) maxDisp=d; }
+  });
+
+  if(maxDisp > 1500) return 'Disperser';
+  if(maxSpread > 300) return 'Explorer';
+  return 'Settler';
 }
 
-function toggleField(){
+function computeAnalytics(id, records, ordered){
+  if(!records.length) return;
+  const release = [parseFloat(ordered[0]['Latitude']), parseFloat(ordered[0]['Longitude'])];
+  const latest  = [parseFloat(records[0]['Latitude']), parseFloat(records[0]['Longitude'])];
+  if(isNaN(release[0])||isNaN(latest[0])) return;
 
-document.getElementById("fieldPanel").classList.toggle("open");
+  let maxDisp = 0;
+  records.forEach(r=>{
+    const pt=[parseFloat(r['Latitude']),parseFloat(r['Longitude'])];
+    if(!isNaN(pt[0])){ const d=haversine(release,pt); if(d>maxDisp) maxDisp=d; }
+  });
 
+  const currentDist = haversine(release, latest);
+  let prevDist = 0;
+  if(records.length>=2){
+    const prev=[parseFloat(records[1]['Latitude']),parseFloat(records[1]['Longitude'])];
+    if(!isNaN(prev[0])) prevDist=haversine(prev,latest);
+  }
+
+  const movType = classifyMovement(id, records);
+  const panel = document.getElementById('analyticsPanel');
+  panel.style.display = 'block';
+  panel.innerHTML =
+    `<b>Movement Analytics — ID ${id}</b><br>
+     Max displacement from release: <b>${Math.round(maxDisp)} m</b>&emsp;
+     Current distance from release: <b>${Math.round(currentDist)} m</b>&emsp;
+     Distance from previous fix: <b>${Math.round(prevDist)} m</b>&emsp;
+     Movement type: <b>${movType}</b>`;
 }
 
-document.addEventListener("DOMContentLoaded",init);
+// ── STATUS ────────────────────────────────────────────────────────────────────
+function updateStatus(){
+  let latest = null;
+  rawData.forEach(r=>{ const d=parseDT(r['Timestamp']); if(!latest||d>latest) latest=d; });
+  if(latest) document.getElementById('statusBar').textContent = '📡 Latest Telemetry: '+fmtDT(latest);
+}
 
+// ── TABLE ─────────────────────────────────────────────────────────────────────
+function renderTable(sid){
+  allTableRows = sid==='all'
+    ? [...Object.values(latestRecords)]
+    : [...(animalsData[sid]||[])];
+  allTableRows.sort((a,b) => b._parsed - a._parsed);
+  tableExpanded = false;
+  paintTable();
+}
+
+function toggleTableExpand(){
+  tableExpanded = !tableExpanded;
+  paintTable();
+}
+
+function paintTable(){
+  const tbody  = document.querySelector('#dataTable tbody');
+  tbody.innerHTML = '';
+
+  const visible = tableExpanded ? allTableRows : allTableRows.slice(0, DEFAULT_ROWS);
+
+  visible.forEach(r => {
+    const sig = getSignal(r);
+    const cls = sigClass(sig);
+    const tr  = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${r['Animal ID']}</td>
+      <td>${r['Timestamp']||''}</td>
+      <td>${r['Place']||''}</td>
+      <td>${r['Activity']||''}</td>
+      <td><span class="${cls}">${sig||''}</span></td>
+      <td>${r['Latitude']||''}</td>
+      <td>${r['Longitude']||''}</td>
+      <td>${r['Remarks']||''}</td>`;
+
+    tr.onclick = () => {
+      const key = r['Animal ID'] + '|' + r['Timestamp'];
+      const m = markerMapping[key];
+      if(m){ map.setView(m.getLatLng(), 17); m.openPopup(); oms.unspiderfy(); }
+    };
+    tbody.appendChild(tr);
+  });
+
+  const btn = document.getElementById('seeMoreBtn');
+  if(allTableRows.length > DEFAULT_ROWS){
+    btn.style.display = 'block';
+    btn.textContent = tableExpanded
+      ? '▲ See less'
+      : `▼ See more (${allTableRows.length - DEFAULT_ROWS} more)`;
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+// ── FIELD PANEL ───────────────────────────────────────────────────────────────
+function toggleFP(){
+  document.getElementById('fieldPanel').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+function closeFP(){
+  document.getElementById('fieldPanel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+
+document.addEventListener('DOMContentLoaded', init);
 </script>
-
 </body>
 </html>
