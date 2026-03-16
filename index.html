@@ -28,7 +28,7 @@
   --shadow-lg:0 8px 36px rgba(0,0,0,.15);
   --font:'Inter',sans-serif;--mono:'IBM Plex Mono',monospace;
   --r:8px;--r-lg:14px;
-  --hdr:56px;--bar:44px;--play:56px;
+  --hdr:56px;--bar:44px;
 }
 
 /* ══ RESET & BASE ════════════════════════════════════════════════ */
@@ -149,52 +149,6 @@ header img{height:36px;object-fit:contain;filter:brightness(1.1) drop-shadow(0 1
 }
 .fab:hover,.fab.on{background:var(--green-pale);border-color:var(--forest3);color:var(--forest);}
 
-/* GEE / layer control panel */
-.layer-panel{
-  position:absolute;top:10px;right:10px;z-index:500;
-  background:white;border:1px solid var(--border);border-radius:var(--r);
-  box-shadow:var(--shadow);min-width:200px;overflow:hidden;
-}
-.lp-hdr{
-  background:var(--forest);color:white;padding:7px 12px;
-  font-size:.7rem;font-weight:700;font-family:var(--mono);
-  display:flex;align-items:center;justify-content:space-between;
-  cursor:pointer;user-select:none;
-}
-.lp-body{padding:8px 10px;}
-.layer-row{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:.73rem;color:var(--text2);}
-.layer-row:last-child{border-bottom:none;}
-.layer-row input[type=range]{flex:1;accent-color:var(--forest3);}
-.ltoggle{
-  width:28px;height:15px;background:var(--border);border-radius:8px;cursor:pointer;
-  position:relative;transition:background .18s;flex-shrink:0;
-}
-.ltoggle.on{background:var(--forest3);}
-.ltoggle::after{
-  content:'';position:absolute;top:2px;left:2px;width:11px;height:11px;
-  background:white;border-radius:50%;transition:left .18s;
-  box-shadow:0 1px 3px rgba(0,0,0,.2);
-}
-.ltoggle.on::after{left:15px;}
-.l-name{flex:1;font-size:.71rem;}
-.l-opacity{width:50px;height:3px;accent-color:var(--forest3);}
-.gee-input-row{
-  margin-top:6px;padding-top:6px;border-top:1px solid var(--border);
-}
-.gee-input-row label{font-size:.63rem;color:var(--text3);display:block;margin-bottom:3px;font-family:var(--mono);}
-.gee-input{
-  width:100%;padding:4px 7px;font-size:.65rem;border:1px solid var(--border);
-  border-radius:5px;font-family:var(--mono);color:var(--text);
-  background:var(--surface2);
-}
-.gee-input:focus{outline:none;border-color:var(--forest3);}
-.gee-add-btn{
-  margin-top:4px;width:100%;padding:4px;background:var(--green-pale);
-  border:1px solid var(--forest3);border-radius:5px;color:var(--forest);
-  font-size:.69rem;font-weight:700;transition:all .18s;
-}
-.gee-add-btn:hover{background:var(--forest3);color:white;}
-
 /* map status foot */
 .map-foot{
   position:absolute;bottom:0;left:0;right:0;z-index:400;
@@ -206,41 +160,7 @@ header img{height:36px;object-fit:contain;filter:brightness(1.1) drop-shadow(0 1
 .mf-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(82,183,136,.5);}50%{box-shadow:0 0 0 5px transparent;}}
 
-/* ══ TIMELINE PLAYBACK ════════════════════════════════════════════ */
-.playbar{
-  flex-shrink:0;height:var(--play);background:var(--surface);
-  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
-  display:flex;align-items:center;gap:10px;padding:0 14px;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
-}
-.play-btns{display:flex;gap:5px;flex-shrink:0;}
-.pbtn{
-  width:30px;height:30px;border-radius:50%;border:none;
-  display:flex;align-items:center;justify-content:center;
-  font-size:.9rem;transition:all .16s;
-}
-.pbtn.main{background:var(--forest);color:white;width:34px;height:34px;}
-.pbtn.main:hover{background:var(--forest2);}
-.pbtn.sec{background:var(--surface2);border:1px solid var(--border);color:var(--text2);}
-.pbtn.sec:hover{background:var(--green-pale);border-color:var(--forest3);}
-.play-speed{
-  padding:3px 7px;background:var(--surface2);border:1px solid var(--border);
-  border-radius:6px;font-size:.7rem;cursor:pointer;font-family:var(--mono);color:var(--text);
-}
-.play-timeline{flex:1;display:flex;flex-direction:column;gap:2px;}
-.play-labels{display:flex;justify-content:space-between;font-size:.62rem;color:var(--text4);font-family:var(--mono);}
-.play-current{text-align:center;font-size:.7rem;color:var(--active);font-family:var(--mono);font-weight:600;}
-.play-slider{
-  -webkit-appearance:none;appearance:none;width:100%;height:4px;
-  background:var(--border);border-radius:2px;outline:none;cursor:pointer;
-}
-.play-slider::-webkit-slider-thumb{
-  -webkit-appearance:none;width:14px;height:14px;border-radius:50%;
-  background:var(--active);box-shadow:0 0 6px rgba(29,78,216,.4);cursor:pointer;
-}
-.play-info{font-size:.67rem;color:var(--text3);white-space:nowrap;font-family:var(--mono);text-align:right;}
-
-/* ══ BOTTOM SECTION (table + analytics) ══════════════════════════ */
+/* ══ BOTTOM SECTION (table) ══════════════════════════════════════ */
 .bottom-sec{
   display:flex;flex-direction:column;background:var(--surface);
   border-top:2px solid var(--border2);flex-shrink:0;
@@ -282,13 +202,6 @@ header img{height:36px;object-fit:contain;filter:brightness(1.1) drop-shadow(0 1
 /* table tab */
 .tc-wrap{display:none;height:100%;flex-direction:column;}
 .tc-wrap.on{display:flex;}
-.tbl-search{padding:5px 12px;background:var(--surface2);border-bottom:1px solid var(--border);flex-shrink:0;}
-.tbl-search input{
-  width:100%;padding:4px 9px;border:1px solid var(--border);border-radius:var(--r);
-  font-size:.74rem;background:var(--surface);color:var(--text);font-family:var(--font);
-}
-.tbl-search input:focus{outline:none;border-color:var(--forest3);}
-.tbl-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;}
 .tbl{width:100%;border-collapse:collapse;font-size:.75rem;white-space:nowrap;}
 .tbl th{
   background:var(--forest);color:white;padding:6px 11px;text-align:left;
@@ -304,25 +217,6 @@ header img{height:36px;object-fit:contain;filter:brightness(1.1) drop-shadow(0 1
 .tbl tbody tr.row-d{background:#fff8f8;}
 .tbl tbody tr.row-t{background:#fefce8;}
 .tbl tbody tr.row-g{background:#f9fafb;}
-
-/* analytics tab */
-.ana-wrap{display:none;padding:10px 14px;overflow-y:auto;height:100%;}
-.ana-wrap.on{display:block;}
-.ana-row{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:10px;}
-.ana-card{
-  flex:1;min-width:100px;background:var(--surface2);border:1px solid var(--border);
-  border-radius:var(--r);padding:9px 12px;text-align:center;border-top:3px solid var(--forest3);
-}
-.ana-card.r{border-top-color:var(--dead);}
-.ana-card.y{border-top-color:var(--tmiss-mk);}
-.ana-card.g{border-top-color:var(--gone-mk);}
-.ana-card.b{border-top-color:var(--active);}
-.ana-card.p{border-top-color:var(--purple);}
-.ac-v{font-size:1.4rem;font-weight:800;font-family:var(--mono);color:var(--text);}
-.ac-l{font-size:.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-top:1px;}
-.mort-mini{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
-.mort-mini th{background:var(--surface2);color:var(--text3);padding:4px 9px;font-size:.62rem;font-family:var(--mono);}
-.mort-mini td{padding:4px 9px;border-bottom:1px solid var(--border);font-size:.72rem;}
 
 /* profile overlay */
 .profile-overlay{
@@ -553,9 +447,6 @@ header img{height:36px;object-fit:contain;filter:brightness(1.1) drop-shadow(0 1
     bottom:50px!important;width:100%!important;max-height:65vh!important;
     border-radius:var(--r-lg) var(--r-lg) 0 0!important;
   }
-  .layer-panel{display:none;}
-  .playbar{gap:7px;padding:0 10px;height:52px;}
-  .pbtn.main{width:30px;height:30px;font-size:.8rem;}
   .modal-bg{padding:0;}
   .modal{border-radius:0;max-height:100vh;margin:0;}
   .modal-body{max-height:calc(100vh - 50px);padding:10px;}
@@ -570,8 +461,8 @@ header img{height:36px;object-fit:contain;filter:brightness(1.1) drop-shadow(0 1
   html,body{height:100%;overflow:hidden;}
   .body-wrap{height:calc(100vh - var(--hdr) - var(--bar));}
   .map-wrap{flex:1;height:auto;min-height:0;}
-  .bottom-sec{height:240px;flex-shrink:0;}
-  .btm-content{height:185px;}
+  .bottom-sec{height:225px;flex-shrink:0;}
+  .btm-content{height:170px;}
 }
 </style>
 </head>
@@ -645,7 +536,6 @@ header img{height:36px;object-fit:contain;filter:brightness(1.1) drop-shadow(0 1
   <div class="fsep"></div>
   <button class="fbtn" id="btnHeat" onclick="toggleHeatmap()">🌡 Heatmap</button>
   <button class="fbtn" id="btnKDE"  onclick="toggleKDE()">📍 KDE</button>
-  <button class="fbtn" id="btnCorr" onclick="toggleCorridors()">〰 Corridors</button>
   <div class="fsep"></div>
   <button class="fbtn fbtn-exp" onclick="exportTelemetry()">📤 Telemetry CSV</button>
   <button class="fbtn fbtn-exp" onclick="exportMovement()">📤 Movement CSV</button>
@@ -661,62 +551,6 @@ header img{height:36px;object-fit:contain;filter:brightness(1.1) drop-shadow(0 1
     <!-- Map fab controls -->
     <div class="map-fab">
       <button class="fab" onclick="resetView()" title="Reset view">🏠</button>
-    </div>
-
-    <!-- GEE / Layer Panel -->
-    <div class="layer-panel" id="layerPanel">
-      <div class="lp-hdr" onclick="toggleLayerPanel()">
-        <span>🛰 Map Layers</span>
-        <span id="lpArrow">▼</span>
-      </div>
-      <div class="lp-body" id="lpBody">
-        <!-- Base maps -->
-        <div style="font-size:.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;font-family:var(--mono);">Base Layer</div>
-        <div class="layer-row">
-          <div class="ltoggle on" id="lt-satellite" onclick="switchBase('satellite')"></div>
-          <span class="l-name">Satellite</span>
-        </div>
-        <div class="layer-row">
-          <div class="ltoggle" id="lt-topo" onclick="switchBase('topo')"></div>
-          <span class="l-name">Terrain / Topo</span>
-        </div>
-        <div class="layer-row">
-          <div class="ltoggle" id="lt-osm" onclick="switchBase('osm')"></div>
-          <span class="l-name">OpenStreetMap</span>
-        </div>
-        <!-- GEE Overlays -->
-        <div style="font-size:.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:8px 0 5px;font-family:var(--mono);">GEE / Environment Overlays</div>
-        <div class="layer-row" id="lrow-water">
-          <div class="ltoggle" id="lt-water" onclick="toggleGEELayer('water')"></div>
-          <span class="l-name">River Water Extent</span>
-          <input type="range" min="0" max="1" step=".05" value=".7" class="l-opacity" id="op-water" oninput="setLayerOpacity('water',this.value)">
-        </div>
-        <div class="layer-row" id="lrow-sand">
-          <div class="ltoggle" id="lt-sand" onclick="toggleGEELayer('sand')"></div>
-          <span class="l-name">Sandbanks / Exposed</span>
-          <input type="range" min="0" max="1" step=".05" value=".7" class="l-opacity" id="op-sand" oninput="setLayerOpacity('sand',this.value)">
-        </div>
-        <div class="layer-row" id="lrow-ndvi">
-          <div class="ltoggle" id="lt-ndvi" onclick="toggleGEELayer('ndvi')"></div>
-          <span class="l-name">Seasonal Spread (NDWI)</span>
-          <input type="range" min="0" max="1" step=".05" value=".7" class="l-opacity" id="op-ndvi" oninput="setLayerOpacity('ndvi',this.value)">
-        </div>
-        <div class="layer-row" id="lrow-flood">
-          <div class="ltoggle" id="lt-flood" onclick="toggleGEELayer('flood')"></div>
-          <span class="l-name">Monsoon Flood Spread</span>
-          <input type="range" min="0" max="1" step=".05" value=".6" class="l-opacity" id="op-flood" oninput="setLayerOpacity('flood',this.value)">
-        </div>
-        <!-- Custom GEE URL input -->
-        <div class="gee-input-row">
-          <label>Custom GEE XYZ Tile URL</label>
-          <input class="gee-input" id="geeUrl" placeholder="https://earthengine.googleapis.com/v1alpha/projects/.../maps/.../tiles/{z}/{x}/{y}">
-          <div class="fg" style="gap:5px;margin-top:4px;">
-            <input class="gee-input" id="geeName" placeholder="Layer name" style="flex:1;">
-          </div>
-          <button class="gee-add-btn" onclick="addCustomGEELayer()">+ Add Custom GEE Layer</button>
-        </div>
-        <div id="customLayersDiv"></div>
-      </div>
     </div>
 
     <!-- Profile overlay -->
@@ -740,42 +574,12 @@ header img{height:36px;object-fit:contain;filter:brightness(1.1) drop-shadow(0 1
     </div>
   </div>
 
-  <!-- TIMELINE PLAYBACK -->
-  <div class="playbar" id="playbar">
-    <div class="play-btns">
-      <button class="pbtn main" id="playBtn" onclick="togglePlay()" title="Play/Pause">▶</button>
-      <button class="pbtn sec" onclick="resetPlay()" title="Reset">⟳</button>
-      <select class="play-speed" id="playSpeed">
-        <option value="1">1×</option>
-        <option value="3">3×</option>
-        <option value="5" selected>5×</option>
-        <option value="10">10×</option>
-        <option value="20">20×</option>
-      </select>
-    </div>
-    <div class="play-timeline">
-      <div class="play-labels">
-        <span id="plStart">—</span>
-        <span class="play-current" id="plCurrent">Timeline Replay</span>
-        <span id="plEnd">—</span>
-      </div>
-      <input type="range" class="play-slider" id="playSlider" min="0" max="100" value="0" oninput="onSliderInput(this.value)">
-    </div>
-    <div class="play-info">
-      <div id="playDate" style="font-size:.7rem;color:var(--text2);">—</div>
-      <div id="playCnt" style="font-size:.63rem;color:var(--text3);">—</div>
-    </div>
-  </div>
-
   <!-- BOTTOM SECTION -->
   <div class="bottom-sec" id="btmSec">
     <div class="resize-bar" id="resizeBar"></div>
     <div class="btm-col-btn">
-      <div style="display:flex;gap:6px;align-items:center;">
-        <div class="btm-tabs">
-          <button class="btab on" onclick="switchBTab('tbl')">📡 Telemetry</button>
-          <button class="btab" onclick="switchBTab('ana')">📊 Analytics</button>
-        </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span style="font-size:.7rem;font-weight:700;color:var(--text2);font-family:var(--mono);">📡 Telemetry</span>
         <span class="bctrl ghost" id="tblBadge" style="font-size:.65rem;padding:3px 9px;border-radius:10px;"></span>
       </div>
       <div class="btm-ctrl">
@@ -784,12 +588,7 @@ header img{height:36px;object-fit:contain;filter:brightness(1.1) drop-shadow(0 1
       </div>
     </div>
     <div class="btm-content" id="btmContent">
-
-      <!-- TABLE TAB -->
       <div class="tc-wrap on" id="tc-tbl">
-        <div class="tbl-search">
-          <input type="text" id="tblSearch" placeholder="🔍  Search by ID, place, activity…" oninput="onTblSearch(this.value)">
-        </div>
         <div class="tbl-scroll" id="tblScroll">
           <table class="tbl" id="dataTable">
             <thead>
@@ -810,14 +609,6 @@ header img{height:36px;object-fit:contain;filter:brightness(1.1) drop-shadow(0 1
           </table>
         </div>
       </div>
-
-      <!-- ANALYTICS TAB -->
-      <div class="tc-wrap" id="tc-ana">
-        <div class="ana-wrap on" id="anaWrap">
-          <div class="ana-row" id="anaCards"></div>
-        </div>
-      </div>
-
     </div>
   </div>
 </div><!-- end body-wrap -->
@@ -828,7 +619,7 @@ header img{height:36px;object-fit:contain;filter:brightness(1.1) drop-shadow(0 1
     <button class="mbn" onclick="scrollMapTop()"><span class="mi">🗺</span>Map</button>
     <button class="mbn" onclick="openStats()"><span class="mi">📊</span>Stats</button>
     <button class="mbn" onclick="toggleFBar()"><span class="mi">⚙</span>Filters</button>
-    <button class="mbn" onclick="switchBTab('tbl');scrollBtm()"><span class="mi">📡</span>Table</button>
+    <button class="mbn" onclick="scrollBtm()"><span class="mi">📡</span>Table</button>
     <button class="mbn" onclick="toggleFP()"><span class="mi">📋</span>Updates</button>
   </div>
 </nav>
@@ -968,66 +759,19 @@ const MORT={
   '98':{c:'Confirmed Mugger Predation',t:'Confirmed Dead'},
 };
 
-/* ══ GEE LAYER DEFINITIONS
-   These are placeholder tile URLs. Replace with real GEE-exported tile URLs.
-   GEE tile URL format: https://earthengine.googleapis.com/v1alpha/projects/PROJECT/maps/MAP_ID/tiles/{z}/{x}/{y}
-   Or use STAC/COG endpoints that don't require authentication.
-════════════════════════════════════════════════════════════════ */
-const GEE_LAYERS={
-  // JRC Global Surface Water — freely accessible via public WMS/tile
-  water:{
-    name:'River Water Extent (JRC)',
-    url:'https://storage.googleapis.com/global-surface-water/tiles/occurrence/{z}/{x}/{y}.png',
-    attribution:'© JRC Global Surface Water',
-    opacity:0.7,
-    tileLayer:null,
-    on:false
-  },
-  // ESRI World Imagery (served as tiles — free, no auth required)
-  sand:{
-    name:'Exposed Sandbanks (Landsat NCI)',
-    // Fallback to NASA GIBS Landsat false-color
-    url:'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/Landsat_WELD_CorrectedReflectance_TrueColor_Global_Annual/default/2020-01-01/GoogleMapsCompatible/{z}/{y}/{x}.jpg',
-    attribution:'© NASA GIBS Landsat',
-    opacity:0.7,
-    tileLayer:null,
-    on:false
-  },
-  ndvi:{
-    name:'Seasonal Water Spread (NDWI)',
-    url:'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_Surface_Reflectance_Bands143/default/2023-11-01/GoogleMapsCompatible/{z}/{y}/{x}.jpg',
-    attribution:'© NASA GIBS MODIS',
-    opacity:0.65,
-    tileLayer:null,
-    on:false
-  },
-  flood:{
-    name:'Monsoon Flood Spread',
-    url:'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_Land_Surface_Temp_Day/default/2023-09-01/GoogleMapsCompatible/{z}/{y}/{x}.jpg',
-    attribution:'© NASA GIBS MODIS LST',
-    opacity:0.6,
-    tileLayer:null,
-    on:false
-  }
-};
-
 /* ══ STATE ═══════════════════════════════════════════════════════ */
-let map,oms,baseLayers={};
+let map,oms;
 let heatLayer=null,kdeLayer=null,mcpLayer=null;
-let corridorLayers={},singleTracks=[],relMarkers=[];
+let singleTracks=[],relMarkers=[];
 let rawArr=[],animals={},latest={},statusM={},catM={};
 let markers=[],mMap={};
 let fAnimal='all',fStatus='all',fCat='all';
-let showCorridors=false,justSpider=false,mcpOn=false;
-let tblAllRows=[],tblFiltered=[],tblExpanded=false,tblCollapsed=false;
-let sortCol=-1,sortDir=1,tblSearchQ='';
+let justSpider=false,mcpOn=false;
+let tblAllRows=[],tblExpanded=false,tblCollapsed=false;
 let currentAnimalId=null;
 const CH={};
 const wCache={},rivCache={};
 let ecoCache=null;
-let playDates=[],playIdx=0,playTimer=null,isPlaying=false;
-let lpOpen=true;
-let customGEECount=0;
 
 /* ══ INIT ════════════════════════════════════════════════════════ */
 function init(){
@@ -1042,6 +786,11 @@ function init(){
   document.getElementById('movModal').addEventListener('click',e=>{if(e.target===document.getElementById('movModal'))closeMovModal();});
   window.addEventListener('resize',handleResize);
   window.addEventListener('orientationchange',()=>setTimeout(handleResize,300));
+  // Close profile overlay when clicking outside it (on the map)
+  map.on('click',()=>{
+    const po=document.getElementById('profileOverlay');
+    if(po.classList.contains('vis'))clearProfile();
+  });
 }
 
 function handleResize(){if(map)setTimeout(()=>map.invalidateSize(),150);}
@@ -1050,13 +799,7 @@ function handleResize(){if(map)setTimeout(()=>map.invalidateSize(),150);}
 function initMap(){
   map=L.map('map',{zoomControl:false}).setView(MAP_CENTER,MAP_ZOOM);
   L.control.zoom({position:'bottomright'}).addTo(map);
-
-  // Base layers
-  baseLayers.satellite=L.tileLayer('http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',{maxZoom:20,attribution:'© Google'});
-  baseLayers.topo=L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{maxZoom:17,attribution:'© OpenTopoMap'});
-  baseLayers.osm=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OSM'});
-  baseLayers.satellite.addTo(map);
-
+  L.tileLayer('http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',{maxZoom:20,attribution:'© Google'}).addTo(map);
   oms=new OverlappingMarkerSpiderfier(map,{
     keepSpiderfied:true,nearbyDistance:35,circleSpiralSwitchover:10,
     circleFootSeparation:55,spiralFootSeparation:35,spiralLengthStart:22,spiralLengthFactor:6,
@@ -1067,64 +810,6 @@ function initMap(){
 
 function resetView(){map.setView(MAP_CENTER,MAP_ZOOM);}
 
-/* ══ GEE LAYER CONTROL ═══════════════════════════════════════════ */
-let lpBodyOpen=true;
-function toggleLayerPanel(){
-  lpBodyOpen=!lpBodyOpen;
-  document.getElementById('lpBody').style.display=lpBodyOpen?'block':'none';
-  document.getElementById('lpArrow').textContent=lpBodyOpen?'▼':'▶';
-}
-
-function switchBase(name){
-  Object.values(baseLayers).forEach(l=>map.hasLayer(l)&&map.removeLayer(l));
-  baseLayers[name].addTo(map);
-  ['satellite','topo','osm'].forEach(k=>{
-    const el=document.getElementById('lt-'+k);
-    if(el)el.classList.toggle('on',k===name);
-  });
-}
-
-function toggleGEELayer(key){
-  const lyr=GEE_LAYERS[key];if(!lyr)return;
-  const toggle=document.getElementById('lt-'+key);
-  lyr.on=!lyr.on;
-  toggle.classList.toggle('on',lyr.on);
-  if(lyr.on){
-    if(!lyr.tileLayer){
-      lyr.tileLayer=L.tileLayer(lyr.url,{
-        maxZoom:18,opacity:lyr.opacity,
-        attribution:lyr.attribution,
-        errorTileUrl:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
-      });
-    }
-    lyr.tileLayer.addTo(map);
-  } else {
-    if(lyr.tileLayer&&map.hasLayer(lyr.tileLayer))map.removeLayer(lyr.tileLayer);
-  }
-}
-
-function setLayerOpacity(key,val){
-  const lyr=GEE_LAYERS[key];
-  if(lyr){lyr.opacity=+val;if(lyr.tileLayer)lyr.tileLayer.setOpacity(+val);}
-}
-
-function addCustomGEELayer(){
-  const url=document.getElementById('geeUrl').value.trim();
-  const name=document.getElementById('geeName').value.trim()||'Custom Layer '+(++customGEECount);
-  if(!url)return alert('Please enter a GEE tile URL');
-  const key='custom_'+customGEECount;
-  GEE_LAYERS[key]={name,url,attribution:'© GEE Custom',opacity:.7,tileLayer:null,on:false};
-  const div=document.getElementById('customLayersDiv');
-  const row=document.createElement('div');row.className='layer-row';
-  row.innerHTML=`<div class="ltoggle" id="lt-${key}" onclick="toggleGEELayer('${key}')"></div>
-    <span class="l-name" style="font-size:.68rem;">${name}</span>
-    <input type="range" min="0" max="1" step=".05" value=".7" class="l-opacity" oninput="setLayerOpacity('${key}',this.value)">`;
-  div.appendChild(row);
-  document.getElementById('geeUrl').value='';
-  document.getElementById('geeName').value='';
-  toggleGEELayer(key);
-}
-
 /* ══ DATA LOADING ════════════════════════════════════════════════ */
 function loadData(){
   Papa.parse(CSV_URL,{download:true,header:true,skipEmptyLines:true,complete(res){
@@ -1132,9 +817,7 @@ function loadData(){
     process();
     populateDrop();
     applyFilters();
-    buildPlayDates();
     updateFoot();
-    buildAnalytics();
   }});
 }
 function loadUpdates(){
@@ -1180,23 +863,6 @@ function updateCounts(){
   ['cA','cD','cT','cG'].forEach((el,i)=>document.getElementById(el).textContent=[a,d,t,g][i]);
   // Mobile strip
   ['mA','mD','mT','mG','mTot'].forEach((el,i)=>{const e=document.getElementById(el);if(e)e.textContent=[a,d,t,g,tot][i];});
-  // Analytics cards
-  buildAnalyticsCards(tot,a,d,t,g);
-}
-
-function buildAnalyticsCards(tot,a,d,t,g){
-  const surv=tot>0?((a/(a+d))*100).toFixed(1)+'%':'—';
-  const avgFx=(rawArr.length/Math.max(tot,1)).toFixed(1);
-  const div=document.getElementById('anaCards');if(!div)return;
-  div.innerHTML=`
-    <div class="ana-card b"><div class="ac-v">${tot}</div><div class="ac-l">Total Tagged</div></div>
-    <div class="ana-card"><div class="ac-v">${a}</div><div class="ac-l">Active ≤10d</div></div>
-    <div class="ana-card r"><div class="ac-v">${d}</div><div class="ac-l">Dead / Missing</div></div>
-    <div class="ana-card y"><div class="ac-v">${t}</div><div class="ac-l">Temp Missing</div></div>
-    <div class="ana-card g"><div class="ac-v">${g}</div><div class="ac-l">Gone &gt;30d</div></div>
-    <div class="ana-card p"><div class="ac-v">${surv}</div><div class="ac-l">Survival Rate</div></div>
-    <div class="ana-card"><div class="ac-v">${rawArr.length}</div><div class="ac-l">Total Fixes</div></div>
-    <div class="ana-card"><div class="ac-v">${avgFx}</div><div class="ac-l">Avg Fixes/Animal</div></div>`;
 }
 
 /* ══ FILTER / STATUS COLOR ═══════════════════════════════════════ */
@@ -1230,6 +896,10 @@ function clearAllFilters(){
   colorSel(document.getElementById('statusSel'));colorSel(document.getElementById('catSel'));
   colorAnimalSel(document.getElementById('animalSel'));
   fAnimal=fStatus=fCat='all';syncPills('all');
+  // Also turn off heatmap if on
+  if(heatLayer&&map.hasLayer(heatLayer)){map.removeLayer(heatLayer);document.getElementById('btnHeat').classList.remove('on');}
+  // Also turn off KDE if on
+  if(kdeLayer){map.removeLayer(kdeLayer);kdeLayer=null;document.getElementById('btnKDE').classList.remove('on');}
   clearProfile();applyFilters();
 }
 
@@ -1266,12 +936,10 @@ function clearMapLayers(){
   singleTracks.forEach(l=>map.removeLayer(l));singleTracks=[];
   relMarkers.forEach(m=>map.removeLayer(m));relMarkers=[];
   clearMCP();
-  if(showCorridors){Object.values(corridorLayers).forEach(l=>map.removeLayer(l));corridorLayers={};}
 }
 
 function renderPool(pool){
   pool.forEach(r=>addMarker(r));
-  if(showCorridors)drawAllCorridors();
   if(pool.length){
     const lls=pool.map(r=>[+r['Latitude'],+r['Longitude']]).filter(ll=>!isNaN(ll[0])&&!isNaN(ll[1]));
     if(lls.length>1)map.fitBounds(L.latLngBounds(lls),{padding:[60,60]});
@@ -1559,36 +1227,8 @@ function toggleKDE(){
   kdeLayer=new KDE();map.addLayer(kdeLayer);
 }
 
-function drawAllCorridors(){
-  Object.values(corridorLayers).forEach(l=>map.removeLayer(l));corridorLayers={};
-  for(const id in animals){
-    const ord=[...animals[id]].sort((a,b)=>a._parsed-b._parsed);
-    const lls=ord.map(r=>[+r['Latitude'],+r['Longitude']]).filter(ll=>!isNaN(ll[0])&&!isNaN(ll[1]));
-    if(lls.length>1){const l=L.polyline(lls,{color:sColor(statusM[id]),weight:1.5,opacity:.5}).addTo(map);corridorLayers[id]=l;}
-  }
-}
-function toggleCorridors(){
-  showCorridors=!showCorridors;
-  document.getElementById('btnCorr').classList.toggle('on',showCorridors);
-  if(showCorridors)drawAllCorridors();
-  else{Object.values(corridorLayers).forEach(l=>map.removeLayer(l));corridorLayers={};}
-}
-
 /* ══ TIMELINE PLAYBACK ═══════════════════════════════════════════ */
-function buildPlayDates(){
-  const ds=new Set();
-  rawArr.forEach(r=>{if(r._parsed&&r._parsed>new Date(2000,0,1))ds.add(dateStr(r._parsed));});
-  playDates=[...ds].sort();
-  const sl=document.getElementById('playSlider');
-  sl.max=playDates.length-1;sl.value=playDates.length-1;
-  if(playDates.length){
-    document.getElementById('plStart').textContent=playDates[0];
-    document.getElementById('plEnd').textContent=playDates[playDates.length-1];
-    playIdx=playDates.length-1;renderPlayAt(playIdx);
-  }
-}
 function dateStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-function onSliderInput(v){playIdx=parseInt(v);renderPlayAt(playIdx);}
 function renderPlayAt(idx){
   if(!playDates.length)return;
   const cutoff=playDates[idx];
@@ -1599,46 +1239,27 @@ function renderPlayAt(idx){
   const byAnimal={};vis.forEach(r=>{const id=r._id;if(!byAnimal[id]||r._parsed>byAnimal[id]._parsed)byAnimal[id]=r;});
   document.getElementById('playCnt').textContent=`${Object.keys(byAnimal).length} animals · ${vis.length} fixes`;
 }
-function togglePlay(){
-  isPlaying=!isPlaying;
-  document.getElementById('playBtn').textContent=isPlaying?'⏸':'▶';
-  if(isPlaying)advPlay();else clearTimeout(playTimer);
-}
-function advPlay(){
-  if(!isPlaying)return;
-  if(playIdx>=playDates.length-1)playIdx=0;else playIdx++;
-  renderPlayAt(playIdx);
-  const spd=parseInt(document.getElementById('playSpeed').value);
-  playTimer=setTimeout(advPlay,500/spd);
-}
-function resetPlay(){
-  isPlaying=false;clearTimeout(playTimer);
-  document.getElementById('playBtn').textContent='▶';
-  playIdx=0;renderPlayAt(0);
-}
-
 /* ══ TABLE ═══════════════════════════════════════════════════════ */
 function setTblRows(rows,label,total){
   tblAllRows=[...rows].sort((a,b)=>b._parsed-a._parsed);
-  tblFiltered=tblAllRows;tblExpanded=false;tblSearchQ='';
-  document.getElementById('tblSearch').value='';
+  tblExpanded=false;
+  
   document.getElementById('tblBadge').textContent=total+' rows';
   paintTbl();
 }
-function onTblSearch(q){tblSearchQ=q.toLowerCase();tblFiltered=tblAllRows.filter(r=>JSON.stringify(r).toLowerCase().includes(tblSearchQ));tblExpanded=false;paintTbl();}
 let sortDir2=1,sortCol2=-1;
 function sortTbl(col){
   if(sortCol2===col){sortDir2*=-1;}else{sortCol2=col;sortDir2=1;}
   const keys=['Animal ID','Timestamp','Place','Activity','Signal','_status','_cat'];
   const k=keys[col]||'Timestamp';
-  tblFiltered=[...tblFiltered].sort((a,b)=>{let va=(k==='_status'?statusM[a._id]||'':k==='_cat'?catM[a._id]||'':a[k]||'').toString();let vb=(k==='_status'?statusM[b._id]||'':k==='_cat'?catM[b._id]||'':b[k]||'').toString();return va.localeCompare(vb)*sortDir2;});
+  tblAllRows=[...tblAllRows].sort((a,b)=>{let va=(k==='_status'?statusM[a._id]||'':k==='_cat'?catM[a._id]||'':a[k]||'').toString();let vb=(k==='_status'?statusM[b._id]||'':k==='_cat'?catM[b._id]||'':b[k]||'').toString();return va.localeCompare(vb)*sortDir2;});
   for(let i=0;i<7;i++){const el=document.getElementById('sa'+i);if(el)el.textContent=i===col?(sortDir2>0?' ↑':' ↓'):'';}
   paintTbl();
 }
 function toggleTblExpand(){tblExpanded=!tblExpanded;paintTbl();}
 function paintTbl(){
   const tbody=document.getElementById('tblBody');tbody.innerHTML='';
-  const vis=tblExpanded?tblFiltered:tblFiltered.slice(0,DEFAULT_ROWS);
+  const vis=tblExpanded?tblAllRows:tblAllRows.slice(0,DEFAULT_ROWS);
   vis.forEach(r=>{
     const id=r['Animal ID']||'',sig=sig$(r),s=statusM[id]||'active',cat=catM[id]||'';
     const tr=document.createElement('tr');
@@ -1653,9 +1274,9 @@ function paintTbl(){
     tbody.appendChild(tr);
   });
   const btn=document.getElementById('tblMore');
-  if(tblFiltered.length>DEFAULT_ROWS){
+  if(tblAllRows.length>DEFAULT_ROWS){
     btn.style.display='block';
-    btn.textContent=tblExpanded?'▲ Show less':`▼ All ${tblFiltered.length} rows`;
+    btn.textContent=tblExpanded?'▲ Show less':`▼ All ${tblAllRows.length} rows`;
   } else btn.style.display='none';
 }
 function toggleBtmCollapse(){
@@ -1663,18 +1284,7 @@ function toggleBtmCollapse(){
   document.getElementById('btmContent').classList.toggle('collapsed',tblCollapsed);
   document.getElementById('btmColBtn').textContent=tblCollapsed?'▲ Show':'▼ Hide';
 }
-function switchBTab(id){
-  document.querySelectorAll('.btab').forEach(b=>b.classList.remove('on'));
-  document.querySelectorAll('.tc-wrap').forEach(t=>t.classList.remove('on'));
-  document.getElementById('tc-'+id).classList.add('on');
-  document.querySelectorAll('.btab')[id==='tbl'?0:1].classList.add('on');
-}
-
 /* ══ ANALYTICS TAB ═══════════════════════════════════════════════ */
-function buildAnalytics(){
-  buildAnalyticsCards(Object.keys(latest).length,cntS('active'),cntS('dead'),cntS('tmiss'),cntS('gone'));
-}
-
 /* ══ FOOT / DROPDOWN ══════════════════════════════════════════════ */
 function updateFoot(){
   let lx=null;rawArr.forEach(r=>{if(!lx||r._parsed>lx)lx=r._parsed;});
