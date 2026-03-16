@@ -435,6 +435,37 @@ header img{height:38px;object-fit:contain;filter:brightness(1.1) drop-shadow(0 1
 .hab-floodplain{background:#fce4ec;color:#c62828;}
 .riv-load{font-size:.7rem;color:var(--text3);font-style:italic;}
 
+/* ═══ CLEAR ALL BUTTON ══════════════════════════ */
+.tbtn-clear{
+  display:flex;align-items:center;gap:4px;padding:5px 12px;
+  background:#fff5f5;border:1px solid #fca5a5;
+  border-radius:var(--radius);color:#b91c1c;cursor:pointer;
+  font-size:.73rem;font-weight:700;transition:all .18s;white-space:nowrap;
+  font-family:var(--font);
+}
+.tbtn-clear:hover{background:#fee2e2;border-color:#ef4444;}
+
+/* ═══ COLOR-CODED SELECT TEXT ═══════════════════ */
+/* Status select colors applied via JS class on select itself */
+.sel-active{color:#166534!important;}
+.sel-dead  {color:#991b1b!important;}
+.sel-tmiss {color:#9a3412!important;}
+.sel-gone  {color:#374151!important;}
+.sel-settler {color:#6b21a8!important;}
+.sel-explorer{color:#0e7490!important;}
+/* Option colors (Chrome/Edge support) */
+#statusSel option[value="active"]{color:#166534;}
+#statusSel option[value="dead"]  {color:#991b1b;}
+#statusSel option[value="tmiss"] {color:#9a3412;}
+#statusSel option[value="gone"]  {color:#374151;}
+#catSel option[value="settler"]  {color:#6b21a8;}
+#catSel option[value="explorer"] {color:#0e7490;}
+/* Animal select — colored by status via JS data attribute */
+#animalSel option[data-s="dead"]  {color:#991b1b;}
+#animalSel option[data-s="tmiss"] {color:#9a3412;}
+#animalSel option[data-s="gone"]  {color:#374151;}
+#animalSel option[data-s="active"]{color:#166534;}
+
 @media(max-width:700px){.hdr-center{display:none;}.cg{grid-template-columns:1fr;}}
 </style>
 </head>
@@ -506,6 +537,8 @@ header img{height:38px;object-fit:contain;filter:brightness(1.1) drop-shadow(0 1
       <option value="explorer">Explorer</option>
     </select>
   </div>
+  <div class="tb-sep"></div>
+  <button class="tbtn-clear" onclick="clearAllFilters()" title="Reset all filters">✕ Clear All</button>
   <div class="tb-sep"></div>
   <button class="tbtn" id="btnHeat"  onclick="toggleHeatmap()">🌡️ Heatmap</button>
   <button class="tbtn" id="btnKDE"   onclick="toggleKDE()">📍 KDE Layer</button>
@@ -749,9 +782,9 @@ function init(){
   initMap(); initResize();
   loadData(); loadUpdates();
 
-  document.getElementById('animalSel').addEventListener('change',()=>applyFilters());
-  document.getElementById('statusSel').addEventListener('change',()=>applyFilters());
-  document.getElementById('catSel').addEventListener('change',()=>applyFilters());
+  document.getElementById('animalSel').addEventListener('change',()=>{colorAnimalSel(document.getElementById('animalSel'));applyFilters();});
+  document.getElementById('statusSel').addEventListener('change',()=>{colorStatusSel(document.getElementById('statusSel'));applyFilters();});
+  document.getElementById('catSel').addEventListener('change',()=>{colorCatSel(document.getElementById('catSel'));applyFilters();});
   document.getElementById('statsModal').addEventListener('click',e=>{if(e.target===document.getElementById('statsModal'))closeStats();});
   document.getElementById('movModal').addEventListener('click',e=>{if(e.target===document.getElementById('movModal'))closeMovModal();});
 }
@@ -842,7 +875,9 @@ function populateDrop(){
   const sel=document.getElementById('animalSel');
   Object.keys(animals).sort((a,b)=>+a-+b).forEach(id=>{
     const o=document.createElement('option');o.value=id;
-    const s=statusM[id];o.textContent=(s==='dead'?'⚰ ':s==='tmiss'?'⚠ ':s==='gone'?'☁ ':'🐊 ')+'ID '+id;
+    const s=statusM[id];
+    o.setAttribute('data-s',s);
+    o.textContent=(s==='dead'?'⚰ ':s==='tmiss'?'⚠ ':s==='gone'?'☁ ':'🐊 ')+'ID '+id;
     sel.appendChild(o);
   });
 }
@@ -910,7 +945,7 @@ function renderSingleAnimal(sid){
   addRelMarker(ord[0]);
   if(lls.length)map.fitBounds(L.latLngBounds(lls),{padding:[50,50]});
   drawMCP(sid,ord);
-  showProfile(sid,recs,ord);
+  // Profile only opens when user clicks "View Details" in a popup — not automatically
   setTblRows(recs, `All fixes — Animal ID ${sid}`, recs.length);
 }
 
@@ -935,8 +970,7 @@ function addMarker(rec){
   });
   m.on('click',()=>{
     if(justSpider)return;
-    const ord=[...animals[id]].sort((a,b)=>a._parsed-b._parsed);
-    showProfile(id,animals[id],ord);
+    // popup opens automatically via Leaflet; profile only via "View Details" button
   });
   markers.push(m);oms.addMarker(m);
   mMap[id+'|'+(rec['Timestamp']||'')]=m;
@@ -977,6 +1011,7 @@ function buildPopup(r,pid){
   <div class="pop-acts">
     <button class="pop-ab" onclick="(function(){var s=document.getElementById('animalSel');s.value='${id}';applyFilters();})()">🐊 Full Track</button>
     <button class="pop-ab" onclick="openMovDetailModal('${id}')">📈 Movement</button>
+    <button class="pop-ab" style="background:#f3e5f5;border-color:#ce93d8;color:#6b21a8;" onclick="(function(){var ord=[...animals['${id}']].sort((a,b)=>a._parsed-b._parsed);showProfile('${id}',animals['${id}'],ord);})()">📋 View Details</button>
   </div>`;
 }
 
@@ -1314,6 +1349,38 @@ function toggleKDE(){
 }
 function kdeCol(t){if(t<0.33)return[0,Math.round(100+t*3*100),60];if(t<0.66)return[Math.round((t-.33)*3*220),200,0];return[255,Math.round(200-(t-.66)*3*200),0];}
 function std(a){if(a.length<2)return 0;const m=a.reduce((x,y)=>x+y,0)/a.length;return Math.sqrt(a.reduce((x,y)=>x+(y-m)**2,0)/a.length);}
+
+/* ═══ FILTER COLOR CODING & CLEAR ALL ══════════ */
+function colorStatusSel(sel){
+  const map={'all':'','active':'sel-active','dead':'sel-dead','tmiss':'sel-tmiss','gone':'sel-gone'};
+  sel.className=sel.className.replace(/sel-\w+/g,'').trim();
+  if(map[sel.value])sel.classList.add(map[sel.value]);
+}
+function colorCatSel(sel){
+  const map={'all':'','settler':'sel-settler','explorer':'sel-explorer'};
+  sel.className=sel.className.replace(/sel-\w+/g,'').trim();
+  if(map[sel.value])sel.classList.add(map[sel.value]);
+}
+function colorAnimalSel(sel){
+  // Color by status of the selected animal
+  if(sel.value==='all'){sel.className=sel.className.replace(/sel-\w+/g,'').trim();return;}
+  const s=statusM[sel.value]||'active';
+  const map={active:'sel-active',dead:'sel-dead',tmiss:'sel-tmiss',gone:'sel-gone'};
+  sel.className=sel.className.replace(/sel-\w+/g,'').trim();
+  if(map[s])sel.classList.add(map[s]);
+}
+
+function clearAllFilters(){
+  const aS=document.getElementById('animalSel');
+  const sS=document.getElementById('statusSel');
+  const cS=document.getElementById('catSel');
+  aS.value='all'; sS.value='all'; cS.value='all';
+  colorAnimalSel(aS); colorStatusSel(sS); colorCatSel(cS);
+  fAnimal='all'; fStatus='all'; fCat='all';
+  syncPills('all');
+  clearProfile();
+  applyFilters();
+}
 
 /* ═══ TOOLBAR TOGGLE ════════════════════════════ */
 function toggleToolbar(){
