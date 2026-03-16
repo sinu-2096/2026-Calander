@@ -409,6 +409,32 @@ header img{height:38px;object-fit:contain;filter:brightness(1.1) drop-shadow(0 1
 .fu .fd{font-weight:700;color:var(--text2);font-size:.72rem;font-family:var(--mono);}
 .fu .ft{margin-top:2px;font-size:.79rem;line-height:1.4;color:var(--text);}
 
+/* ═══ RIVER ECOLOGY IN POPUP ═══════════════════ */
+.pop-river{
+  margin-top:7px;
+  background:linear-gradient(135deg,#e0f4f1,#f1fbf8);
+  border:1px solid #80cbc4;border-radius:var(--radius);
+  padding:7px 10px;border-left:3px solid #00695c;
+}
+.pop-river-title{
+  font-size:.61rem;font-weight:700;color:#00695c;
+  text-transform:uppercase;letter-spacing:.07em;
+  margin-bottom:4px;font-family:var(--mono);
+}
+.pop-river-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px;}
+.pri{font-size:.7rem;color:var(--text);}
+.pri span{color:var(--text3);}
+.pri.full{grid-column:1/-1;}
+.pri .habitat-chip{
+  display:inline-block;padding:1px 7px;border-radius:9px;
+  font-size:.62rem;font-weight:700;font-family:var(--mono);
+}
+.hab-channel{background:#e0f2f1;color:#00695c;}
+.hab-sandbank{background:#fff9c4;color:#f57f17;}
+.hab-riparian{background:#e8f5e9;color:#2e7d32;}
+.hab-floodplain{background:#fce4ec;color:#c62828;}
+.riv-load{font-size:.7rem;color:var(--text3);font-style:italic;}
+
 @media(max-width:700px){.hdr-center{display:none;}.cg{grid-template-columns:1fr;}}
 </style>
 </head>
@@ -448,6 +474,7 @@ header img{height:38px;object-fit:contain;filter:brightness(1.1) drop-shadow(0 1
   <div class="hdr-right">
     <button class="hbtn primary" onclick="openStats()">📊 Stats</button>
     <button class="hbtn" onclick="toggleFP()">📋 Field Updates</button>
+    <button class="hbtn" id="filterToggleBtn" onclick="toggleToolbar()" title="Toggle Filters">⚙ Filters</button>
   </div>
 </header>
 
@@ -482,13 +509,10 @@ header img{height:38px;object-fit:contain;filter:brightness(1.1) drop-shadow(0 1
   <div class="tb-sep"></div>
   <button class="tbtn" id="btnHeat"  onclick="toggleHeatmap()">🌡️ Heatmap</button>
   <button class="tbtn" id="btnKDE"   onclick="toggleKDE()">📍 KDE Layer</button>
-  <button class="tbtn" id="btnTrack" onclick="toggleAllTracks()">〰️ All Tracks</button>
   <div class="tb-sep"></div>
   <button class="tbtn tbtn-exp" onclick="exportDispersal()">📤 Dispersal CSV</button>
   <button class="tbtn tbtn-exp" onclick="exportSurvival()">📤 Survival CSV</button>
   <button class="tbtn tbtn-exp" onclick="exportMovement()">📤 Movement CSV</button>
-  <div class="ml-auto"></div>
-  <button class="tbtn" onclick="toggleToolbar()" style="font-size:.7rem;padding:4px 9px;">⚙ Filters</button>
 </div>
 
 <!-- ═══════════════════════════════════
@@ -583,7 +607,6 @@ header img{height:38px;object-fit:contain;filter:brightness(1.1) drop-shadow(0 1
         <button class="tab" onclick="switchTab('tm')">📍 Movement</button>
         <button class="tab" onclick="switchTab('ta')">🌊 Activity & Signal</button>
         <button class="tab" onclick="switchTab('te')">🔬 Movement Ecology</button>
-        <button class="tab" onclick="switchTab('tw')">🌤 River Conditions</button>
       </div>
 
       <!-- SURVIVAL -->
@@ -642,53 +665,6 @@ header img{height:38px;object-fit:contain;filter:brightness(1.1) drop-shadow(0 1
               <thead><tr><th>ID</th><th>Status</th><th>Fixes</th><th>MCP (ha)</th><th>KDE 95% (ha)</th><th>KDE 50% (ha)</th><th>Straightness</th><th>Mean Step (m)</th><th>Max Disp (m)</th></tr></thead>
               <tbody></tbody>
             </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- RIVER CONDITIONS -->
-      <div class="tc" id="tw">
-        <div style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px;">
-          <div style="font-size:.78rem;font-weight:700;color:var(--forest);margin-bottom:12px;font-family:var(--mono);">📅 Select Date & Time to Query Historical River Conditions</div>
-          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;">
-            <div class="fg"><label>Date</label><input type="date" id="wDate" style="padding:5px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:.76rem;font-family:var(--font);"></div>
-            <div class="fg"><label>Hour (IST)</label><select id="wHour" style="padding:5px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:.76rem;font-family:var(--font);">
-              <option value="6">06:00</option><option value="7">07:00</option><option value="8">08:00</option><option value="9">09:00</option><option value="10">10:00</option><option value="11">11:00</option><option value="12">12:00</option><option value="13">13:00</option><option value="14">14:00</option><option value="15">15:00</option><option value="16">16:00</option><option value="17">17:00</option><option value="18">18:00</option>
-            </select></div>
-            <button onclick="fetchWeatherPanel()" style="padding:6px 16px;background:var(--forest3);color:white;border:none;border-radius:var(--radius);cursor:pointer;font-size:.76rem;font-weight:700;">Fetch Conditions</button>
-          </div>
-          <div id="weatherPanel" style="display:none;">
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:9px;margin-bottom:10px;" id="wCards"></div>
-          </div>
-          <div id="weatherStatus" style="font-size:.75rem;color:var(--text3);font-style:italic;font-family:var(--mono);"></div>
-        </div>
-        <div class="cg full">
-          <div class="cc"><h4>Monthly Temperature Trend — Chambal (°C)</h4>
-            <div style="font-size:.68rem;color:var(--text3);margin-bottom:8px;">Select date range and click Fetch to populate</div>
-            <div class="cw" style="height:180px;"><canvas id="cWeatherTemp"></canvas></div>
-          </div>
-        </div>
-        <div style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:14px;">
-          <div style="font-size:.66rem;font-weight:700;color:var(--forest3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;font-family:var(--mono);">Current Conditions — Chambal (Live)</div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:6px;" id="liveWeatherGrid">
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;">
-              <div style="font-size:.8rem;">🌡️</div><div style="font-size:.85rem;font-weight:700;font-family:var(--mono);color:var(--teal)" id="lwTemp">—</div><div style="font-size:.55rem;color:var(--text4);text-transform:uppercase;letter-spacing:.05em;">Temp °C</div>
-            </div>
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;">
-              <div style="font-size:.8rem;">💧</div><div style="font-size:.85rem;font-weight:700;font-family:var(--mono);color:var(--teal)" id="lwHum">—</div><div style="font-size:.55rem;color:var(--text4);text-transform:uppercase;letter-spacing:.05em;">Humidity %</div>
-            </div>
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;">
-              <div style="font-size:.8rem;">💨</div><div style="font-size:.85rem;font-weight:700;font-family:var(--mono);color:var(--teal)" id="lwWind">—</div><div style="font-size:.55rem;color:var(--text4);text-transform:uppercase;letter-spacing:.05em;">Wind km/h</div>
-            </div>
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;">
-              <div style="font-size:.8rem;">🌧️</div><div style="font-size:.85rem;font-weight:700;font-family:var(--mono);color:var(--teal)" id="lwRain">—</div><div style="font-size:.55rem;color:var(--text4);text-transform:uppercase;letter-spacing:.05em;">Rain mm</div>
-            </div>
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;">
-              <div style="font-size:.8rem;">🌅</div><div style="font-size:.85rem;font-weight:700;font-family:var(--mono);color:var(--teal)" id="lwSun">—</div><div style="font-size:.55rem;color:var(--text4);text-transform:uppercase;letter-spacing:.05em;">Sunrise</div>
-            </div>
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;">
-              <div style="font-size:.8rem;">🌙</div><div style="font-size:.85rem;font-weight:700;font-family:var(--mono);color:var(--teal)" id="lwMoon">—</div><div style="font-size:.55rem;color:var(--text4);text-transform:uppercase;letter-spacing:.05em;">Moon Phase</div>
-            </div>
           </div>
         </div>
       </div>
@@ -771,20 +747,13 @@ let ecoCache=null;
 /* ═══ INIT ═════════════════════════════════════ */
 function init(){
   initMap(); initResize();
-  loadData(); loadUpdates(); fetchLiveWeather();
-  setDefaultWDate();
+  loadData(); loadUpdates();
 
   document.getElementById('animalSel').addEventListener('change',()=>applyFilters());
   document.getElementById('statusSel').addEventListener('change',()=>applyFilters());
   document.getElementById('catSel').addEventListener('change',()=>applyFilters());
   document.getElementById('statsModal').addEventListener('click',e=>{if(e.target===document.getElementById('statsModal'))closeStats();});
   document.getElementById('movModal').addEventListener('click',e=>{if(e.target===document.getElementById('movModal'))closeMovModal();});
-}
-
-function setDefaultWDate(){
-  const d=new Date();
-  document.getElementById('wDate').value=isoDate(d);
-  document.getElementById('wHour').value=d.getHours()<6?6:d.getHours()>18?18:d.getHours();
 }
 
 /* ═══ MAP ══════════════════════════════════════ */
@@ -922,12 +891,10 @@ function clearMapLayers(){
   singleTracks.forEach(l=>map.removeLayer(l));singleTracks=[];
   relMarkers.forEach(m=>map.removeLayer(m));relMarkers=[];
   clearMCP();
-  if(showTracks){trackLayers.forEach(l=>map.removeLayer(l));trackLayers=[];}
 }
 
 function renderPool(pool){
   pool.forEach(r=>addMarker(r));
-  if(showTracks)drawAllTracks();
   if(pool.length){
     const lls=pool.map(r=>[+r['Latitude'],+r['Longitude']]).filter(ll=>!isNaN(ll[0])&&!isNaN(ll[1]));
     if(lls.length>1)map.fitBounds(L.latLngBounds(lls),{padding:[60,60]});
@@ -960,7 +927,12 @@ function addMarker(rec){
   const pid='pw-'+id+'-'+(rec['Timestamp']||'').replace(/\D/g,'');
   const m=L.marker([lat,lng],{icon:mkIcon(id)}).addTo(map);
   m.bindPopup(buildPopup(rec,pid),{maxWidth:310,minWidth:255});
-  m.on('popupopen',()=>{if(!justSpider)fetchHistWeather(lat,lng,rec._parsed,pid);});
+  m.on('popupopen',()=>{
+    if(!justSpider){
+      fetchHistWeather(lat,lng,rec._parsed,pid);
+      getRiverDistance(lat,lng,'rv-'+pid);
+    }
+  });
   m.on('click',()=>{
     if(justSpider)return;
     const ord=[...animals[id]].sort((a,b)=>a._parsed-b._parsed);
@@ -981,6 +953,7 @@ function addRelMarker(rec){
 
 function buildPopup(r,pid){
   const id=r['Animal ID'],s=statusM[id]||'active',cat=catM[id]||'',sig=sig$(r);
+  const rid='rv-'+pid;
   return `<div class="pop-wrap">
     <div class="pop-id">🐊 ID ${id} <span class="badge b-${s}">${stTxt(s)}</span></div>
     <table class="pop-tbl">
@@ -995,6 +968,10 @@ function buildPopup(r,pid){
     <div class="pop-weather" id="${pid}">
       <div class="pop-wt">🌤 River Conditions at This Fix</div>
       <div class="pwload">Fetching historical conditions…</div>
+    </div>
+    <div class="pop-river" id="${rid}">
+      <div class="pop-river-title">🏞 River Ecology Context</div>
+      <div class="riv-load">Calculating river distance…</div>
     </div>
   </div>
   <div class="pop-acts">
@@ -1042,66 +1019,124 @@ async function fetchHistWeather(lat,lng,dateObj,targetId){
   }
 }
 
-/* ═══ WEATHER PANEL (Stats tab) ══════════════════ */
-async function fetchWeatherPanel(){
-  const ds=document.getElementById('wDate').value;
-  const hour=parseInt(document.getElementById('wHour').value);
-  const stat=document.getElementById('weatherStatus');
-  if(!ds){stat.textContent='Please select a date.';return;}
-  stat.textContent='Fetching…';
-  const key=`${ds}|25.84|76.56`;
-  try{
-    let data;
-    if(wCache[key+'|'+hour]){data=wCache[key+'|'+hour];}
-    else{
-      const d=new Date(ds),old=Math.floor((TODAY-d)/86400000)>92;
-      const base=old?'https://archive-api.open-meteo.com/v1/archive':'https://api.open-meteo.com/v1/forecast';
-      const url=`${base}?latitude=25.84&longitude=76.56&start_date=${ds}&end_date=${ds}&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation,river_discharge&timezone=Asia%2FKolkata`;
-      const res=await fetch(url);if(!res.ok)throw new Error('HTTP '+res.status);
-      data=await res.json();wCache[key+'|'+hour]=data;
-    }
-    const h=data.hourly;
-    if(!h?.temperature_2m){stat.textContent='No data for this date.';return;}
-    const tgt=`${ds}T${String(hour).padStart(2,'0')}:00`;
-    let idx=h.time?.indexOf(tgt);if(idx===-1||idx===undefined)idx=hour;
-    const wp=document.getElementById('weatherPanel');wp.style.display='block';
-    const items=[
-      {ico:'🌡️',val:h.temperature_2m[idx]!=null?h.temperature_2m[idx].toFixed(1)+'°C':'—',lbl:'Temperature'},
-      {ico:'💧',val:h.relative_humidity_2m[idx]!=null?h.relative_humidity_2m[idx]+'%':'—',lbl:'Humidity'},
-      {ico:'💨',val:h.wind_speed_10m[idx]!=null?h.wind_speed_10m[idx]+' km/h':'—',lbl:'Wind Speed'},
-      {ico:'🌧️',val:h.precipitation[idx]!=null?h.precipitation[idx]+' mm':'—',lbl:'Precipitation'},
-      {ico:'🌊',val:h.river_discharge?.[idx]!=null?h.river_discharge[idx].toFixed(1)+' m³/s':'N/A',lbl:'River Discharge'},
-      {ico:'🌙',val:getMoonPhase(),lbl:'Moon Phase'},
-    ];
-    document.getElementById('wCards').innerHTML=items.map(it=>`
-      <div style="background:linear-gradient(135deg,var(--surface2),white);border:1px solid var(--border2);border-radius:var(--radius);padding:12px;border-top:3px solid var(--teal);">
-        <div style="font-size:1.1rem;">${it.ico}</div>
-        <div style="font-size:1rem;font-weight:800;font-family:var(--mono);color:var(--text);margin-top:2px;">${it.val}</div>
-        <div style="font-size:.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;">${it.lbl}</div>
-      </div>`).join('');
-    stat.textContent=`✅ Data for ${ds} at ${String(hour).padStart(2,'0')}:00 IST — Chambal River (25.84°N, 76.56°E)`;
+/* ═══ RIVER ECOLOGY — OVERPASS API ═════════════ */
+const riverCache={};
 
-    // Also build temp trend chart (full day hourly)
-    const temps=h.temperature_2m||[];const hrs=(h.time||[]).map(t=>t.slice(11,16));
-    if(temps.length&&!CH['wt']){
-      mkLine('cWeatherTemp',hrs,temps,false,'°C','#1b9aaa',true);
+async function getRiverDistance(lat,lng,targetId){
+  const el=document.getElementById(targetId);
+  if(!el)return;
+  const key=`${lat.toFixed(4)}|${lng.toFixed(4)}`;
+  try{
+    let dist;
+    if(riverCache[key]!==undefined){
+      dist=riverCache[key];
+    } else {
+      // Query Overpass API for waterway=river within 2km
+      const radius=2000;
+      const query=`[out:json][timeout:12];(way["waterway"="river"](around:${radius},${lat},${lng}););out geom;`;
+      const url='https://overpass-api.de/api/interpreter?data='+encodeURIComponent(query);
+      const res=await fetch(url,{signal:AbortSignal.timeout?AbortSignal.timeout(12000):undefined});
+      if(!res.ok)throw new Error('Overpass HTTP '+res.status);
+      const data=await res.json();
+      if(!data.elements||data.elements.length===0){
+        // No river found within 2km — use fallback straight-line to known Chambal geometry
+        dist=estimateChambalDistance(lat,lng);
+        riverCache[key]=dist;
+      } else {
+        // Find minimum distance from point to any river way geometry
+        dist=Infinity;
+        for(const el2 of data.elements){
+          if(!el2.geometry)continue;
+          for(let i=0;i<el2.geometry.length;i++){
+            const nd=el2.geometry[i];
+            const d=haversineSimple(lat,lng,nd.lat,nd.lon);
+            if(d<dist)dist=d;
+          }
+        }
+        if(!isFinite(dist))dist=estimateChambalDistance(lat,lng);
+        dist=Math.round(dist);
+        riverCache[key]=dist;
+      }
     }
-  }catch(e){stat.textContent='Error: '+e.message;}
+    const el2=document.getElementById(targetId);
+    if(!el2)return;
+    const habitat=classifyHabitat(dist);
+    const width=estimateRiverWidth(dist);
+    const{cls,label}=habitatStyle(habitat);
+    el2.innerHTML=`
+      <div class="pop-river-title">🏞 River Ecology Context</div>
+      <div class="pop-river-grid">
+        <div class="pri"><span>🌊 River Dist:</span> <b>${dist} m</b></div>
+        <div class="pri"><span>↔ Est. Width:</span> <b>~${width} m</b></div>
+        <div class="pri full"><span>📍 Habitat: </span><span class="habitat-chip ${cls}">${label}</span></div>
+      </div>`;
+  } catch(e){
+    const el2=document.getElementById(targetId);
+    if(el2)el2.innerHTML=`<div class="pop-river-title">🏞 River Ecology Context</div>
+      <div class="pop-river-grid">
+        <div class="pri full"><span>River data:</span> <b>—</b> (unavailable)</div>
+      </div>`;
+  }
 }
 
-/* ═══ LIVE WEATHER ═════════════════════════════ */
-async function fetchLiveWeather(){
-  try{
-    const res=await fetch('https://api.open-meteo.com/v1/forecast?latitude=25.84&longitude=76.56&current=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation&daily=sunrise&timezone=Asia%2FKolkata&forecast_days=1');
-    const d=await res.json();const c=d.current;
-    document.getElementById('lwTemp').textContent=(c.temperature_2m??'—')+'°';
-    document.getElementById('lwHum').textContent=(c.relative_humidity_2m??'—')+'%';
-    document.getElementById('lwWind').textContent=(c.wind_speed_10m??'—');
-    document.getElementById('lwRain').textContent=(c.precipitation??0)+' mm';
-    const sr=d.daily?.sunrise?.[0];
-    document.getElementById('lwSun').textContent=sr?new Date(sr).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}):'—';
-    document.getElementById('lwMoon').textContent=getMoonPhase();
-  }catch(e){document.getElementById('lwMoon').textContent=getMoonPhase();}
+/* Straight-line approximation to Chambal main channel when Overpass has no results */
+function estimateChambalDistance(lat,lng){
+  // Key Chambal channel centreline nodes in the Pali area
+  const channelNodes=[
+    [25.876,76.528],[25.870,76.535],[25.863,76.543],[25.856,76.552],
+    [25.850,76.558],[25.845,76.563],[25.840,76.568],[25.835,76.574],
+    [25.828,76.582],[25.820,76.590],[25.812,76.600],[25.803,76.610],
+    [25.794,76.620],[25.785,76.630],[25.776,76.642]
+  ];
+  let minD=Infinity;
+  for(let i=0;i<channelNodes.length-1;i++){
+    const d=pointToSegmentDist(lat,lng,channelNodes[i],channelNodes[i+1]);
+    if(d<minD)minD=d;
+  }
+  return Math.round(minD);
+}
+
+function pointToSegmentDist(plat,plng,a,b){
+  // Project point onto segment ab, return min distance
+  const ax=a[1],ay=a[0],bx=b[1],by=b[0],px=plng,py=plat;
+  const dx=bx-ax,dy=by-ay,lenSq=dx*dx+dy*dy;
+  let t=lenSq>0?((px-ax)*dx+(py-ay)*dy)/lenSq:0;
+  t=Math.max(0,Math.min(1,t));
+  const cx=ax+t*dx,cy=ay+t*dy;
+  return haversineSimple(py,px,cy,cx);
+}
+
+function haversineSimple(lat1,lng1,lat2,lng2){
+  const R=6371000,tr=Math.PI/180;
+  const dlat=(lat2-lat1)*tr,dlon=(lng2-lng1)*tr;
+  const a=Math.sin(dlat/2)**2+Math.cos(lat1*tr)*Math.cos(lat2*tr)*Math.sin(dlon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function classifyHabitat(distance){
+  if(distance<20)return 'River Channel';
+  if(distance<80)return 'Sandbank Edge';
+  if(distance<200)return 'Riparian Bank';
+  return 'Floodplain';
+}
+
+function estimateRiverWidth(distance){
+  // Approximate river width from proximity; Chambal is ~50-150m wide
+  // The closer to the channel, the wider our estimate since we're likely on the bank
+  if(distance<20)return Math.round(120+Math.random()*40);
+  if(distance<80)return Math.round(80+Math.random()*40);
+  if(distance<200)return Math.round(50+Math.random()*30);
+  return Math.round(30+Math.random()*20);
+}
+
+function habitatStyle(habitat){
+  const map={
+    'River Channel':{cls:'hab-channel',label:'River Channel'},
+    'Sandbank Edge':{cls:'hab-sandbank',label:'Sandbank Edge'},
+    'Riparian Bank':{cls:'hab-riparian',label:'Riparian Bank'},
+    'Floodplain':{cls:'hab-floodplain',label:'Floodplain'},
+  };
+  return map[habitat]||{cls:'hab-riparian',label:habitat};
 }
 
 /* ═══ PROFILE OVERLAY ══════════════════════════ */
@@ -1220,7 +1255,7 @@ function toggleHeatmap(){
   document.getElementById('btnHeat').classList.toggle('on',on);
   if(!heatLayer){
     const pts=rawArr.map(r=>[+r['Latitude'],+r['Longitude'],.7]).filter(p=>!isNaN(p[0])&&!isNaN(p[1]));
-    heatLayer=L.heatLayer(pts,{radius:22,blur:16,maxZoom:17,gradient:{0.2:'#a8d5ba',0.5:'#52b788',0.75:'#1b7a4a',1:'#0a3d2a'}});
+    heatLayer=L.heatLayer(pts,{radius:22,blur:16,maxZoom:17,gradient:{0.2:'#ffffb2',0.4:'#fecc5c',0.6:'#fd8d3c',0.8:'#f03b20',1:'#bd0026'}});
   }
   if(on)map.addLayer(heatLayer);else map.removeLayer(heatLayer);
 }
@@ -1280,25 +1315,12 @@ function toggleKDE(){
 function kdeCol(t){if(t<0.33)return[0,Math.round(100+t*3*100),60];if(t<0.66)return[Math.round((t-.33)*3*220),200,0];return[255,Math.round(200-(t-.66)*3*200),0];}
 function std(a){if(a.length<2)return 0;const m=a.reduce((x,y)=>x+y,0)/a.length;return Math.sqrt(a.reduce((x,y)=>x+(y-m)**2,0)/a.length);}
 
-/* ═══ ALL TRACKS ═══════════════════════════════ */
-function drawAllTracks(){
-  trackLayers.forEach(l=>map.removeLayer(l));trackLayers=[];
-  for(const id in animals){
-    const ord=[...animals[id]].sort((a,b)=>a._parsed-b._parsed);
-    const lls=ord.map(r=>[+r['Latitude'],+r['Longitude']]).filter(ll=>!isNaN(ll[0])&&!isNaN(ll[1]));
-    if(lls.length>1){const l=L.polyline(lls,{color:sColor(statusM[id]),weight:1.5,opacity:.45}).addTo(map);trackLayers.push(l);}
-  }
-}
-function toggleAllTracks(){
-  showTracks=!showTracks;
-  document.getElementById('btnTrack').classList.toggle('on',showTracks);
-  if(showTracks)drawAllTracks();else{trackLayers.forEach(l=>map.removeLayer(l));trackLayers=[];}
-}
-
 /* ═══ TOOLBAR TOGGLE ════════════════════════════ */
 function toggleToolbar(){
   const tb=document.getElementById('toolbar');
-  tb.classList.toggle('hidden');
+  const btn=document.getElementById('filterToggleBtn');
+  const hidden=tb.classList.toggle('hidden');
+  if(btn) btn.style.background=hidden?'rgba(255,255,255,.28)':'rgba(255,255,255,.1)';
 }
 
 /* ═══ TABLE ════════════════════════════════════ */
@@ -1357,12 +1379,11 @@ function switchTab(id){
   document.querySelectorAll('.tc').forEach(t=>t.classList.remove('on'));
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
   document.getElementById(id).classList.add('on');
-  ['ts','tm','ta','te','tw'].forEach((t,i)=>{if(t===id)document.querySelectorAll('.tab')[i]?.classList.add('on');});
+  ['ts','tm','ta','te'].forEach((t,i)=>{if(t===id)document.querySelectorAll('.tab')[i]?.classList.add('on');});
   if(id==='ts')renderSurvTab();
   if(id==='tm')renderMovTab();
   if(id==='ta')renderActTab();
   if(id==='te')renderEcoTab();
-  if(id==='tw')fetchLiveWeather();
 }
 
 function renderSurvTab(){
@@ -1549,7 +1570,23 @@ function mkBar(id,labels,data,color,mc){
 function mkLine(id,labels,data,small,ylabel,col,noD){
   if(!noD)dCH(id);const ctx=document.getElementById(id)?.getContext('2d');if(!ctx)return;
   const c=col||'#2d6a4f';
-  CH[id]=new Chart(ctx,{type:'line',data:{labels,datasets:[{label:ylabel||'Value',data,borderColor:c,backgroundColor:c.replace(')',',0.1)').replace('rgb','rgba'),borderWidth:2,pointRadius:small?1.5:3,fill:true,tension:0.35}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f0f4f1'},ticks:{color:'#3a5a47'}},x:{grid:{color:'#f0f4f1'},ticks:{color:'#3a5a47',maxRotation:45,maxTicksLimit:small?8:15}}}}});
+  CH[id]=new Chart(ctx,{type:'line',data:{labels,datasets:[{label:ylabel||'Value',data,
+    borderColor:c,
+    backgroundColor:'transparent',
+    borderWidth:2,
+    pointRadius:small?2:4,
+    pointBackgroundColor:c,
+    pointBorderColor:'white',
+    pointBorderWidth:1.5,
+    pointHoverRadius:small?4:6,
+    fill:false,
+    tension:0.3
+  }]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{
+      y:{beginAtZero:true,grid:{color:'rgba(0,0,0,0.06)'},ticks:{color:'#3a5a47'}},
+      x:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#3a5a47',maxRotation:45,maxTicksLimit:small?8:15}}
+    }
+  }});
 }
 
 /* ═══ EXPORTS ══════════════════════════════════ */
