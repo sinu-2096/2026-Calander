@@ -5,20 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🐊 Chambal Gharial Hatchling Telemetry Dashboard</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
 <style>
+/* ═══════════════════════════════════════════════════
+   DESIGN SYSTEM — LIGHT NATURE SCIENCE
+═══════════════════════════════════════════════════ */
 :root{
-  --bg:#eef2ed; --bg-panel:#ffffff; --bg-card:#f4f7f3; --bg-hover:#e6eee4; --bg-stripe:#f0f4ef;
+  --bg:#eef2ed; --bg-panel:#fff; --bg-card:#f4f7f3; --bg-hover:#e6eee4; --bg-stripe:#f0f4ef;
   --forest:#1c4a2e; --green:#2e7d52; --green-lt:#4caf7d; --green-pale:#d4ead9;
-  --teal:#00796b; --blue:#1565c0; --red:#c62828; --red-lt:#fce8e8;
-  --orange:#e65100; --orange-lt:#fff3e0; --amber:#f9a825; --purple:#6a1b9a; --purple-lt:#f3e5f5;
+  --teal:#00796b; --blue:#1565c0; --blue-lt:#e3eeff;
+  --red:#c62828; --red-lt:#fce8e8; --orange:#e65100; --orange-lt:#fff3e0;
+  --amber:#f9a825; --purple:#6a1b9a; --purple-lt:#f3e5f5;
   --grey:#546e7a; --grey-lt:#ecf1f3;
   --text:#1a2820; --text-sec:#4a6858; --text-dim:#7a9680;
   --border:#d4ddd0; --border-dk:#b8ccb2;
-  --shadow:0 2px 12px rgba(30,60,40,.10); --shadow-lg:0 6px 30px rgba(30,60,40,.15);
+  --shadow:0 2px 10px rgba(30,60,40,.09); --shadow-lg:0 6px 28px rgba(30,60,40,.14);
   --font-mono:'IBM Plex Mono',monospace; --font-sans:'Lato',sans-serif;
-  --panel-w:272px; --profile-w:296px; --hdr-h:58px; --radius:8px; --radius-lg:12px;
+  --hdr-h:56px; --topbar-h:44px; --panel-w:264px; --profile-w:284px;
+  --radius:7px; --radius-lg:12px;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);}
@@ -26,287 +30,405 @@ body{display:flex;flex-direction:column;font-family:var(--font-sans);}
 ::-webkit-scrollbar{width:5px;height:5px;}
 ::-webkit-scrollbar-track{background:var(--bg-card);}
 ::-webkit-scrollbar-thumb{background:var(--border-dk);border-radius:4px;}
- 
-/* HEADER */
+
+/* ═══ HEADER ═══════════════════════════════════════ */
 header{
-  height:var(--hdr-h);
-  background:linear-gradient(135deg,#1c4a2e 0%,#2a5c3a 60%,#1e5535 100%);
+  height:var(--hdr-h);flex-shrink:0;
+  background:linear-gradient(135deg,#1c4a2e 0%,#2d5e3c 55%,#1e5535 100%);
   border-bottom:3px solid var(--green-lt);
   display:flex;align-items:center;justify-content:space-between;
-  padding:0 18px;flex-shrink:0;z-index:600;
-  box-shadow:0 3px 18px rgba(28,74,46,.32);
+  padding:0 14px;z-index:600;box-shadow:0 3px 16px rgba(28,74,46,.28);
 }
-.hdr-left{display:flex;align-items:center;gap:12px;}
-.hdr-logos{display:flex;align-items:center;gap:8px;}
-header img{height:38px;object-fit:contain;filter:brightness(1.15) drop-shadow(0 1px 3px rgba(0,0,0,.3));}
-.hdr-sep{width:1px;height:28px;background:rgba(255,255,255,.25);margin:0 4px;}
-.hdr-title{font-family:var(--font-mono);font-size:.92rem;font-weight:700;color:#fff;letter-spacing:.01em;line-height:1.2;}
-.hdr-sub{font-size:.67rem;color:rgba(255,255,255,.6);margin-top:2px;font-family:var(--font-mono);}
+.hdr-left{display:flex;align-items:center;gap:10px;}
+.hdr-logos{display:flex;align-items:center;gap:6px;}
+header img{height:36px;object-fit:contain;filter:brightness(1.1) drop-shadow(0 1px 3px rgba(0,0,0,.3));}
+.hdr-sep{width:1px;height:26px;background:rgba(255,255,255,.25);margin:0 4px;}
+.hdr-title{font-family:var(--font-mono);font-size:.88rem;font-weight:700;color:#fff;letter-spacing:.01em;line-height:1.2;}
+.hdr-sub{font-size:.63rem;color:rgba(255,255,255,.58);margin-top:1px;font-family:var(--font-mono);}
+.hdr-right{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
 .hdr-pill{
-  display:flex;align-items:center;gap:5px;padding:4px 11px;border-radius:20px;
-  border:1.5px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);
-  cursor:pointer;font-size:.71rem;color:rgba(255,255,255,.9);transition:all .18s;
-  user-select:none;font-family:var(--font-mono);backdrop-filter:blur(4px);
+  display:flex;align-items:center;gap:4px;padding:3px 9px;border-radius:18px;
+  border:1.5px solid rgba(255,255,255,.22);background:rgba(255,255,255,.09);
+  cursor:pointer;font-size:.69rem;color:rgba(255,255,255,.88);transition:all .18s;
+  user-select:none;font-family:var(--font-mono);
 }
-.hdr-pill:hover,.hdr-pill.active-filter{border-color:rgba(255,255,255,.7);background:rgba(255,255,255,.22);color:#fff;}
-.pdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-.pdot-blue{background:#64b5f6;box-shadow:0 0 5px #64b5f6;}
-.pdot-red{background:#ef9a9a;box-shadow:0 0 5px #ef9a9a;}
-.pdot-orange{background:#ffcc80;box-shadow:0 0 5px #ffcc80;}
-.pdot-grey{background:#b0bec5;}
-.pcount{background:rgba(255,255,255,.2);border-radius:9px;padding:0 6px;font-weight:700;min-width:18px;text-align:center;font-size:.68rem;}
+.hdr-pill:hover,.hdr-pill.af{border-color:rgba(255,255,255,.65);background:rgba(255,255,255,.2);color:#fff;}
+.pdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.pdot-b{background:#64b5f6;box-shadow:0 0 5px #64b5f6;}
+.pdot-r{background:#ef9a9a;box-shadow:0 0 5px #ef9a9a;}
+.pdot-o{background:#ffcc80;box-shadow:0 0 5px #ffcc80;}
+.pdot-g{background:#b0bec5;}
+.pcount{background:rgba(255,255,255,.18);border-radius:9px;padding:0 5px;font-weight:700;min-width:16px;text-align:center;font-size:.66rem;}
 .hdr-btn{
-  padding:5px 13px;background:rgba(255,255,255,.13);color:#fff;
-  border:1.5px solid rgba(255,255,255,.32);border-radius:var(--radius);
-  cursor:pointer;font-size:.76rem;font-weight:700;transition:all .2s;white-space:nowrap;
-  font-family:var(--font-sans);backdrop-filter:blur(4px);
+  padding:4px 11px;background:rgba(255,255,255,.12);color:#fff;
+  border:1.5px solid rgba(255,255,255,.28);border-radius:var(--radius);
+  cursor:pointer;font-size:.73rem;font-weight:700;transition:all .18s;
+  white-space:nowrap;font-family:var(--font-sans);
 }
-.hdr-btn:hover{background:rgba(255,255,255,.27);border-color:rgba(255,255,255,.7);}
- 
-/* MAIN */
-.main-area{flex:1;min-height:0;display:flex;overflow:hidden;}
- 
-/* LEFT PANEL */
+.hdr-btn:hover{background:rgba(255,255,255,.25);border-color:rgba(255,255,255,.65);}
+.hdr-icon-btn{
+  width:28px;height:28px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.22);
+  border-radius:5px;color:white;cursor:pointer;font-size:.75rem;transition:all .18s;
+  display:flex;align-items:center;justify-content:center;
+}
+.hdr-icon-btn:hover{background:rgba(255,255,255,.25);}
+
+/* ═══ TOP FILTER BAR ══════════════════════════════ */
+.top-bar{
+  flex-shrink:0;background:var(--bg-panel);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;padding:0 13px;height:var(--topbar-h);
+  overflow:hidden;transition:height .22s ease,padding .22s ease;box-shadow:0 1px 4px rgba(0,0,0,.05);
+}
+.top-bar.collapsed{height:0;padding:0;}
+.filter-grp{display:flex;align-items:center;gap:5px;}
+.filter-grp label{font-size:.7rem;font-weight:700;color:var(--text-sec);white-space:nowrap;}
+.filter-grp select{
+  padding:4px 7px;background:var(--bg-card);border:1px solid var(--border);
+  border-radius:var(--radius);color:var(--text);font-size:.75rem;cursor:pointer;font-family:var(--font-sans);
+}
+.filter-grp select:focus{outline:none;border-color:var(--green);}
+.tb-div{width:1px;height:22px;background:var(--border);flex-shrink:0;}
+.tb-btn{
+  padding:4px 10px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
+  color:var(--text);cursor:pointer;font-size:.72rem;font-weight:700;transition:all .18s;
+  white-space:nowrap;font-family:var(--font-sans);display:flex;align-items:center;gap:4px;
+}
+.tb-btn:hover{background:var(--bg-hover);border-color:var(--border-dk);}
+.tb-btn.active{background:var(--green-pale);border-color:var(--green);color:var(--green);}
+.tb-btn.exp:hover{background:rgba(46,125,82,.08);border-color:var(--green);color:var(--green);}
+
+/* ═══ MAIN AREA ═══════════════════════════════════ */
+.main-area{flex:1;min-height:0;display:flex;overflow:hidden;position:relative;}
+
+/* ═══ SIDE PANELS ═════════════════════════════════ */
 .left-panel{
   width:var(--panel-w);flex-shrink:0;background:var(--bg-panel);
-  border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;
-  box-shadow:2px 0 8px rgba(0,0,0,.05);
+  border-right:1px solid var(--border);display:flex;flex-direction:column;
+  overflow:hidden;transition:width .24s ease;box-shadow:2px 0 6px rgba(0,0,0,.04);
+  position:relative;z-index:5;
 }
+.left-panel.collapsed{width:0;}
+.right-panel{
+  width:var(--profile-w);flex-shrink:0;background:var(--bg-panel);
+  border-left:1px solid var(--border);display:flex;flex-direction:column;
+  overflow:hidden;transition:width .24s ease;box-shadow:-2px 0 6px rgba(0,0,0,.04);
+  position:relative;z-index:5;
+}
+.right-panel.collapsed{width:0;}
+.panel-inner{min-width:var(--panel-w);overflow:hidden;flex:1;display:flex;flex-direction:column;}
+.profile-inner{min-width:var(--profile-w);overflow:hidden;flex:1;display:flex;flex-direction:column;}
+
 .lp-scroll{flex:1;overflow-y:auto;overflow-x:hidden;}
-.lp-sec{padding:11px 13px;border-bottom:1px solid var(--border);}
+.lp-sec{padding:9px 12px;border-bottom:1px solid var(--border);}
 .lp-sec-title{
-  font-size:.63rem;font-weight:700;color:var(--green);text-transform:uppercase;
-  letter-spacing:.1em;margin-bottom:8px;font-family:var(--font-mono);
-  display:flex;align-items:center;gap:6px;
+  font-size:.61rem;font-weight:700;color:var(--green);text-transform:uppercase;
+  letter-spacing:.1em;margin-bottom:7px;font-family:var(--font-mono);
+  display:flex;align-items:center;gap:5px;
 }
-.lp-sec-title::before{content:'';display:inline-block;width:3px;height:10px;background:var(--green);border-radius:2px;}
-.filter-row{margin-bottom:7px;}
-.filter-row label{font-size:.71rem;color:var(--text-sec);font-weight:700;display:block;margin-bottom:3px;}
-.filter-row select{
-  width:100%;padding:6px 8px;background:var(--bg-card);border:1px solid var(--border);
-  border-radius:var(--radius);color:var(--text);font-size:.77rem;cursor:pointer;font-family:var(--font-sans);
+.lp-sec-title::before{content:'';display:inline-block;width:3px;height:9px;background:var(--green);border-radius:2px;}
+
+/* filters in left panel */
+.lp-filter{margin-bottom:6px;}
+.lp-filter label{font-size:.69rem;font-weight:700;color:var(--text-sec);display:block;margin-bottom:2px;}
+.lp-filter select{width:100%;padding:5px 7px;background:var(--bg-card);border:1px solid var(--border);
+  border-radius:var(--radius);color:var(--text);font-size:.75rem;cursor:pointer;font-family:var(--font-sans);}
+.lp-filter select:focus{outline:none;border-color:var(--green);}
+
+/* mini stat cards */
+.mini-stats{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:5px;}
+.mc{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:7px 8px;text-align:center;border-top:3px solid transparent;}
+.mc.cb{border-top-color:var(--blue);}
+.mc.cr{border-top-color:var(--red);}
+.mc.co{border-top-color:var(--orange);}
+.mc.cg2{border-top-color:var(--grey);}
+.mc.cg{border-top-color:var(--green);}
+.mc.ca{border-top-color:var(--amber);}
+.mc-v{font-size:1.22rem;font-weight:900;font-family:var(--font-mono);color:var(--text);line-height:1;}
+.mc-l{font-size:.57rem;color:var(--text-sec);margin-top:2px;text-transform:uppercase;letter-spacing:.04em;}
+
+/* tool/exp buttons in panel */
+.lp-btn{
+  width:100%;padding:6px 10px;background:var(--bg-card);border:1px solid var(--border);
+  border-radius:var(--radius);color:var(--text);cursor:pointer;font-size:.73rem;font-weight:700;
+  transition:all .18s;text-align:left;display:flex;align-items:center;gap:6px;
+  font-family:var(--font-sans);margin-bottom:4px;
 }
-.filter-row select:focus{outline:none;border-color:var(--green);}
-.mini-stats{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px;}
-.mini-card{
-  background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
-  padding:8px 9px;text-align:center;border-top:3px solid transparent;
-}
-.mini-card.c-blue{border-top-color:var(--blue);}  .mini-card.c-red{border-top-color:var(--red);}
-.mini-card.c-orange{border-top-color:var(--orange);}  .mini-card.c-grey{border-top-color:var(--grey);}
-.mini-card.c-green{border-top-color:var(--green);}  .mini-card.c-amber{border-top-color:var(--amber);}
-.mc-val{font-size:1.28rem;font-weight:900;font-family:var(--font-mono);color:var(--text);line-height:1;}
-.mc-lbl{font-size:.59rem;color:var(--text-sec);margin-top:2px;text-transform:uppercase;letter-spacing:.04em;}
-.tool-btn{
-  width:100%;padding:7px 11px;background:var(--bg-card);border:1px solid var(--border);
-  border-radius:var(--radius);color:var(--text);cursor:pointer;font-size:.76rem;font-weight:700;
-  transition:all .18s;text-align:left;display:flex;align-items:center;gap:7px;
-  font-family:var(--font-sans);margin-bottom:5px;
-}
-.tool-btn:last-child{margin-bottom:0;}
-.tool-btn:hover{background:var(--bg-hover);border-color:var(--border-dk);}
-.tool-btn.active{background:var(--green-pale);border-color:var(--green);color:var(--green);}
-.exp-btn{
-  width:100%;padding:7px 11px;background:var(--bg-card);border:1px solid var(--border);
-  border-radius:var(--radius);color:var(--text-sec);cursor:pointer;font-size:.73rem;font-weight:700;
-  transition:all .18s;text-align:left;display:flex;align-items:center;gap:7px;
-  font-family:var(--font-sans);margin-bottom:5px;
-}
-.exp-btn:hover{background:var(--green-pale);border-color:var(--green);color:var(--green);}
-.exp-btn:last-child{margin-bottom:0;}
-.env-status{font-size:.67rem;color:var(--text-sec);padding:4px 7px;background:var(--bg-card);
-  border-radius:4px;border:1px solid var(--border);margin-bottom:7px;font-family:var(--font-mono);}
-.env-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
-.env-item{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:6px 8px;display:flex;flex-direction:column;}
-.env-ico{font-size:.88rem;margin-bottom:1px;}
-.env-val{font-size:.8rem;font-weight:700;font-family:var(--font-mono);color:var(--teal);}
-.env-lbl{font-size:.56rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;}
+.lp-btn:last-child{margin-bottom:0;}
+.lp-btn:hover{background:var(--bg-hover);border-color:var(--border-dk);}
+.lp-btn.active{background:var(--green-pale);border-color:var(--green);color:var(--green);}
+.lp-btn.exp:hover{background:rgba(46,125,82,.07);border-color:var(--green);color:var(--green);}
+
+/* env panel */
+.env-status{font-size:.64rem;color:var(--text-sec);padding:3px 7px;background:var(--bg-card);
+  border-radius:4px;border:1px solid var(--border);margin-bottom:6px;font-family:var(--font-mono);}
+.env-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
+.env-item{background:var(--bg-card);border:1px solid var(--border);border-radius:5px;padding:5px 7px;display:flex;flex-direction:column;}
+.env-ico{font-size:.82rem;margin-bottom:1px;}
+.env-val{font-size:.79rem;font-weight:700;font-family:var(--font-mono);color:var(--teal);}
+.env-lbl{font-size:.54rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;}
 .env-wide{grid-column:1/-1;}
- 
-/* MAP */
+
+/* panel collapse toggle buttons (floating on map edge) */
+.panel-toggle{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:18px;height:52px;background:white;border:1px solid var(--border);
+  cursor:pointer;font-size:.6rem;color:var(--text-sec);z-index:410;
+  display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);
+  transition:background .15s;
+}
+.panel-toggle:hover{background:var(--green-pale);color:var(--green);}
+.pt-left{left:0;border-left:none;border-radius:0 4px 4px 0;}
+.pt-right{right:0;border-right:none;border-radius:4px 0 0 4px;}
+
+/* ═══ MAP ══════════════════════════════════════════ */
 .map-wrap{flex:1;position:relative;overflow:hidden;}
 #map{width:100%;height:100%;}
 .map-toolbar{position:absolute;top:10px;left:10px;z-index:400;display:flex;flex-direction:column;gap:4px;}
-.mt-btn{
-  width:32px;height:32px;background:white;border:1px solid var(--border);
-  border-radius:var(--radius);color:var(--text);cursor:pointer;font-size:.85rem;
-  display:flex;align-items:center;justify-content:center;transition:all .18s;box-shadow:var(--shadow);
-}
-.mt-btn:hover{background:var(--green-pale);border-color:var(--green);color:var(--green);}
-.status-bar{
-  position:absolute;bottom:0;left:0;right:0;
-  background:rgba(255,255,255,.93);backdrop-filter:blur(8px);
-  padding:5px 14px;font-size:.7rem;color:var(--text-sec);
-  border-top:1px solid var(--border);z-index:400;font-family:var(--font-mono);
-  display:flex;align-items:center;gap:10px;
-}
-.sb-dot{width:7px;height:7px;border-radius:50%;background:var(--green-lt);flex-shrink:0;animation:pulse 2s infinite;}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(76,175,125,.4);}50%{box-shadow:0 0 0 5px transparent;}}
- 
-/* RIGHT PANEL */
-.right-panel{
-  width:var(--profile-w);flex-shrink:0;background:var(--bg-panel);
-  border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;
-  box-shadow:-2px 0 8px rgba(0,0,0,.05);
-}
-.rp-hdr{background:var(--bg-card);border-bottom:1px solid var(--border);padding:10px 13px;
+.mt-btn{width:30px;height:30px;background:white;border:1px solid var(--border);border-radius:var(--radius);
+  color:var(--text);cursor:pointer;font-size:.8rem;display:flex;align-items:center;justify-content:center;
+  transition:all .15s;box-shadow:var(--shadow);}
+.mt-btn:hover,.mt-btn.active{background:var(--green-pale);border-color:var(--green);color:var(--green);}
+
+/* ═══ RIGHT PANEL (Profile) ══════════════════════ */
+.rp-hdr{background:var(--bg-card);border-bottom:1px solid var(--border);padding:9px 12px;
   display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
-.rp-hdr-title{font-size:.71rem;font-weight:700;color:var(--green);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.06em;}
+.rp-hdr-title{font-size:.67rem;font-weight:700;color:var(--green);font-family:var(--font-mono);
+  text-transform:uppercase;letter-spacing:.06em;}
 .rp-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:12px;padding:24px 20px;color:var(--text-dim);}
-.rp-empty-ico{font-size:2.8rem;opacity:.33;}
-.rp-empty-txt{font-size:.77rem;text-align:center;line-height:1.55;color:var(--text-sec);}
-.rp-scroll{flex:1;overflow-y:auto;padding:11px 12px;}
-.profile-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:8px;}
-.pc-title{font-size:.61rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;font-family:var(--font-mono);}
-.pc-id{font-size:1.5rem;font-weight:900;font-family:var(--font-mono);color:var(--forest);display:flex;align-items:center;gap:8px;margin-bottom:5px;}
-.pc-status{display:inline-flex;align-items:center;padding:2px 9px;border-radius:12px;font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;}
+  gap:10px;padding:20px;color:var(--text-dim);}
+.rp-empty-ico{font-size:2.4rem;opacity:.3;}
+.rp-empty-txt{font-size:.74rem;text-align:center;line-height:1.55;color:var(--text-sec);}
+.rp-scroll{flex:1;overflow-y:auto;padding:10px 11px;}
+
+.profile-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:9px 11px;margin-bottom:7px;}
+.pc-title{font-size:.59rem;font-weight:700;color:var(--green);text-transform:uppercase;
+  letter-spacing:.08em;margin-bottom:6px;font-family:var(--font-mono);}
+.pc-id{font-size:1.45rem;font-weight:900;font-family:var(--font-mono);color:var(--forest);
+  display:flex;align-items:center;gap:7px;margin-bottom:5px;}
+.pc-status{display:inline-flex;align-items:center;padding:2px 8px;border-radius:12px;font-size:.64rem;font-weight:700;text-transform:uppercase;}
 .ps-active{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;}
 .ps-dead{background:var(--red-lt);color:var(--red);border:1px solid #ef9a9a;}
 .ps-tmiss{background:var(--orange-lt);color:var(--orange);border:1px solid #ffcc80;}
 .ps-gone{background:var(--grey-lt);color:var(--grey);border:1px solid #b0bec5;}
+
 .profile-row{display:flex;justify-content:space-between;align-items:baseline;
-  padding:4px 0;border-bottom:1px solid var(--border);font-size:.76rem;}
+  padding:3px 0;border-bottom:1px solid var(--border);font-size:.74rem;}
 .profile-row:last-child{border-bottom:none;}
-.pr-label{color:var(--text-sec);flex-shrink:0;margin-right:8px;}
-.pr-val{color:var(--text);font-weight:700;text-align:right;font-family:var(--font-mono);font-size:.72rem;}
-.mov-mini{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:2px;}
-.mm-card{background:white;border:1px solid var(--border);border-radius:6px;padding:7px 9px;border-left:3px solid var(--green);}
-.mm-card.c-teal{border-left-color:var(--teal);}
-.mm-card.c-amber{border-left-color:var(--amber);}
-.mm-card.c-purple{border-left-color:var(--purple);}
-.mm-val{font-size:.93rem;font-weight:900;font-family:var(--font-mono);color:var(--text);}
-.mm-lbl{font-size:.57rem;color:var(--text-sec);margin-top:1px;text-transform:uppercase;letter-spacing:.04em;}
-.tl-scroll{max-height:185px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;}
-.timeline-tbl{width:100%;border-collapse:collapse;font-size:.68rem;}
-.timeline-tbl th{background:var(--forest);color:white;padding:5px 7px;text-align:left;
-  font-weight:700;position:sticky;top:0;z-index:1;font-family:var(--font-mono);font-size:.59rem;}
-.timeline-tbl td{padding:5px 7px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;}
-.timeline-tbl tr:hover td{background:var(--bg-hover);}
-.mcp-row{display:flex;align-items:center;gap:8px;background:var(--bg-card);
-  border:1px solid var(--border);border-radius:6px;padding:7px 10px;margin-bottom:8px;}
-.mcp-area{font-size:.69rem;color:var(--teal);font-family:var(--font-mono);}
-.toggle{width:34px;height:18px;background:var(--border);border-radius:10px;cursor:pointer;
+.pr-l{color:var(--text-sec);flex-shrink:0;margin-right:7px;}
+.pr-v{color:var(--text);font-weight:700;text-align:right;font-family:var(--font-mono);font-size:.7rem;}
+
+.mov-mini{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:2px;}
+.mm{background:white;border:1px solid var(--border);border-radius:5px;padding:6px 8px;border-left:3px solid var(--green);}
+.mm.ct{border-left-color:var(--teal);}
+.mm.ca{border-left-color:var(--amber);}
+.mm.cp{border-left-color:var(--purple);}
+.mm-v{font-size:.88rem;font-weight:900;font-family:var(--font-mono);color:var(--text);}
+.mm-l{font-size:.56rem;color:var(--text-sec);margin-top:1px;text-transform:uppercase;letter-spacing:.04em;}
+
+.tl-scroll{max-height:170px;overflow-y:auto;border:1px solid var(--border);border-radius:5px;}
+.tl-tbl{width:100%;border-collapse:collapse;font-size:.66rem;}
+.tl-tbl th{background:var(--forest);color:white;padding:4px 6px;text-align:left;
+  font-weight:700;position:sticky;top:0;z-index:1;font-family:var(--font-mono);font-size:.57rem;}
+.tl-tbl td{padding:4px 6px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;}
+.tl-tbl tr:hover td{background:var(--bg-hover);}
+
+.mcp-row{display:flex;align-items:center;gap:7px;background:var(--bg-card);
+  border:1px solid var(--border);border-radius:5px;padding:6px 9px;margin-bottom:7px;}
+.mcp-area{font-size:.66rem;color:var(--teal);font-family:var(--font-mono);}
+.toggle{width:32px;height:17px;background:var(--border);border-radius:9px;cursor:pointer;
   position:relative;transition:background .2s;flex-shrink:0;}
 .toggle.on{background:var(--green);}
-.toggle::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;
   background:white;border-radius:50%;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
-.toggle.on::after{left:18px;}
- 
-/* POPUP */
-.leaflet-popup-content-wrapper{background:white;border:1px solid var(--border);color:var(--text);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);}
+.toggle.on::after{left:17px;}
+
+/* ═══ TABLE SECTION ════════════════════════════════ */
+.table-section{
+  flex-shrink:0;background:var(--bg-panel);border-top:2px solid var(--border-dk);
+  display:flex;flex-direction:column;height:215px;min-height:38px;max-height:65vh;
+  position:relative;overflow:hidden;transition:height .22s ease;z-index:200;
+}
+.table-section.tbl-collapsed{height:38px!important;}
+.resize-handle{
+  height:7px;background:linear-gradient(to bottom,#e8ede6,#d4ddd0);
+  cursor:ns-resize;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  border-bottom:1px solid var(--border);
+}
+.resize-handle::after{content:'';width:34px;height:3px;background:var(--border-dk);border-radius:2px;}
+.tbl-header-row{
+  display:flex;align-items:center;justify-content:space-between;padding:3px 12px;
+  background:var(--bg-card);border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.tbl-hint{font-size:.67rem;color:var(--text-dim);font-family:var(--font-mono);}
+.tbl-controls{display:flex;gap:5px;align-items:center;}
+.tbl-ctrl-btn{
+  padding:2px 10px;background:var(--forest);color:white;border:none;border-radius:4px;
+  font-size:.66rem;cursor:pointer;font-weight:700;transition:background .18s;white-space:nowrap;
+}
+.tbl-ctrl-btn:hover{background:var(--green);}
+.tbl-ctrl-btn.ghost{background:var(--bg-card);color:var(--text-sec);border:1px solid var(--border);}
+.tbl-ctrl-btn.ghost:hover{background:var(--bg-hover);}
+.tbl-scroll{flex:1;overflow-y:auto;overflow-x:auto;}
+.tbl{width:100%;border-collapse:collapse;font-size:.76rem;white-space:nowrap;}
+.tbl th{background:var(--forest);color:white;padding:6px 10px;text-align:left;
+  position:sticky;top:0;z-index:1;font-family:var(--font-mono);font-size:.66rem;font-weight:600;}
+.tbl td{padding:5px 10px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.tbl tbody tr:hover{background:var(--bg-hover);cursor:pointer;}
+.tbl tbody tr.tmiss-row{background:#fffbf5;}
+.tbl tbody tr.gone-row{background:#f8f9fa;}
+.tbl tbody tr.dead-row{background:#fff8f8;}
+
+/* ═══ POPUP ════════════════════════════════════════ */
+.leaflet-popup-content-wrapper{background:white;border:1px solid var(--border);color:var(--text);
+  border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);}
 .leaflet-popup-tip{background:white;}
-.leaflet-popup-close-button{color:var(--text-sec)!important;font-size:1.1rem!important;}
-.pop-id{font-size:.96rem;font-weight:900;font-family:var(--font-mono);color:var(--forest);
-  margin-bottom:8px;display:flex;align-items:center;gap:7px;
-  border-bottom:2px solid var(--green-pale);padding-bottom:6px;}
-.pop-tbl{border-collapse:collapse;font-size:.78rem;width:100%;}
-.pop-tbl td{padding:3px 5px;border-bottom:1px solid var(--border);vertical-align:top;}
-.pop-tbl td:first-child{color:var(--text-sec);font-weight:700;white-space:nowrap;padding-right:12px;width:38%;}
-.pop-tbl td:last-child{color:var(--text);font-family:var(--font-mono);font-size:.73rem;}
-.pop-weather{margin-top:8px;background:var(--bg-card);border:1px solid var(--border);
-  border-radius:6px;padding:7px 10px;border-left:3px solid var(--teal);}
-.pop-weather-title{font-size:.62rem;font-weight:700;color:var(--teal);text-transform:uppercase;
-  letter-spacing:.07em;margin-bottom:5px;font-family:var(--font-mono);}
-.pop-weather-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px;}
-.pw-item{font-size:.71rem;color:var(--text);}
+.leaflet-popup-close-button{color:var(--text-sec)!important;}
+.pop-id{font-size:.94rem;font-weight:900;font-family:var(--font-mono);color:var(--forest);
+  margin-bottom:7px;display:flex;align-items:center;gap:6px;
+  border-bottom:2px solid var(--green-pale);padding-bottom:5px;}
+.pop-tbl{border-collapse:collapse;font-size:.76rem;width:100%;}
+.pop-tbl td{padding:2px 5px;border-bottom:1px solid var(--border);vertical-align:top;}
+.pop-tbl td:first-child{color:var(--text-sec);font-weight:700;white-space:nowrap;padding-right:10px;width:36%;}
+.pop-tbl td:last-child{color:var(--text);font-family:var(--font-mono);font-size:.71rem;}
+.pop-weather{margin-top:7px;background:var(--bg-card);border:1px solid var(--border);
+  border-radius:5px;padding:6px 9px;border-left:3px solid var(--teal);}
+.pop-weather-title{font-size:.6rem;font-weight:700;color:var(--teal);text-transform:uppercase;
+  letter-spacing:.07em;margin-bottom:4px;font-family:var(--font-mono);}
+.pop-wgrid{display:grid;grid-template-columns:1fr 1fr;gap:2px;}
+.pw-item{font-size:.69rem;color:var(--text);}
 .pw-item span{color:var(--text-sec);}
-.pop-weather-loading{font-size:.71rem;color:var(--text-sec);font-style:italic;}
-.pop-actions{display:flex;gap:5px;margin-top:9px;}
-.pop-action-btn{flex:1;padding:5px;background:var(--green-pale);border:1px solid var(--green);
-  color:var(--green);border-radius:5px;cursor:pointer;font-size:.69rem;font-weight:700;
+.pop-wload{font-size:.69rem;color:var(--text-sec);font-style:italic;}
+.pop-actions{display:flex;gap:5px;margin-top:8px;}
+.pop-a-btn{flex:1;padding:4px;background:var(--green-pale);border:1px solid var(--green);
+  color:var(--green);border-radius:5px;cursor:pointer;font-size:.67rem;font-weight:700;
   transition:all .18s;font-family:var(--font-sans);}
-.pop-action-btn:hover{background:var(--green);color:white;}
- 
-/* BADGES */
-.badge{display:inline-block;padding:1px 8px;border-radius:10px;font-size:.63rem;font-weight:700;}
+.pop-a-btn:hover{background:var(--green);color:white;}
+
+/* ═══ STATUS BAR ══════════════════════════════════ */
+.status-bar{
+  position:absolute;bottom:0;left:0;right:0;z-index:400;
+  background:rgba(255,255,255,.93);backdrop-filter:blur(8px);
+  padding:4px 12px;font-size:.68rem;color:var(--text-sec);
+  border-top:1px solid var(--border);font-family:var(--font-mono);
+  display:flex;align-items:center;gap:9px;
+}
+.sb-dot{width:6px;height:6px;border-radius:50%;background:var(--green-lt);flex-shrink:0;
+  animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(76,175,125,.4);}50%{box-shadow:0 0 0 5px transparent;}}
+
+/* ═══ BADGES ═══════════════════════════════════════ */
+.badge{display:inline-block;padding:1px 7px;border-radius:10px;font-size:.62rem;font-weight:700;}
 .b-active{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;}
 .b-dead{background:var(--red-lt);color:var(--red);}
 .b-tmiss{background:var(--orange-lt);color:var(--orange);}
 .b-gone{background:var(--grey-lt);color:var(--grey);}
 .b-settler{background:var(--purple-lt);color:var(--purple);}
 .b-explorer{background:#e0f7fa;color:var(--teal);}
-.sig-strong{color:#2e7d32;font-weight:700;} .sig-medium{color:#e65100;font-weight:700;} .sig-weak{color:var(--red);font-weight:700;}
- 
-/* MARKERS */
+.sig-strong{color:#2e7d32;font-weight:700;}
+.sig-medium{color:#e65100;font-weight:700;}
+.sig-weak{color:var(--red);font-weight:700;}
+
+/* ═══ MARKERS ══════════════════════════════════════ */
 .gm{border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;
   font-weight:700;font-family:var(--font-mono);font-size:9px;
   border:2.5px solid rgba(255,255,255,.85);box-shadow:0 2px 8px rgba(0,0,0,.35);cursor:pointer;}
-.gm-blue{background:#1976d2;} .gm-red{background:#c62828;} .gm-orange{background:#e65100;} .gm-grey{background:#607d8b;}
-.release-star{font-size:18px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.4));}
- 
-/* MODALS */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(30,50,40,.45);z-index:2000;
-  padding:20px;overflow-y:auto;backdrop-filter:blur(5px);}
+.gm-b{background:#1976d2;} .gm-r{background:#c62828;}
+.gm-o{background:#e65100;} .gm-g{background:#607d8b;}
+.release-star{font-size:17px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4));}
+
+/* ═══ MODALS ═══════════════════════════════════════ */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(20,45,30,.48);z-index:2000;
+  padding:16px;overflow-y:auto;backdrop-filter:blur(5px);}
 .modal-overlay.open{display:flex;align-items:flex-start;justify-content:center;}
 .modal-box{background:white;border:1px solid var(--border-dk);border-radius:var(--radius-lg);
-  width:100%;max-width:1020px;margin:auto;overflow:hidden;box-shadow:var(--shadow-lg);}
-.modal-hdr{background:linear-gradient(135deg,var(--forest),#2a5c3a);color:white;
-  padding:14px 20px;display:flex;align-items:center;justify-content:space-between;}
-.modal-hdr h2{font-size:.91rem;font-weight:700;font-family:var(--font-mono);}
-.modal-close{background:none;border:none;color:rgba(255,255,255,.7);font-size:1.35rem;cursor:pointer;padding:2px 6px;border-radius:4px;}
+  width:100%;max-width:1050px;margin:auto;overflow:hidden;box-shadow:var(--shadow-lg);}
+.modal-hdr{background:linear-gradient(135deg,var(--forest),#2d5e3c);color:white;
+  padding:13px 18px;display:flex;align-items:center;justify-content:space-between;}
+.modal-hdr h2{font-size:.88rem;font-weight:700;font-family:var(--font-mono);}
+.modal-close{background:none;border:none;color:rgba(255,255,255,.65);font-size:1.3rem;
+  cursor:pointer;padding:2px 6px;border-radius:4px;}
 .modal-close:hover{color:white;}
-.modal-body{padding:18px;overflow-y:auto;max-height:80vh;background:var(--bg);}
-.tab-bar{display:flex;gap:2px;margin-bottom:18px;border-bottom:2px solid var(--border);background:white;padding:0 4px;}
-.tab-btn{padding:9px 17px;border:none;background:none;cursor:pointer;font-size:.78rem;font-weight:700;
-  color:var(--text-sec);border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .18s;font-family:var(--font-sans);}
+.modal-body{padding:16px;overflow-y:auto;max-height:82vh;background:var(--bg);}
+.tab-bar{display:flex;gap:2px;margin-bottom:16px;border-bottom:2px solid var(--border);background:white;padding:0 4px;}
+.tab-btn{padding:8px 15px;border:none;background:none;cursor:pointer;font-size:.76rem;
+  font-weight:700;color:var(--text-sec);border-bottom:3px solid transparent;
+  margin-bottom:-2px;transition:all .18s;font-family:var(--font-sans);}
 .tab-btn.active{color:var(--forest);border-bottom-color:var(--green);}
 .tab-content{display:none;} .tab-content.active{display:block;}
-.stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:9px;margin-bottom:16px;}
-.stat-card{background:white;border:1px solid var(--border);border-radius:var(--radius);padding:13px;text-align:center;border-top:3px solid var(--blue);}
-.stat-card.s-red{border-top-color:var(--red);} .stat-card.s-orange{border-top-color:var(--orange);}
-.stat-card.s-grey{border-top-color:var(--grey);} .stat-card.s-green{border-top-color:var(--green);}
-.stat-card.s-purple{border-top-color:var(--purple);} .stat-card.s-teal{border-top-color:var(--teal);}
-.stat-card .val{font-size:1.5rem;font-weight:900;font-family:var(--font-mono);color:var(--text);}
-.stat-card .lbl{font-size:.67rem;color:var(--text-sec);margin-top:3px;text-transform:uppercase;letter-spacing:.04em;}
-.stat-card .sub{font-size:.59rem;color:var(--text-dim);margin-top:2px;}
-.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:8px;margin-bottom:14px;}
+.stat-card{background:white;border:1px solid var(--border);border-radius:var(--radius);
+  padding:11px;text-align:center;border-top:3px solid var(--blue);}
+.stat-card.sr{border-top-color:var(--red);} .stat-card.so{border-top-color:var(--orange);}
+.stat-card.sg2{border-top-color:var(--grey);} .stat-card.sg{border-top-color:var(--green);}
+.stat-card.sp{border-top-color:var(--purple);} .stat-card.st{border-top-color:var(--teal);}
+.stat-card.sa{border-top-color:var(--amber);}
+.stat-card .val{font-size:1.45rem;font-weight:900;font-family:var(--font-mono);color:var(--text);}
+.stat-card .lbl{font-size:.64rem;color:var(--text-sec);margin-top:3px;text-transform:uppercase;letter-spacing:.04em;}
+.stat-card .sub{font-size:.57rem;color:var(--text-dim);margin-top:1px;}
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
 .charts-row.single{grid-template-columns:1fr;}
-.chart-card{background:white;border:1px solid var(--border);border-radius:var(--radius);padding:14px;}
-.chart-card h4{font-size:.68rem;font-weight:700;color:var(--green);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em;font-family:var(--font-mono);}
-.chart-wrap{position:relative;height:210px;}
-.mort-tbl{width:100%;border-collapse:collapse;font-size:.77rem;}
-.mort-tbl th{background:var(--bg-stripe);padding:6px 10px;text-align:left;font-size:.66rem;font-family:var(--font-mono);color:var(--text-sec);}
-.mort-tbl td{padding:6px 10px;border-bottom:1px solid var(--border);}
-.fix-scroll{max-height:190px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;}
-.fix-tbl{width:100%;border-collapse:collapse;font-size:.71rem;}
-.fix-tbl th{background:var(--forest);color:white;padding:6px 8px;text-align:left;position:sticky;top:0;z-index:1;font-family:var(--font-mono);font-size:.61rem;}
-.fix-tbl td{padding:5px 8px;border-bottom:1px solid var(--border);}
+.chart-card{background:white;border:1px solid var(--border);border-radius:var(--radius);padding:12px;}
+.chart-card h4{font-size:.65rem;font-weight:700;color:var(--green);margin-bottom:9px;
+  text-transform:uppercase;letter-spacing:.06em;font-family:var(--font-mono);}
+.chart-wrap{position:relative;height:200px;}
+.mort-tbl{width:100%;border-collapse:collapse;font-size:.75rem;}
+.mort-tbl th{background:var(--bg-stripe);padding:5px 9px;text-align:left;font-size:.64rem;font-family:var(--font-mono);color:var(--text-sec);}
+.mort-tbl td{padding:5px 9px;border-bottom:1px solid var(--border);}
+.fix-scroll{max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:5px;}
+.fix-tbl{width:100%;border-collapse:collapse;font-size:.69rem;}
+.fix-tbl th{background:var(--forest);color:white;padding:5px 7px;text-align:left;
+  position:sticky;top:0;z-index:1;font-family:var(--font-mono);font-size:.59rem;}
+.fix-tbl td{padding:4px 7px;border-bottom:1px solid var(--border);}
 .fix-tbl tr:hover td{background:var(--bg-hover);}
-.mov-stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:9px;margin-bottom:16px;}
-.mov-stat{background:white;border:1px solid var(--border);border-radius:var(--radius);padding:10px 13px;border-left:3px solid var(--green);}
-.mov-stat .v{font-size:1.25rem;font-weight:900;font-family:var(--font-mono);color:var(--text);}
-.mov-stat .l{font-size:.62rem;color:var(--text-sec);margin-top:2px;text-transform:uppercase;letter-spacing:.04em;}
- 
-/* FIELD PANEL */
-.fp-overlay{display:none;position:fixed;inset:0;background:rgba(30,50,40,.4);z-index:1099;}
+.mov-stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:14px;}
+.mov-stat{background:white;border:1px solid var(--border);border-radius:var(--radius);
+  padding:9px 12px;border-left:3px solid var(--green);}
+.mov-stat .v{font-size:1.2rem;font-weight:900;font-family:var(--font-mono);color:var(--text);}
+.mov-stat .l{font-size:.6rem;color:var(--text-sec);margin-top:2px;text-transform:uppercase;letter-spacing:.04em;}
+
+/* Ecology tab extras */
+.eco-table{width:100%;border-collapse:collapse;font-size:.73rem;}
+.eco-table th{background:var(--forest);color:white;padding:5px 8px;text-align:left;
+  font-family:var(--font-mono);font-size:.61rem;position:sticky;top:0;z-index:1;}
+.eco-table td{padding:5px 8px;border-bottom:1px solid var(--border);}
+.eco-table tr:hover td{background:var(--bg-hover);}
+.eco-scroll{max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;}
+.si-bar{height:8px;border-radius:4px;background:var(--green);display:inline-block;vertical-align:middle;margin-left:4px;}
+
+/* Field panel */
+.fp-overlay{display:none;position:fixed;inset:0;background:rgba(20,45,30,.4);z-index:1099;}
 .fp-overlay.open{display:block;}
-.field-panel{position:fixed;top:0;right:-380px;width:360px;height:100%;
+.field-panel{position:fixed;top:0;right:-375px;width:355px;height:100%;
   background:white;border-left:1px solid var(--border);
-  box-shadow:-6px 0 24px rgba(0,0,0,.15);transition:right .28s ease;
+  box-shadow:-5px 0 22px rgba(0,0,0,.15);transition:right .26s ease;
   overflow:hidden;z-index:1100;display:flex;flex-direction:column;}
 .field-panel.open{right:0;}
-.fp-hdr{background:linear-gradient(135deg,var(--forest),#2a5c3a);color:white;
-  padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--green-lt);}
-.fp-hdr h3{font-size:.87rem;font-weight:700;font-family:var(--font-mono);}
-.fp-close{background:none;border:none;color:rgba(255,255,255,.7);font-size:1.2rem;cursor:pointer;border-radius:4px;}
+.fp-hdr{background:linear-gradient(135deg,var(--forest),#2d5e3c);color:white;
+  padding:11px 15px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:2px solid var(--green-lt);}
+.fp-hdr h3{font-size:.85rem;font-weight:700;font-family:var(--font-mono);}
+.fp-close{background:none;border:none;color:rgba(255,255,255,.65);font-size:1.15rem;cursor:pointer;}
 .fp-close:hover{color:white;}
-.fp-latest{padding:12px 16px;background:#f9fbe7;border-bottom:2px solid #c5e1a5;flex-shrink:0;}
-.fp-latest .fu-lbl{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--green);margin-bottom:3px;}
-.fp-latest .fu-date{font-weight:700;color:var(--forest);font-size:.81rem;font-family:var(--font-mono);}
-.fp-latest .fu-text{margin-top:4px;font-size:.82rem;line-height:1.5;color:var(--text);}
-.fp-scroll{flex:1;overflow-y:auto;padding:10px 16px;}
-.fp-scroll h4{font-size:.62rem;color:var(--text-dim);margin-bottom:8px;text-transform:uppercase;letter-spacing:.07em;font-family:var(--font-mono);}
-.fu-item{padding:9px 0;border-bottom:1px solid var(--border);}
-.fu-item .fu-date{font-weight:700;color:var(--text-sec);font-size:.74rem;font-family:var(--font-mono);}
-.fu-item .fu-text{margin-top:3px;font-size:.81rem;line-height:1.4;color:var(--text);}
- 
-@media(max-width:900px){.right-panel,.left-panel{display:none;}.charts-row{grid-template-columns:1fr;}}
+.fp-latest{padding:11px 15px;background:#f9fbe7;border-bottom:2px solid #c5e1a5;flex-shrink:0;}
+.fp-latest .fu-lbl{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--green);margin-bottom:2px;}
+.fp-latest .fu-date{font-weight:700;color:var(--forest);font-size:.79rem;font-family:var(--font-mono);}
+.fp-latest .fu-text{margin-top:3px;font-size:.8rem;line-height:1.45;color:var(--text);}
+.fp-scroll{flex:1;overflow-y:auto;padding:9px 15px;}
+.fp-scroll h4{font-size:.6rem;color:var(--text-dim);margin-bottom:7px;text-transform:uppercase;letter-spacing:.07em;font-family:var(--font-mono);}
+.fu-item{padding:8px 0;border-bottom:1px solid var(--border);}
+.fu-item .fu-date{font-weight:700;color:var(--text-sec);font-size:.72rem;font-family:var(--font-mono);}
+.fu-item .fu-text{margin-top:2px;font-size:.79rem;line-height:1.4;color:var(--text);}
+
+@media(max-width:860px){.left-panel,.right-panel{display:none;}.charts-row{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
- 
-<!-- HEADER -->
+
+<!-- ═══════════════════════════════════════════════
+     HEADER
+════════════════════════════════════════════════ -->
 <header>
   <div class="hdr-left">
     <div class="hdr-logos">
@@ -319,104 +441,196 @@ header img{height:38px;object-fit:contain;filter:brightness(1.15) drop-shadow(0 
       <div class="hdr-sub">Pali FT Release · Real-Time Monitoring Dashboard</div>
     </div>
   </div>
-  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-    <div class="hdr-pill" id="pill-active"  onclick="setPillFilter('active')"><div class="pdot pdot-blue"></div><span>Active</span><span class="pcount" id="cActive">—</span></div>
-    <div class="hdr-pill" id="pill-dead"   onclick="setPillFilter('dead')"><div class="pdot pdot-red"></div><span>Dead/Missing</span><span class="pcount" id="cDead">—</span></div>
-    <div class="hdr-pill" id="pill-tmiss"  onclick="setPillFilter('tmiss')"><div class="pdot pdot-orange"></div><span>Temp Missing</span><span class="pcount" id="cTmiss">—</span></div>
-    <div class="hdr-pill" id="pill-gone"   onclick="setPillFilter('gone')"><div class="pdot pdot-grey"></div><span>Gone &gt;30d</span><span class="pcount" id="cGone">—</span></div>
-    <button class="hdr-btn" onclick="openStats()">📊 Statistics</button>
+  <div class="hdr-right">
+    <div class="hdr-pill" id="pill-active"  onclick="setPillFilter('active')"><div class="pdot pdot-b"></div><span>Active</span><span class="pcount" id="cActive">—</span></div>
+    <div class="hdr-pill" id="pill-dead"   onclick="setPillFilter('dead')"><div class="pdot pdot-r"></div><span>Dead/Missing</span><span class="pcount" id="cDead">—</span></div>
+    <div class="hdr-pill" id="pill-tmiss"  onclick="setPillFilter('tmiss')"><div class="pdot pdot-o"></div><span>Temp Missing</span><span class="pcount" id="cTmiss">—</span></div>
+    <div class="hdr-pill" id="pill-gone"   onclick="setPillFilter('gone')"><div class="pdot pdot-g"></div><span>Gone &gt;30d</span><span class="pcount" id="cGone">—</span></div>
+    <div class="hdr-sep"></div>
+    <button class="hdr-btn" onclick="openStats()">📊 Stats</button>
     <button class="hdr-btn" onclick="toggleFP()">📋 Field Updates</button>
+    <button class="hdr-icon-btn" id="topBarToggle" onclick="toggleTopBar()" title="Toggle Filters">⚙</button>
   </div>
 </header>
- 
+
+<!-- ═══════════════════════════════════════════════
+     TOP FILTER BAR (collapsible)
+════════════════════════════════════════════════ -->
+<div class="top-bar" id="topBar">
+  <div class="filter-grp"><label>Animal ID</label><select id="animalFilter"><option value="all">All Animals</option></select></div>
+  <div class="tb-div"></div>
+  <div class="filter-grp"><label>Status</label>
+    <select id="statusFilter">
+      <option value="all">All Statuses</option>
+      <option value="active">Active (≤10d)</option>
+      <option value="dead">Dead / Missing</option>
+      <option value="tmiss">Temp Missing (10–30d)</option>
+      <option value="gone">Gone &gt;30d</option>
+    </select>
+  </div>
+  <div class="tb-div"></div>
+  <div class="filter-grp"><label>Category</label>
+    <select id="categoryFilter">
+      <option value="all">All</option>
+      <option value="settler">Settler</option>
+      <option value="explorer">Explorer</option>
+    </select>
+  </div>
+  <div class="tb-div"></div>
+  <button class="tb-btn" id="heatmapBtn" onclick="toggleHeatmap()">🌡️ Heatmap</button>
+  <button class="tb-btn" id="kdeBtn"     onclick="toggleKDE()">📍 KDE Layer</button>
+  <button class="tb-btn" id="tracksBtn"  onclick="toggleAllTracks()">〰️ All Tracks</button>
+  <div class="tb-div"></div>
+  <button class="tb-btn exp" onclick="exportDispersal()">📤 Dispersal CSV</button>
+  <button class="tb-btn exp" onclick="exportSurvival()">📤 Survival CSV</button>
+  <button class="tb-btn exp" onclick="exportMovement()">📤 Movement CSV</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     MAIN AREA
+════════════════════════════════════════════════ -->
 <div class="main-area">
- 
+
   <!-- LEFT PANEL -->
-  <div class="left-panel">
-    <div class="lp-scroll">
-      <div class="lp-sec">
-        <div class="lp-sec-title">Filters</div>
-        <div class="filter-row"><label>Animal ID</label><select id="animalFilter"><option value="all">All Animals</option></select></div>
-        <div class="filter-row"><label>Status</label><select id="statusFilter"><option value="all">All Statuses</option><option value="active">Active (≤10d)</option><option value="dead">Dead / Missing</option><option value="tmiss">Temp Missing (10–30d)</option><option value="gone">Gone &gt;30d</option></select></div>
-        <div class="filter-row"><label>Category</label><select id="categoryFilter"><option value="all">All Categories</option><option value="settler">Settler</option><option value="explorer">Explorer</option></select></div>
-      </div>
-      <div class="lp-sec">
-        <div class="lp-sec-title">Population Overview</div>
-        <div class="mini-stats">
-          <div class="mini-card c-green"><div class="mc-val" id="msTotal">—</div><div class="mc-lbl">Tagged</div></div>
-          <div class="mini-card c-green"><div class="mc-val" id="msSurvRate">—</div><div class="mc-lbl">Survival</div></div>
-          <div class="mini-card c-blue"><div class="mc-val" id="msActive">—</div><div class="mc-lbl">Active</div></div>
-          <div class="mini-card c-red"><div class="mc-val" id="msDead">—</div><div class="mc-lbl">Dead</div></div>
-          <div class="mini-card c-orange"><div class="mc-val" id="msTmiss">—</div><div class="mc-lbl">Temp Miss</div></div>
-          <div class="mini-card c-grey"><div class="mc-val" id="msGone">—</div><div class="mc-lbl">Gone&gt;30d</div></div>
+  <div class="left-panel" id="leftPanel">
+    <div class="panel-inner">
+      <div class="lp-scroll">
+
+        <div class="lp-sec">
+          <div class="lp-sec-title">Quick Filters</div>
+          <div class="lp-filter"><label>Animal ID</label><select id="animalFilter2"><option value="all">All Animals</option></select></div>
+          <div class="lp-filter"><label>Status</label>
+            <select id="statusFilter2">
+              <option value="all">All</option>
+              <option value="active">Active</option>
+              <option value="dead">Dead/Missing</option>
+              <option value="tmiss">Temp Missing</option>
+              <option value="gone">Gone &gt;30d</option>
+            </select>
+          </div>
         </div>
-        <div class="mini-stats" style="grid-template-columns:1fr;">
-          <div class="mini-card c-amber"><div class="mc-val" id="msAvgDisp">—</div><div class="mc-lbl">Avg Max Dispersal</div></div>
+
+        <div class="lp-sec">
+          <div class="lp-sec-title">Population Stats</div>
+          <div class="mini-stats">
+            <div class="mc cg"><div class="mc-v" id="msTotal">—</div><div class="mc-l">Tagged</div></div>
+            <div class="mc cg"><div class="mc-v" id="msSurv">—</div><div class="mc-l">Survival</div></div>
+            <div class="mc cb"><div class="mc-v" id="msActive">—</div><div class="mc-l">Active</div></div>
+            <div class="mc cr"><div class="mc-v" id="msDead">—</div><div class="mc-l">Dead</div></div>
+            <div class="mc co"><div class="mc-v" id="msTmiss">—</div><div class="mc-l">Temp Miss</div></div>
+            <div class="mc cg2"><div class="mc-v" id="msGone">—</div><div class="mc-l">Gone&gt;30d</div></div>
+          </div>
+          <div class="mini-stats" style="grid-template-columns:1fr;">
+            <div class="mc ca"><div class="mc-v" id="msAvgDisp">—</div><div class="mc-l">Avg Max Dispersal</div></div>
+          </div>
         </div>
-      </div>
-      <div class="lp-sec">
-        <div class="lp-sec-title">Map Tools</div>
-        <button class="tool-btn" id="heatmapBtn" onclick="toggleHeatmap()"><span>🌡️</span>Heatmap Toggle</button>
-        <button class="tool-btn" id="tracksBtn"  onclick="toggleAllTracks()"><span>〰️</span>All Movement Tracks</button>
-      </div>
-      <div class="lp-sec">
-        <div class="lp-sec-title">Research Exports</div>
-        <button class="exp-btn" onclick="exportDispersal()">📤 Export Dispersal Dataset</button>
-        <button class="exp-btn" onclick="exportSurvival()">📤 Export Survival Dataset</button>
-        <button class="exp-btn" onclick="exportMovement()">📤 Export Movement Dataset</button>
-      </div>
-      <div class="lp-sec">
-        <div class="lp-sec-title">River Conditions — Chambal</div>
-        <div class="env-status" id="envStatus">Fetching conditions…</div>
-        <div class="env-grid">
-          <div class="env-item"><div class="env-ico">🌡️</div><div class="env-val" id="eTemp">—</div><div class="env-lbl">Temp °C</div></div>
-          <div class="env-item"><div class="env-ico">💧</div><div class="env-val" id="eHumidity">—</div><div class="env-lbl">Humidity %</div></div>
-          <div class="env-item"><div class="env-ico">💨</div><div class="env-val" id="eWind">—</div><div class="env-lbl">Wind km/h</div></div>
-          <div class="env-item"><div class="env-ico">🌧️</div><div class="env-val" id="eRain">—</div><div class="env-lbl">Rain 24h mm</div></div>
-          <div class="env-item"><div class="env-ico">🌅</div><div class="env-val" id="eSunrise">—</div><div class="env-lbl">Sunrise</div></div>
-          <div class="env-item"><div class="env-ico">🌇</div><div class="env-val" id="eSunset">—</div><div class="env-lbl">Sunset</div></div>
-          <div class="env-item env-wide"><div class="env-ico">🌙</div><div class="env-val" id="eMoon">—</div><div class="env-lbl">Moon Phase</div></div>
+
+        <div class="lp-sec">
+          <div class="lp-sec-title">Map Tools</div>
+          <button class="lp-btn" id="heatmapBtn2" onclick="toggleHeatmap()"><span>🌡️</span>Heatmap</button>
+          <button class="lp-btn" id="kdeBtn2"     onclick="toggleKDE()"><span>📍</span>KDE Density Layer</button>
+          <button class="lp-btn" id="tracksBtn2"  onclick="toggleAllTracks()"><span>〰️</span>All Movement Tracks</button>
         </div>
+
+        <div class="lp-sec">
+          <div class="lp-sec-title">Research Exports</div>
+          <button class="lp-btn exp" onclick="exportDispersal()">📤 Export Dispersal Dataset</button>
+          <button class="lp-btn exp" onclick="exportSurvival()">📤 Export Survival Dataset</button>
+          <button class="lp-btn exp" onclick="exportMovement()">📤 Export Movement Dataset</button>
+        </div>
+
+        <div class="lp-sec">
+          <div class="lp-sec-title">River Conditions — Chambal</div>
+          <div class="env-status" id="envStatus">Fetching conditions…</div>
+          <div class="env-grid">
+            <div class="env-item"><div class="env-ico">🌡️</div><div class="env-val" id="eTemp">—</div><div class="env-lbl">Temp °C</div></div>
+            <div class="env-item"><div class="env-ico">💧</div><div class="env-val" id="eHumidity">—</div><div class="env-lbl">Humidity %</div></div>
+            <div class="env-item"><div class="env-ico">💨</div><div class="env-val" id="eWind">—</div><div class="env-lbl">Wind km/h</div></div>
+            <div class="env-item"><div class="env-ico">🌧️</div><div class="env-val" id="eRain">—</div><div class="env-lbl">Rain 24h mm</div></div>
+            <div class="env-item"><div class="env-ico">🌅</div><div class="env-val" id="eSunrise">—</div><div class="env-lbl">Sunrise</div></div>
+            <div class="env-item"><div class="env-ico">🌇</div><div class="env-val" id="eSunset">—</div><div class="env-lbl">Sunset</div></div>
+            <div class="env-item env-wide"><div class="env-ico">🌙</div><div class="env-val" id="eMoon">—</div><div class="env-lbl">Moon Phase</div></div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
- 
+
   <!-- MAP -->
   <div class="map-wrap">
     <div id="map"></div>
-    <div class="map-toolbar"><button class="mt-btn" onclick="resetView()" title="Reset View">🏠</button></div>
+    <!-- Panel collapse toggles on map edges -->
+    <button class="panel-toggle pt-left" id="ptLeft" onclick="toggleLeftPanel()" title="Toggle left panel">◀</button>
+    <button class="panel-toggle pt-right" id="ptRight" onclick="toggleRightPanel()" title="Toggle right panel">▶</button>
+    <div class="map-toolbar">
+      <button class="mt-btn" onclick="resetView()" title="Reset View">🏠</button>
+    </div>
     <div class="status-bar">
       <div class="sb-dot"></div>
       <span id="statusBarTxt">Loading telemetry…</span>
-      <span style="margin-left:auto;font-size:.64rem;color:var(--text-dim)" id="loadCountTxt"></span>
+      <span style="margin-left:auto;font-size:.62rem;color:var(--text-dim)" id="loadCountTxt"></span>
     </div>
   </div>
- 
-  <!-- RIGHT PANEL -->
+
+  <!-- RIGHT PANEL (profile) -->
   <div class="right-panel" id="rightPanel">
-    <div class="rp-hdr">
-      <span class="rp-hdr-title">🐊 Individual Profile</span>
-      <button style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:.74rem;font-weight:700;" onclick="clearProfile()">✕ Clear</button>
+    <div class="profile-inner">
+      <div class="rp-hdr">
+        <span class="rp-hdr-title">🐊 Individual Profile</span>
+        <button style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:.7rem;font-weight:700;" onclick="clearProfile()">✕ Clear</button>
+      </div>
+      <div id="profileEmpty" class="rp-empty">
+        <div class="rp-empty-ico">🐊</div>
+        <div class="rp-empty-txt">Click a map marker or select an Animal ID to view the individual profile, movement stats, and MCP home range.</div>
+      </div>
+      <div id="profileContent" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
+        <div class="rp-scroll" id="profileScroll"></div>
+      </div>
     </div>
-    <div id="profileEmpty" class="rp-empty">
-      <div class="rp-empty-ico">🐊</div>
-      <div class="rp-empty-txt">Click a marker or select an Animal ID to view the individual profile, movement stats, and MCP home range polygon on the map.</div>
+  </div>
+
+</div><!-- end main-area -->
+
+<!-- ═══════════════════════════════════════════════
+     BOTTOM TABLE (resizable + collapsible)
+════════════════════════════════════════════════ -->
+<div class="table-section" id="tableSection">
+  <div class="resize-handle" id="resizeHandle"></div>
+  <div class="tbl-header-row">
+    <span class="tbl-hint" id="tblHint">📡 Latest fix per animal — Click row to zoom</span>
+    <div class="tbl-controls">
+      <button class="tbl-ctrl-btn ghost" id="seeMoreBtn" onclick="toggleTblExpand()" style="display:none;"></button>
+      <button class="tbl-ctrl-btn ghost" onclick="toggleTableCollapse()" id="tblCollapseBtn">▼ Hide Table</button>
     </div>
-    <div id="profileContent" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
-      <div class="rp-scroll" id="profileScroll"></div>
-    </div>
+  </div>
+  <div class="tbl-scroll" id="tblScroll">
+    <table class="tbl" id="dataTable">
+      <thead>
+        <tr>
+          <th>Animal ID</th><th>Timestamp</th><th>Place</th><th>Activity</th>
+          <th>Signal</th><th>Status</th><th>Category</th>
+          <th>Latitude</th><th>Longitude</th><th>Remarks</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
 </div>
- 
-<!-- FIELD PANEL -->
+
+<!-- ═══════════════════════════════════════════════
+     FIELD PANEL
+════════════════════════════════════════════════ -->
 <div class="fp-overlay" id="fpOverlay" onclick="closeFP()"></div>
 <div class="field-panel" id="fieldPanel">
   <div class="fp-hdr"><h3>📋 Field Updates</h3><button class="fp-close" onclick="closeFP()">✕</button></div>
   <div class="fp-latest"><div class="fu-lbl">Latest Update</div><div class="fu-date" id="fuLatestDate">Loading…</div><div class="fu-text" id="fuLatestText"></div></div>
   <div class="fp-scroll"><h4>Previous Updates</h4><div id="fuList"></div></div>
 </div>
- 
-<!-- STATS MODAL -->
+
+<!-- ═══════════════════════════════════════════════
+     STATISTICS MODAL
+════════════════════════════════════════════════ -->
 <div class="modal-overlay" id="statsModal">
   <div class="modal-box">
     <div class="modal-hdr"><h2>📊 Population Statistics — Chambal Gharial Hatchlings</h2><button class="modal-close" onclick="closeStats()">✕</button></div>
@@ -425,18 +639,21 @@ header img{height:38px;object-fit:contain;filter:brightness(1.15) drop-shadow(0 
         <button class="tab-btn active" onclick="switchTab('ts')">🛡 Survival</button>
         <button class="tab-btn" onclick="switchTab('tm')">📍 Movement</button>
         <button class="tab-btn" onclick="switchTab('ta')">🌊 Activity & Signal</button>
+        <button class="tab-btn" onclick="switchTab('te')">🔬 Movement Ecology</button>
       </div>
+
       <div class="tab-content active" id="ts">
         <div class="stat-cards" id="survCards"></div>
         <div class="charts-row">
           <div class="chart-card"><h4>Status Distribution</h4><div class="chart-wrap"><canvas id="cStatus"></canvas></div></div>
-          <div class="chart-card"><h4>Mortality Log</h4><table class="mort-tbl" id="mortTbl"><thead><tr><th>ID</th><th>Cause</th><th>Type</th></tr></thead><tbody></tbody></table></div>
+          <div class="chart-card"><h4>Mortality Log (Known)</h4><table class="mort-tbl" id="mortTbl"><thead><tr><th>ID</th><th>Cause</th><th>Type</th></tr></thead><tbody></tbody></table></div>
         </div>
         <div class="charts-row">
           <div class="chart-card"><h4>Days Since Last Fix</h4><div class="chart-wrap"><canvas id="cRecency"></canvas></div></div>
           <div class="chart-card"><h4>Category Breakdown</h4><div class="chart-wrap"><canvas id="cCategory"></canvas></div></div>
         </div>
       </div>
+
       <div class="tab-content" id="tm">
         <div class="stat-cards" id="movCards"></div>
         <div class="charts-row">
@@ -444,85 +661,235 @@ header img{height:38px;object-fit:contain;filter:brightness(1.15) drop-shadow(0 
           <div class="chart-card"><h4>Movement Type Distribution</h4><div class="chart-wrap"><canvas id="cMovType"></canvas></div></div>
         </div>
         <div class="charts-row single">
-          <div class="chart-card"><h4>Max Displacement from Release (m) — 🔵Active 🟠Temp Missing ⚫Gone 🔴Dead</h4><div class="chart-wrap" style="height:240px;"><canvas id="cDisplacement"></canvas></div></div>
+          <div class="chart-card"><h4>Max Displacement from Release (m) — 🔵Active 🟠Temp Missing ⚫Gone 🔴Dead</h4>
+            <div class="chart-wrap" style="height:230px;"><canvas id="cDisplacement"></canvas></div></div>
         </div>
       </div>
+
       <div class="tab-content" id="ta">
         <div class="charts-row">
           <div class="chart-card"><h4>Activity Type Distribution</h4><div class="chart-wrap"><canvas id="cActivity"></canvas></div></div>
           <div class="chart-card"><h4>Signal Strength Distribution</h4><div class="chart-wrap"><canvas id="cSignal"></canvas></div></div>
         </div>
         <div class="charts-row single">
-          <div class="chart-card"><h4>Observations Over Time (Monthly)</h4><div class="chart-wrap" style="height:220px;"><canvas id="cTimeline"></canvas></div></div>
+          <div class="chart-card"><h4>Observations Over Time (Monthly)</h4>
+            <div class="chart-wrap" style="height:210px;"><canvas id="cTimeline"></canvas></div></div>
+        </div>
+      </div>
+
+      <!-- ECOLOGY TAB -->
+      <div class="tab-content" id="te">
+        <div class="stat-cards" id="ecoCards"></div>
+        <div class="charts-row">
+          <div class="chart-card"><h4>Step Length Distribution (m between consecutive fixes)</h4><div class="chart-wrap"><canvas id="cStepLen"></canvas></div></div>
+          <div class="chart-card"><h4>Turn Angle Distribution (degrees)</h4><div class="chart-wrap"><canvas id="cTurnAngle"></canvas></div></div>
+        </div>
+        <div class="charts-row">
+          <div class="chart-card"><h4>Mean Net Squared Displacement — Population (km²)</h4><div class="chart-wrap"><canvas id="cNSD"></canvas></div></div>
+          <div class="chart-card"><h4>Straightness Index per Animal (0=tortuous, 1=straight)</h4><div class="chart-wrap"><canvas id="cSI"></canvas></div></div>
+        </div>
+        <div class="chart-card" style="margin-top:0;">
+          <h4>Per-Animal Home Range Estimates (≥4 fixes)</h4>
+          <div class="eco-scroll">
+            <table class="eco-table" id="ecoTable">
+              <thead><tr><th>ID</th><th>Status</th><th>Fixes</th><th>MCP Area (ha)</th><th>KDE 95% (ha)</th><th>KDE 50% (ha)</th><th>Straightness Index</th><th>Mean Step (m)</th><th>Max Displacement (m)</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     MOVEMENT DETAIL MODAL (per animal)
+════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="movModal">
+  <div class="modal-box">
+    <div class="modal-hdr"><h2 id="movModalTitle">📈 Movement Details</h2><button class="modal-close" onclick="closeMovModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="mov-stat-row" id="movStatCards"></div>
+      <div class="charts-row">
+        <div class="chart-card" style="grid-column:1/-1;"><h4>Displacement from Release Over Time (m)</h4>
+          <div class="chart-wrap" style="height:215px;"><canvas id="cMovLine"></canvas></div></div>
+      </div>
+      <div class="charts-row">
+        <div class="chart-card"><h4>Activity Breakdown</h4><div class="chart-wrap"><canvas id="cMovAct"></canvas></div></div>
+        <div class="chart-card"><h4>Signal Strength History</h4><div class="chart-wrap"><canvas id="cMovSig"></canvas></div></div>
+      </div>
+      <div class="chart-card" style="margin-top:12px;"><h4>All Fix Points</h4>
+        <div class="fix-scroll">
+          <table class="fix-tbl" id="fixTbl">
+            <thead><tr><th>#</th><th>Timestamp</th><th>Place</th><th>Activity</th><th>Signal</th><th>Dist Release (m)</th><th>Lat</th><th>Lng</th></tr></thead>
+            <tbody></tbody>
+          </table>
         </div>
       </div>
     </div>
   </div>
 </div>
- 
-<!-- MOVEMENT DETAIL MODAL -->
-<div class="modal-overlay" id="movModal">
-  <div class="modal-box">
-    <div class="modal-hdr"><h2 id="movModalTitle">📈 Movement Details</h2><button class="modal-close" onclick="closeMovModal()">✕</button></div>
-    <div class="modal-body">
-      <div class="mov-stats-row" id="movStatCards"></div>
-      <div class="charts-row"><div class="chart-card" style="grid-column:1/-1;"><h4>Displacement from Release Over Time (m)</h4><div class="chart-wrap" style="height:220px;"><canvas id="cMovLine"></canvas></div></div></div>
-      <div class="charts-row">
-        <div class="chart-card"><h4>Activity Breakdown</h4><div class="chart-wrap"><canvas id="cMovAct"></canvas></div></div>
-        <div class="chart-card"><h4>Signal Strength History</h4><div class="chart-wrap"><canvas id="cMovSig"></canvas></div></div>
-      </div>
-      <div class="chart-card" style="margin-top:14px;"><h4>All Fix Points</h4>
-        <div class="fix-scroll"><table class="fix-tbl" id="fixTbl"><thead><tr><th>#</th><th>Timestamp</th><th>Place</th><th>Activity</th><th>Signal</th><th>Dist Release (m)</th><th>Lat</th><th>Lng</th></tr></thead><tbody></tbody></table></div>
-      </div>
-    </div>
-  </div>
-</div>
- 
+
+<!-- ═══════════════════════════════════════════════
+     SCRIPTS
+════════════════════════════════════════════════ -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/OverlappingMarkerSpiderfier-Leaflet/0.2.6/oms.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
 <script>
+/* ══════════════════════════════════════════════════════
+   CONFIG
+══════════════════════════════════════════════════════ */
 const CSV_URL    = 'https://docs.google.com/spreadsheets/d/10maxgDHDOISlVaN3kuc0_BjxOwPVysci5AiFL-WAxoQ/export?format=csv&gid=0';
 const UPDATE_URL = 'https://docs.google.com/spreadsheets/d/10maxgDHDOISlVaN3kuc0_BjxOwPVysci5AiFL-WAxoQ/export?format=csv&gid=238985281';
 const MAP_CENTER=[25.84,76.56], MAP_ZOOM=13, TODAY=new Date();
- 
+
 const DEAD_IDS    = new Set(['30','33','34','38','96','64','98']);
 const SETTLER_IDS = new Set(['32','35','84','92','90','88','72','74','66','76','37','36','31','68','86','78','94','39','62','70']);
 const TEMP_MISSING_DAYS=10, GONE_DAYS=30;
-const MORTALITY={'64':{cause:'Fish net mortality',type:'Confirmed Dead'},'30':{cause:'Unknown — Missing',type:'Missing'},'33':{cause:'Unknown — Missing',type:'Missing'},'96':{cause:'Unknown — Missing',type:'Missing'},'34':{cause:'Suspected Mugger Predation',type:'Presumed Dead'},'38':{cause:'Suspected Mugger Predation',type:'Presumed Dead'},'98':{cause:'Confirmed Mugger Predation',type:'Confirmed Dead'}};
- 
-let map,oms,heatmapLayer=null,mcpLayer=null;
+const DEFAULT_ROWS=8;
+
+const MORTALITY={
+  '64':{cause:'Fish net mortality',type:'Confirmed Dead'},
+  '30':{cause:'Unknown — Missing',type:'Missing'},
+  '33':{cause:'Unknown — Missing',type:'Missing'},
+  '96':{cause:'Unknown — Missing',type:'Missing'},
+  '34':{cause:'Suspected Mugger Predation',type:'Presumed Dead'},
+  '38':{cause:'Suspected Mugger Predation',type:'Presumed Dead'},
+  '98':{cause:'Confirmed Mugger Predation',type:'Confirmed Dead'},
+};
+
+/* ══════════════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════════════ */
+let map,oms,heatmapLayer=null,kdeLayer=null,mcpLayer=null;
 let trackAllLayers=[],singleTrackLayers=[],releaseMarkers=[];
 let rawArr=[],animalsData={},latestRecords={},statusMap={},categoryMap={};
 let markers=[],markerMapping={};
 let f_animal='all',f_status='all',f_category='all';
 let showAllTracks=false,justSpiderfied=false,mcpVisible=false;
+let allTableRows=[],tableExpanded=false,tableCollapsed=false;
 const charts={};
 const weatherCache={};
- 
+let ecoDataCache=null;
+
+/* ══════════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════════ */
 function init(){
-  initMap(); loadTelemetry(); loadFieldUpdates(); fetchCurrentWeather();
-  document.getElementById('animalFilter').addEventListener('change',e=>{f_animal=e.target.value;f_status='all';f_category='all';document.getElementById('statusFilter').value='all';document.getElementById('categoryFilter').value='all';syncPills('all');applyFilters();});
-  document.getElementById('statusFilter').addEventListener('change',e=>{f_status=e.target.value;f_animal='all';document.getElementById('animalFilter').value='all';syncPills(f_status);applyFilters();});
-  document.getElementById('categoryFilter').addEventListener('change',e=>{f_category=e.target.value;f_animal='all';document.getElementById('animalFilter').value='all';syncPills('all');applyFilters();});
+  initMap();
+  initResize();
+  loadTelemetry();
+  loadFieldUpdates();
+  fetchCurrentWeather();
+  syncSelects();
+
   document.getElementById('statsModal').addEventListener('click',e=>{if(e.target===document.getElementById('statsModal'))closeStats();});
   document.getElementById('movModal').addEventListener('click',e=>{if(e.target===document.getElementById('movModal'))closeMovModal();});
 }
- 
+
+function syncSelects(){
+  // Sync top-bar and left-panel selects bidirectionally
+  const pairs=[['animalFilter','animalFilter2'],['statusFilter','statusFilter2']];
+  pairs.forEach(([a,b])=>{
+    document.getElementById(a).addEventListener('change',e=>{
+      document.getElementById(b).value=e.target.value;
+      handleFilterChange();
+    });
+    document.getElementById(b).addEventListener('change',e=>{
+      document.getElementById(a).value=e.target.value;
+      handleFilterChange();
+    });
+  });
+  document.getElementById('categoryFilter').addEventListener('change',()=>handleFilterChange());
+}
+
+function handleFilterChange(){
+  f_animal=document.getElementById('animalFilter').value;
+  f_status=document.getElementById('statusFilter').value;
+  f_category=document.getElementById('categoryFilter').value;
+  // reset other filters when animal changes
+  syncPills(f_status);
+  applyFilters();
+}
+
+/* ══════════════════════════════════════════════════════
+   MAP
+══════════════════════════════════════════════════════ */
 function initMap(){
   map=L.map('map',{zoomControl:false}).setView(MAP_CENTER,MAP_ZOOM);
   L.control.zoom({position:'bottomright'}).addTo(map);
   L.tileLayer('http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',{maxZoom:20,attribution:'© Google'}).addTo(map);
-  oms=new OverlappingMarkerSpiderfier(map,{keepSpiderfied:true,nearbyDistance:35,circleSpiralSwitchover:10,circleFootSeparation:55,spiralFootSeparation:35,spiralLengthStart:22,spiralLengthFactor:6,legWeight:2,legColors:{usual:'#f9a825',highlighted:'#e65100'}});
+  oms=new OverlappingMarkerSpiderfier(map,{
+    keepSpiderfied:true,nearbyDistance:35,circleSpiralSwitchover:10,
+    circleFootSeparation:55,spiralFootSeparation:35,spiralLengthStart:22,spiralLengthFactor:6,
+    legWeight:2,legColors:{usual:'#f9a825',highlighted:'#e65100'}
+  });
   oms.addListener('spiderfy',ms=>{justSpiderfied=true;ms.forEach(m=>{try{m.closePopup();}catch(e){}});setTimeout(()=>justSpiderfied=false,400);});
 }
 function resetView(){map.setView(MAP_CENTER,MAP_ZOOM);}
- 
+
+/* ══════════════════════════════════════════════════════
+   RESIZE TABLE
+══════════════════════════════════════════════════════ */
+function initResize(){
+  const handle=document.getElementById('resizeHandle');
+  const sec=document.getElementById('tableSection');
+  let drag=false,startY=0,startH=0;
+  const onStart=y=>{if(tableCollapsed)return;drag=true;startY=y;startH=sec.offsetHeight;document.body.style.cursor='ns-resize';};
+  const onMove=y=>{if(!drag)return;sec.style.height=Math.min(Math.max(55,startH+(startY-y)),window.innerHeight*.65)+'px';};
+  const onEnd=()=>{drag=false;document.body.style.cursor='';};
+  handle.addEventListener('mousedown',e=>{onStart(e.clientY);e.preventDefault();});
+  document.addEventListener('mousemove',e=>onMove(e.clientY));
+  document.addEventListener('mouseup',onEnd);
+  handle.addEventListener('touchstart',e=>onStart(e.touches[0].clientY),{passive:true});
+  document.addEventListener('touchmove',e=>{if(drag)onMove(e.touches[0].clientY);},{passive:true});
+  document.addEventListener('touchend',onEnd);
+}
+
+/* ══════════════════════════════════════════════════════
+   PANEL TOGGLES
+══════════════════════════════════════════════════════ */
+function toggleTopBar(){
+  const tb=document.getElementById('topBar');
+  const btn=document.getElementById('topBarToggle');
+  tb.classList.toggle('collapsed');
+  btn.style.background=tb.classList.contains('collapsed')?'rgba(255,255,255,.25)':'rgba(255,255,255,.1)';
+}
+function toggleLeftPanel(){
+  const lp=document.getElementById('leftPanel');
+  const btn=document.getElementById('ptLeft');
+  lp.classList.toggle('collapsed');
+  btn.textContent=lp.classList.contains('collapsed')?'▶':'◀';
+}
+function toggleRightPanel(){
+  const rp=document.getElementById('rightPanel');
+  const btn=document.getElementById('ptRight');
+  rp.classList.toggle('collapsed');
+  btn.textContent=rp.classList.contains('collapsed')?'◀':'▶';
+}
+function toggleTableCollapse(){
+  const sec=document.getElementById('tableSection');
+  const btn=document.getElementById('tblCollapseBtn');
+  tableCollapsed=!tableCollapsed;
+  sec.classList.toggle('tbl-collapsed',tableCollapsed);
+  btn.textContent=tableCollapsed?'▲ Show Table':'▼ Hide Table';
+}
+
+/* ══════════════════════════════════════════════════════
+   DATA LOADING
+══════════════════════════════════════════════════════ */
 function loadTelemetry(){
   Papa.parse(CSV_URL,{download:true,header:true,skipEmptyLines:true,complete(res){
-    rawArr=res.data; processData(); populateDropdown(); applyFilters(); updateStatusBar();
+    rawArr=res.data;
+    processData();
+    populateDropdown();
+    applyFilters();
+    updateStatusBar();
   }});
 }
 function loadFieldUpdates(){
@@ -532,57 +899,171 @@ function loadFieldUpdates(){
     document.getElementById('fuLatestDate').textContent=fmtDateOnly(parseDT(rows[0]['Date']));
     document.getElementById('fuLatestText').textContent=rows[0]['Update']||'';
     const list=document.getElementById('fuList');
-    if(rows.length<=1){list.innerHTML='<p style="color:var(--text-dim);font-size:.8rem;">No previous updates.</p>';return;}
+    if(rows.length<=1){list.innerHTML='<p style="color:var(--text-dim);font-size:.78rem;">No previous updates.</p>';return;}
     rows.slice(1).forEach(r=>{const d=document.createElement('div');d.className='fu-item';d.innerHTML=`<div class="fu-date">${fmtDateOnly(parseDT(r['Date']))}</div><div class="fu-text">${r['Update']||''}</div>`;list.appendChild(d);});
   }});
 }
+
 function processData(){
   animalsData={};latestRecords={};statusMap={};categoryMap={};
-  rawArr.forEach(row=>{const id=(row['Animal ID']||'').trim();if(!id)return;row._id=id;row._parsed=parseDT(row['Timestamp']);if(!animalsData[id])animalsData[id]=[];animalsData[id].push(row);});
-  for(const id in animalsData){animalsData[id].sort((a,b)=>b._parsed-a._parsed);latestRecords[id]=animalsData[id][0];statusMap[id]=computeStatus(id,latestRecords[id]);categoryMap[id]=DEAD_IDS.has(id)?'dead':SETTLER_IDS.has(id)?'settler':'explorer';}
-  updateCounts();updateMiniStats();
+  rawArr.forEach(row=>{
+    const id=(row['Animal ID']||'').trim();if(!id)return;
+    row._id=id;row._parsed=parseDT(row['Timestamp']);
+    if(!animalsData[id])animalsData[id]=[];
+    animalsData[id].push(row);
+  });
+  for(const id in animalsData){
+    animalsData[id].sort((a,b)=>b._parsed-a._parsed);
+    latestRecords[id]=animalsData[id][0];
+    statusMap[id]=computeStatus(id,latestRecords[id]);
+    categoryMap[id]=DEAD_IDS.has(id)?'dead':SETTLER_IDS.has(id)?'settler':'explorer';
+  }
+  updateCounts();
+  updateMiniStats();
+  ecoDataCache=null; // invalidate ecology cache
 }
-function computeStatus(id,rec){if(DEAD_IDS.has(id))return 'dead';const days=(TODAY-rec._parsed)/86400000;if(days>GONE_DAYS)return 'gone';if(days>TEMP_MISSING_DAYS)return 'tmiss';return 'active';}
-function updateCounts(){let a=0,d=0,t=0,g=0;for(const id in statusMap){const s=statusMap[id];if(s==='active')a++;else if(s==='dead')d++;else if(s==='tmiss')t++;else g++;}document.getElementById('cActive').textContent=a;document.getElementById('cDead').textContent=d;document.getElementById('cTmiss').textContent=t;document.getElementById('cGone').textContent=g;}
+
+function computeStatus(id,rec){
+  if(DEAD_IDS.has(id))return 'dead';
+  const d=(TODAY-rec._parsed)/86400000;
+  if(d>GONE_DAYS)return 'gone';
+  if(d>TEMP_MISSING_DAYS)return 'tmiss';
+  return 'active';
+}
+function updateCounts(){
+  let a=0,d=0,t=0,g=0;
+  for(const id in statusMap){const s=statusMap[id];if(s==='active')a++;else if(s==='dead')d++;else if(s==='tmiss')t++;else g++;}
+  ['cActive','cDead','cTmiss','cGone'].forEach((el,i)=>document.getElementById(el).textContent=[a,d,t,g][i]);
+}
 function updateMiniStats(){
-  const total=Object.keys(latestRecords).length;let a=0,d=0,t=0,g=0;for(const id in statusMap){const s=statusMap[id];if(s==='active')a++;else if(s==='dead')d++;else if(s==='tmiss')t++;else g++;}
-  const survRate=total>0?Math.round((a/(a+d))*100)+'%':'—';
-  document.getElementById('msTotal').textContent=total;document.getElementById('msSurvRate').textContent=survRate;document.getElementById('msActive').textContent=a;document.getElementById('msDead').textContent=d;document.getElementById('msTmiss').textContent=t;document.getElementById('msGone').textContent=g;
-  let td2=0,dc=0;for(const id in animalsData){const ord=[...animalsData[id]].sort((a,b)=>a._parsed-b._parsed);const rel=[parseFloat(ord[0]['Latitude']),parseFloat(ord[0]['Longitude'])];if(isNaN(rel[0]))continue;let maxD=0;animalsData[id].forEach(r=>{const pt=[parseFloat(r['Latitude']),parseFloat(r['Longitude'])];if(!isNaN(pt[0])){const d=haversine(rel,pt);if(d>maxD)maxD=d;}});td2+=maxD;dc++;}
-  document.getElementById('msAvgDisp').textContent=dc?Math.round(td2/dc)+'m':'—';
-  document.getElementById('loadCountTxt').textContent=`${rawArr.length} fixes | ${Object.keys(animalsData).length} animals`;
+  const total=Object.keys(latestRecords).length;
+  let a=0,d=0,t=0,g=0;
+  for(const id in statusMap){const s=statusMap[id];if(s==='active')a++;else if(s==='dead')d++;else if(s==='tmiss')t++;else g++;}
+  document.getElementById('msTotal').textContent=total;
+  document.getElementById('msSurv').textContent=total?Math.round((a/(a+d))*100)+'%':'—';
+  document.getElementById('msActive').textContent=a;document.getElementById('msDead').textContent=d;
+  document.getElementById('msTmiss').textContent=t;document.getElementById('msGone').textContent=g;
+  let td=0,dc=0;
+  for(const id in animalsData){
+    const ord=[...animalsData[id]].sort((a,b)=>a._parsed-b._parsed);
+    const rel=[parseFloat(ord[0]['Latitude']),parseFloat(ord[0]['Longitude'])];
+    if(isNaN(rel[0]))continue;
+    let mx=0;animalsData[id].forEach(r=>{const p=[parseFloat(r['Latitude']),parseFloat(r['Longitude'])];if(!isNaN(p[0])){const dv=haversine(rel,p);if(dv>mx)mx=dv;}});
+    td+=mx;dc++;
+  }
+  document.getElementById('msAvgDisp').textContent=dc?Math.round(td/dc)+'m':'—';
+  document.getElementById('loadCountTxt').textContent=`${rawArr.length} fixes · ${Object.keys(animalsData).length} animals`;
 }
-function syncPills(s){document.querySelectorAll('.hdr-pill').forEach(p=>p.classList.remove('active-filter'));if(s!=='all')document.getElementById('pill-'+s)?.classList.add('active-filter');}
-function setPillFilter(cat){const sel=document.getElementById('statusFilter');if(f_status===cat){sel.value='all';f_status='all';syncPills('all');}else{sel.value=cat;f_status=cat;syncPills(cat);}f_animal='all';f_category='all';document.getElementById('animalFilter').value='all';document.getElementById('categoryFilter').value='all';applyFilters();}
-function applyFilters(){clearMap();if(f_animal!=='all'){renderSingleAnimal(f_animal);return;}clearProfile();renderPool(getPool());}
-function getPool(){return Object.values(latestRecords).filter(r=>{const id=r._id;if(f_status!=='all'&&statusMap[id]!==f_status)return false;if(f_category!=='all'&&categoryMap[id]!==f_category)return false;return true;});}
-function clearMap(){markers.forEach(m=>map.removeLayer(m));markers=[];markerMapping={};singleTrackLayers.forEach(l=>map.removeLayer(l));singleTrackLayers=[];releaseMarkers.forEach(m=>map.removeLayer(m));releaseMarkers=[];clearMCPLayer();if(showAllTracks){trackAllLayers.forEach(l=>map.removeLayer(l));trackAllLayers=[];}}
-function renderPool(pool){pool.forEach(r=>addMarker(r));if(showAllTracks)drawAllTracks();if(pool.length){const lls=pool.map(r=>[parseFloat(r['Latitude']),parseFloat(r['Longitude'])]).filter(ll=>!isNaN(ll[0])&&!isNaN(ll[1]));if(lls.length>1)map.fitBounds(L.latLngBounds(lls),{padding:[60,60]});}}
+
+/* ══════════════════════════════════════════════════════
+   FILTERS
+══════════════════════════════════════════════════════ */
+function syncPills(s){
+  document.querySelectorAll('.hdr-pill').forEach(p=>p.classList.remove('af'));
+  if(s!=='all')document.getElementById('pill-'+s)?.classList.add('af');
+}
+function setPillFilter(cat){
+  const sf=document.getElementById('statusFilter'),sf2=document.getElementById('statusFilter2');
+  if(f_status===cat){sf.value=sf2.value='all';f_status='all';syncPills('all');}
+  else{sf.value=sf2.value=cat;f_status=cat;syncPills(cat);}
+  const af=document.getElementById('animalFilter'),af2=document.getElementById('animalFilter2');
+  af.value=af2.value=f_animal='all';
+  document.getElementById('categoryFilter').value=f_category='all';
+  applyFilters();
+}
+
+function applyFilters(){
+  clearMap();
+  if(f_animal!=='all'){
+    renderSingleAnimal(f_animal);
+    return;
+  }
+  clearProfile();
+  const pool=getPool();
+  renderPool(pool);
+  renderTableRows(pool);
+}
+
+function getPool(){
+  return Object.values(latestRecords).filter(r=>{
+    const id=r._id;
+    if(f_status!=='all'&&statusMap[id]!==f_status)return false;
+    if(f_category!=='all'&&categoryMap[id]!==f_category)return false;
+    return true;
+  });
+}
+
+/* ══════════════════════════════════════════════════════
+   MAP RENDERING
+══════════════════════════════════════════════════════ */
+function clearMap(){
+  markers.forEach(m=>map.removeLayer(m));markers=[];markerMapping={};
+  singleTrackLayers.forEach(l=>map.removeLayer(l));singleTrackLayers=[];
+  releaseMarkers.forEach(m=>map.removeLayer(m));releaseMarkers=[];
+  clearMCPLayer();
+  if(showAllTracks){trackAllLayers.forEach(l=>map.removeLayer(l));trackAllLayers=[];}
+}
+
+function renderPool(pool){
+  pool.forEach(r=>addMarker(r));
+  if(showAllTracks)drawAllTracks();
+  if(pool.length){
+    const lls=pool.map(r=>[parseFloat(r['Latitude']),parseFloat(r['Longitude'])]).filter(ll=>!isNaN(ll[0])&&!isNaN(ll[1]));
+    if(lls.length>1)map.fitBounds(L.latLngBounds(lls),{padding:[60,60]});
+  }
+}
+
 function renderSingleAnimal(sid){
   const records=animalsData[sid]||[];if(!records.length)return;
   const ordered=[...records].sort((a,b)=>a._parsed-b._parsed);
   const lls=ordered.map(r=>[parseFloat(r['Latitude']),parseFloat(r['Longitude'])]).filter(ll=>!isNaN(ll[0])&&!isNaN(ll[1]));
-  if(lls.length>1){const line=L.polyline(lls,{color:statusColor(statusMap[sid]),weight:2.5,dashArray:'8,12',opacity:.85}).addTo(map);singleTrackLayers.push(line);}
-  records.forEach(r=>addMarker(r));addReleaseMarker(ordered[0]);
+  if(lls.length>1){
+    const line=L.polyline(lls,{color:statusColor(statusMap[sid]),weight:2.5,dashArray:'8,12',opacity:.85}).addTo(map);
+    singleTrackLayers.push(line);
+  }
+  records.forEach(r=>addMarker(r));
+  addReleaseMarker(ordered[0]);
   if(lls.length)map.fitBounds(L.latLngBounds(lls),{padding:[50,50]});
   drawMCPForAnimal(sid,ordered);mcpVisible=true;
   showProfile(sid,records,ordered);
+  renderTableRows(records);
+  document.getElementById('tblHint').textContent=`📌 All fixes for Animal ID ${sid} — ${records.length} records`;
 }
+
 function statusColor(s){return s==='dead'?'#c62828':s==='tmiss'?'#e65100':s==='gone'?'#607d8b':'#1565c0';}
-function mkIcon(id){const s=statusMap[id]||'active';const cls=s==='dead'?'gm-red':s==='tmiss'?'gm-orange':s==='gone'?'gm-grey':'gm-blue';return L.divIcon({className:'gm '+cls,html:id,iconSize:[26,26],iconAnchor:[13,13]});}
-function addMarker(record){
-  const lat=parseFloat(record['Latitude']),lng=parseFloat(record['Longitude']);if(isNaN(lat)||isNaN(lng))return null;
-  const id=record['Animal ID'];
-  const popupId='pw-'+id+'-'+(record['Timestamp']||'').replace(/\D/g,'');
-  const m=L.marker([lat,lng],{icon:mkIcon(id)}).addTo(map);
-  m.bindPopup(buildPopupHTML(record,popupId),{maxWidth:310,minWidth:255});
-  m.on('popupopen',()=>{if(!justSpiderfied){const d=record._parsed,lt=parseFloat(record['Latitude']),ln=parseFloat(record['Longitude']);if(d&&d>new Date(2000,0,1)&&!isNaN(lt))fetchHistoricalWeather(lt,ln,d,popupId);}});
-  m.on('click',()=>{if(justSpiderfied)return;showProfile(id,animalsData[id],[...animalsData[id]].sort((a,b)=>a._parsed-b._parsed));});
-  markers.push(m);oms.addMarker(m);markerMapping[id+'|'+(record['Timestamp']||'')]=m;return m;
+function mkIcon(id){
+  const s=statusMap[id]||'active';
+  const cls=s==='dead'?'gm-r':s==='tmiss'?'gm-o':s==='gone'?'gm-g':'gm-b';
+  return L.divIcon({className:'gm '+cls,html:id,iconSize:[26,26],iconAnchor:[13,13]});
 }
-function addReleaseMarker(record){if(!record)return;const lat=parseFloat(record['Latitude']),lng=parseFloat(record['Longitude']);if(isNaN(lat)||isNaN(lng))return;const icon=L.divIcon({className:'release-star',html:'⭐',iconSize:[22,22],iconAnchor:[11,11]});const m=L.marker([lat,lng],{icon,zIndexOffset:1000}).addTo(map);m.bindPopup(`<b style="color:var(--forest)">⭐ Release Point</b><br>Animal ID: ${record['Animal ID']}`);releaseMarkers.push(m);}
- 
-function buildPopupHTML(r,popupId){
+
+function addMarker(record){
+  const lat=parseFloat(record['Latitude']),lng=parseFloat(record['Longitude']);
+  if(isNaN(lat)||isNaN(lng))return null;
+  const id=record['Animal ID'];
+  const pid='pw-'+id+'-'+(record['Timestamp']||'').replace(/\D/g,'');
+  const m=L.marker([lat,lng],{icon:mkIcon(id)}).addTo(map);
+  m.bindPopup(buildPopupHTML(record,pid),{maxWidth:310,minWidth:255});
+  m.on('popupopen',()=>{if(!justSpiderfied)fetchHistoricalWeather(lat,lng,record._parsed,pid);});
+  m.on('click',()=>{if(justSpiderfied)return;
+    showProfile(id,animalsData[id],[...animalsData[id]].sort((a,b)=>a._parsed-b._parsed));
+  });
+  markers.push(m);oms.addMarker(m);
+  markerMapping[id+'|'+(record['Timestamp']||'')]=m;
+  return m;
+}
+
+function addReleaseMarker(record){
+  if(!record)return;
+  const lat=parseFloat(record['Latitude']),lng=parseFloat(record['Longitude']);
+  if(isNaN(lat)||isNaN(lng))return;
+  const icon=L.divIcon({className:'release-star',html:'⭐',iconSize:[22,22],iconAnchor:[11,11]});
+  const m=L.marker([lat,lng],{icon,zIndexOffset:1000}).addTo(map);
+  m.bindPopup(`<b style="color:var(--forest)">⭐ Release Point</b><br>Animal ID: ${record['Animal ID']}`);
+  releaseMarkers.push(m);
+}
+
+function buildPopupHTML(r,pid){
   const id=r['Animal ID'],s=statusMap[id]||'active',cat=categoryMap[id]||'',sig=getSignal(r);
   return `<div class="pop-id">🐊 ID ${id} <span class="pc-status ps-${s}">${statusText(s)}</span></div>
     <table class="pop-tbl">
@@ -594,79 +1075,215 @@ function buildPopupHTML(r,popupId){
       <tr><td>Coords</td><td>${r['Latitude']}, ${r['Longitude']}</td></tr>
       ${r['Remarks']&&!isBlank(r['Remarks'])?`<tr><td>Remarks</td><td>${r['Remarks']}</td></tr>`:''}
     </table>
-    <div class="pop-weather" id="${popupId}">
+    <div class="pop-weather" id="${pid}">
       <div class="pop-weather-title">🌤 River Conditions at This Fix</div>
-      <div class="pop-weather-loading">Fetching historical conditions…</div>
+      <div class="pop-wload">Fetching historical conditions…</div>
     </div>
     <div class="pop-actions">
-      <button class="pop-action-btn" onclick="document.getElementById('animalFilter').value='${id}';f_animal='${id}';applyFilters();">🐊 Full Track</button>
-      <button class="pop-action-btn" onclick="openMovDetailModal('${id}')">📈 Movement</button>
+      <button class="pop-a-btn" onclick="(function(){var af=document.getElementById('animalFilter');var af2=document.getElementById('animalFilter2');af.value=af2.value='${id}';f_animal='${id}';applyFilters();})()">🐊 Full Track</button>
+      <button class="pop-a-btn" onclick="openMovDetailModal('${id}')">📈 Movement</button>
     </div>`;
 }
- 
+
+/* ══════════════════════════════════════════════════════
+   HISTORICAL WEATHER IN POPUP (FIXED)
+══════════════════════════════════════════════════════ */
 async function fetchHistoricalWeather(lat,lng,dateObj,targetId){
-  const ds=isoDate(dateObj),hour=dateObj.getHours();
-  const key=`${ds}|${Math.round(lat*10)/10}|${Math.round(lng*10)/10}`;
   const el=document.getElementById(targetId);if(!el)return;
+  if(!dateObj||dateObj<=new Date(2000,0,1)){
+    el.innerHTML='<div class="pop-weather-title">🌤 River Conditions</div><div class="pop-wload">No date data for this fix.</div>';return;
+  }
+  const ds=isoDate(dateObj);
+  const hour=Math.max(0,Math.min(23,dateObj.getHours()));
+  const key=`${ds}|${lat.toFixed(3)}|${lng.toFixed(3)}`;
   try{
     let data;
     if(weatherCache[key]){data=weatherCache[key];}
     else{
-      const url=`https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lng}&start_date=${ds}&end_date=${ds}&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation,river_discharge&timezone=Asia%2FKolkata`;
-      const res=await fetch(url);data=await res.json();weatherCache[key]=data;
+      // Use forecast API with start_date/end_date — works for recent AND historical (up to ~3 months)
+      // For older data, fall back to archive API
+      const daysDiff=Math.floor((TODAY-dateObj)/86400000);
+      let url;
+      if(daysDiff<=92){
+        url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&start_date=${ds}&end_date=${ds}&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation&timezone=Asia%2FKolkata`;
+      } else {
+        url=`https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lng}&start_date=${ds}&end_date=${ds}&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation&timezone=Asia%2FKolkata`;
+      }
+      const res=await fetch(url);
+      if(!res.ok)throw new Error('HTTP '+res.status);
+      data=await res.json();
+      weatherCache[key]=data;
     }
     const h=data.hourly;
-    if(!h||!h.temperature_2m){const el2=document.getElementById(targetId);if(el2)el2.innerHTML=`<div class="pop-weather-title">🌤 River Conditions</div><div class="pop-weather-loading">No historical data for this date.</div>`;return;}
-    const temp=h.temperature_2m[hour]??h.temperature_2m[0];
-    const humid=h.relative_humidity_2m[hour]??h.relative_humidity_2m[0];
-    const wind=h.wind_speed_10m[hour]??h.wind_speed_10m[0];
-    const rain=h.precipitation[hour]??0;
-    const discharge=h.river_discharge?.[hour]??null;
+    if(!h||!h.temperature_2m||!h.time){
+      const el2=document.getElementById(targetId);
+      if(el2)el2.innerHTML='<div class="pop-weather-title">🌤 River Conditions</div><div class="pop-wload">No data for this date.</div>';
+      return;
+    }
+    // Find exact hour index
+    const targetTime=`${ds}T${String(hour).padStart(2,'0')}:00`;
+    let idx=h.time.indexOf(targetTime);
+    if(idx===-1)idx=Math.min(hour,h.time.length-1);
+    const temp=h.temperature_2m[idx],humid=h.relative_humidity_2m[idx];
+    const wind=h.wind_speed_10m[idx],rain=h.precipitation[idx];
     const el2=document.getElementById(targetId);if(!el2)return;
-    el2.innerHTML=`<div class="pop-weather-title">🌤 River Conditions — ${ds} ${String(hour).padStart(2,'0')}:00</div>
-      <div class="pop-weather-grid">
-        <div class="pw-item"><span>🌡 Temp:</span> <b>${temp!==null?temp.toFixed(1)+'°C':'—'}</b></div>
-        <div class="pw-item"><span>💧 Humidity:</span> <b>${humid!==null?humid+'%':'—'}</b></div>
-        <div class="pw-item"><span>💨 Wind:</span> <b>${wind!==null?wind+' km/h':'—'}</b></div>
-        <div class="pw-item"><span>🌧 Rain:</span> <b>${rain!==null?rain+' mm':'—'}</b></div>
-        ${discharge!==null?`<div class="pw-item" style="grid-column:1/-1;"><span>🌊 River Discharge:</span> <b>${discharge.toFixed(1)} m³/s</b></div>`:''}
+    el2.innerHTML=`
+      <div class="pop-weather-title">🌤 Conditions — ${ds} ${String(hour).padStart(2,'0')}:00 IST</div>
+      <div class="pop-wgrid">
+        <div class="pw-item"><span>🌡 Temp:</span> <b>${temp!=null?temp.toFixed(1)+'°C':'—'}</b></div>
+        <div class="pw-item"><span>💧 Humidity:</span> <b>${humid!=null?humid+'%':'—'}</b></div>
+        <div class="pw-item"><span>💨 Wind:</span> <b>${wind!=null?wind+' km/h':'—'}</b></div>
+        <div class="pw-item"><span>🌧 Rain:</span> <b>${rain!=null?rain+' mm':'—'}</b></div>
       </div>`;
-  }catch(e){const el2=document.getElementById(targetId);if(el2)el2.innerHTML=`<div class="pop-weather-title">🌤 River Conditions</div><div class="pop-weather-loading">Could not retrieve conditions.</div>`;}
+  }catch(e){
+    const el2=document.getElementById(targetId);
+    if(el2)el2.innerHTML=`<div class="pop-weather-title">🌤 River Conditions</div><div class="pop-wload">Could not retrieve (${e.message||'network error'}).</div>`;
+  }
 }
- 
-function clearProfile(){document.getElementById('profileEmpty').style.display='flex';document.getElementById('profileContent').style.display='none';clearMCPLayer();}
+
+/* ══════════════════════════════════════════════════════
+   TABLE
+══════════════════════════════════════════════════════ */
+function renderTableRows(rows){
+  allTableRows=[...rows].sort((a,b)=>b._parsed-a._parsed);
+  tableExpanded=false;
+  if(f_animal==='all') document.getElementById('tblHint').textContent=`📡 Latest fix per animal · ${allTableRows.length} animals · Click row to zoom`;
+  paintTable();
+}
+
+function toggleTblExpand(){tableExpanded=!tableExpanded;paintTable();}
+
+function paintTable(){
+  const tbody=document.querySelector('#dataTable tbody');tbody.innerHTML='';
+  const visible=tableExpanded?allTableRows:allTableRows.slice(0,DEFAULT_ROWS);
+  visible.forEach(r=>{
+    const id=r['Animal ID']||'',sig=getSignal(r);
+    const s=statusMap[id]||'active',cat=categoryMap[id]||'';
+    const tr=document.createElement('tr');
+    if(s==='tmiss')tr.className='tmiss-row';
+    if(s==='gone')tr.className='gone-row';
+    if(s==='dead')tr.className='dead-row';
+    tr.innerHTML=`<td><b>${id}</b></td><td>${r['Timestamp']||''}</td><td>${r['Place']||''}</td>
+      <td>${r['Activity']||''}</td>
+      <td><span class="${sigCls(sig)}">${sig||''}</span></td>
+      <td>${statusBadge(s)}</td><td>${catBadge(cat)}</td>
+      <td>${r['Latitude']||''}</td><td>${r['Longitude']||''}</td><td>${r['Remarks']||''}</td>`;
+    tr.onclick=()=>{
+      const key=id+'|'+(r['Timestamp']||'');const m=markerMapping[key];
+      if(m){map.setView(m.getLatLng(),17);m.openPopup();try{oms.unspiderfy();}catch(e){}}
+    };
+    tbody.appendChild(tr);
+  });
+  const btn=document.getElementById('seeMoreBtn');
+  if(allTableRows.length>DEFAULT_ROWS){
+    btn.style.display='block';
+    btn.textContent=tableExpanded?`▲ Show less`:`▼ Show all ${allTableRows.length} rows`;
+  } else btn.style.display='none';
+}
+
+/* ══════════════════════════════════════════════════════
+   PROFILE PANEL
+══════════════════════════════════════════════════════ */
+function clearProfile(){
+  document.getElementById('profileEmpty').style.display='flex';
+  document.getElementById('profileContent').style.display='none';
+  clearMCPLayer();
+  document.getElementById('tblHint').textContent='📡 Latest fix per animal · Click row to zoom';
+}
+
 function showProfile(id,records,ordered){
   document.getElementById('profileEmpty').style.display='none';
-  const content=document.getElementById('profileContent');content.style.display='flex';content.style.flexDirection='column';
-  const s=statusMap[id]||'active',cat=categoryMap[id]||'',latest=records[0],release=ordered[0];
-  const relCoord=[parseFloat(release['Latitude']),parseFloat(release['Longitude'])];
+  const pc=document.getElementById('profileContent');
+  pc.style.display='flex';pc.style.flexDirection='column';
+  const s=statusMap[id]||'active',cat=categoryMap[id]||'';
+  const latest=records[0],release=ordered[0];
+  const relC=[parseFloat(release['Latitude']),parseFloat(release['Longitude'])];
   const daysSince=Math.round((TODAY-latest._parsed)/86400000);
   let maxDisp=0,totalPath=0;
-  ordered.forEach(r=>{const pt=[parseFloat(r['Latitude']),parseFloat(r['Longitude'])];if(!isNaN(pt[0])&&!isNaN(relCoord[0])){const d=haversine(relCoord,pt);if(d>maxDisp)maxDisp=d;}});
+  ordered.forEach(r=>{const p=[parseFloat(r['Latitude']),parseFloat(r['Longitude'])];if(!isNaN(p[0])&&!isNaN(relC[0])){const d=haversine(relC,p);if(d>maxDisp)maxDisp=d;}});
   for(let i=1;i<ordered.length;i++){const a=[parseFloat(ordered[i-1]['Latitude']),parseFloat(ordered[i-1]['Longitude'])];const b=[parseFloat(ordered[i]['Latitude']),parseFloat(ordered[i]['Longitude'])];if(!isNaN(a[0])&&!isNaN(b[0]))totalPath+=haversine(a,b);}
-  const currentDist=!isNaN(relCoord[0])?haversine(relCoord,[parseFloat(latest['Latitude']),parseFloat(latest['Longitude'])]):0;
+  const currD=!isNaN(relC[0])?haversine(relC,[parseFloat(latest['Latitude']),parseFloat(latest['Longitude'])]):0;
   const movType=classifyMovement(id,records);
   const mcpHa=computeMCPArea(id,ordered);
+  const steps=computeStepLengths(ordered);
+  const si=computeSI(ordered);
   const scroll=document.getElementById('profileScroll');scroll.innerHTML='';
-  scroll.innerHTML+=`<div class="profile-card"><div class="pc-title">Individual Record</div><div class="pc-id">ID: ${id} <span class="pc-status ps-${s}">${statusText(s)}</span></div><div style="margin-bottom:7px;">${catBadge(cat)}</div><div class="profile-row"><span class="pr-label">Last Fix</span><span class="pr-val">${latest['Timestamp']||'—'}</span></div><div class="profile-row"><span class="pr-label">Last Location</span><span class="pr-val">${latest['Place']||'—'}</span></div><div class="profile-row"><span class="pr-label">Days Since Fix</span><span class="pr-val">${daysSince}d</span></div><div class="profile-row"><span class="pr-label">Total Signals</span><span class="pr-val">${records.length}</span></div><div class="profile-row"><span class="pr-label">Release Coords</span><span class="pr-val">${release['Latitude']}, ${release['Longitude']}</span></div><div class="profile-row"><span class="pr-label">Movement Type</span><span class="pr-val">${movType}</span></div></div>`;
-  scroll.innerHTML+=`<div class="profile-card"><div class="pc-title">Movement Statistics</div><div class="mov-mini"><div class="mm-card"><div class="mm-val">${Math.round(maxDisp)}m</div><div class="mm-lbl">Max Displacement</div></div><div class="mm-card c-teal"><div class="mm-val">${Math.round(currentDist)}m</div><div class="mm-lbl">Current from Release</div></div><div class="mm-card c-amber"><div class="mm-val">${Math.round(totalPath)}m</div><div class="mm-lbl">Total Path Length</div></div><div class="mm-card c-purple"><div class="mm-val">${records.length}</div><div class="mm-lbl">Total Fixes</div></div></div></div>`;
-  scroll.innerHTML+=`<div class="mcp-row"><div><div style="font-size:.73rem;font-weight:700;color:var(--text);">🔷 Home Range (MCP)</div><div class="mcp-area">${mcpHa!==null?'≈ '+mcpHa+' ha — drawn on map':'Need ≥3 fixes'}</div></div><div class="toggle on" id="mcpToggle" onclick="toggleMCPForIndividual('${id}')"></div></div>`;
-  const recent=records.slice(0,15);let tRows='';
-  recent.forEach((r,i)=>{const sig=getSignal(r);const prevC=i<records.length-1?[parseFloat(records[i+1]['Latitude']),parseFloat(records[i+1]['Longitude'])]:null;const currC=[parseFloat(r['Latitude']),parseFloat(r['Longitude'])];let dp='—';if(prevC&&!isNaN(prevC[0])&&!isNaN(currC[0]))dp=Math.round(haversine(currC,prevC))+'m';tRows+=`<tr><td>${r['Timestamp']||'—'}</td><td>${r['Place']||'—'}</td><td><span class="${sigCls(sig)}">${sig||'—'}</span></td><td>${dp}</td></tr>`;});
-  scroll.innerHTML+=`<div class="profile-card"><div class="pc-title">Recent Fixes (${Math.min(15,records.length)} of ${records.length})</div><div class="tl-scroll"><table class="timeline-tbl"><thead><tr><th>Date/Time</th><th>Location</th><th>Signal</th><th>Dist Prev</th></tr></thead><tbody>${tRows}</tbody></table></div><button class="tool-btn" style="margin-top:8px;width:100%;justify-content:center;" onclick="openMovDetailModal('${id}')">📈 Full Movement Analysis</button></div>`;
+
+  scroll.innerHTML+=`<div class="profile-card">
+    <div class="pc-title">Individual Record</div>
+    <div class="pc-id">ID: ${id} <span class="pc-status ps-${s}">${statusText(s)}</span></div>
+    <div style="margin-bottom:6px;">${catBadge(cat)}</div>
+    <div class="profile-row"><span class="pr-l">Last Fix</span><span class="pr-v">${latest['Timestamp']||'—'}</span></div>
+    <div class="profile-row"><span class="pr-l">Last Location</span><span class="pr-v">${latest['Place']||'—'}</span></div>
+    <div class="profile-row"><span class="pr-l">Days Since Fix</span><span class="pr-v">${daysSince}d</span></div>
+    <div class="profile-row"><span class="pr-l">Total Signals</span><span class="pr-v">${records.length}</span></div>
+    <div class="profile-row"><span class="pr-l">Release Coords</span><span class="pr-v">${release['Latitude']}, ${release['Longitude']}</span></div>
+    <div class="profile-row"><span class="pr-l">Movement Type</span><span class="pr-v">${movType}</span></div>
+  </div>`;
+
+  scroll.innerHTML+=`<div class="profile-card">
+    <div class="pc-title">Movement Stats</div>
+    <div class="mov-mini">
+      <div class="mm"><div class="mm-v">${Math.round(maxDisp)}m</div><div class="mm-l">Max Displacement</div></div>
+      <div class="mm ct"><div class="mm-v">${Math.round(currD)}m</div><div class="mm-l">Curr. from Release</div></div>
+      <div class="mm ca"><div class="mm-v">${Math.round(totalPath)}m</div><div class="mm-l">Total Path</div></div>
+      <div class="mm cp"><div class="mm-v">${si.toFixed(2)}</div><div class="mm-l">Straightness Index</div></div>
+    </div>
+    ${steps.length>0?`<div class="profile-row"><span class="pr-l">Mean Step Length</span><span class="pr-v">${Math.round(arrMean(steps))}m</span></div>
+    <div class="profile-row"><span class="pr-l">Max Step Length</span><span class="pr-v">${Math.round(Math.max(...steps))}m</span></div>`:''}
+  </div>`;
+
+  scroll.innerHTML+=`<div class="mcp-row">
+    <div>
+      <div style="font-size:.71rem;font-weight:700;color:var(--text);">🔷 Home Range (MCP)</div>
+      <div class="mcp-area">${mcpHa!==null?'≈ '+mcpHa+' ha on map':'Need ≥3 fixes'}</div>
+    </div>
+    <div class="toggle on" id="mcpToggle" onclick="toggleMCPForIndividual('${id}')"></div>
+  </div>`;
+
+  const recent=records.slice(0,12);
+  let tRows='';
+  recent.forEach((r,i)=>{
+    const sig=getSignal(r);
+    const pc2=i<records.length-1?[parseFloat(records[i+1]['Latitude']),parseFloat(records[i+1]['Longitude'])]:null;
+    const cc=[parseFloat(r['Latitude']),parseFloat(r['Longitude'])];
+    let dp='—';if(pc2&&!isNaN(pc2[0])&&!isNaN(cc[0]))dp=Math.round(haversine(cc,pc2))+'m';
+    tRows+=`<tr><td>${r['Timestamp']||'—'}</td><td>${r['Place']||'—'}</td><td><span class="${sigCls(sig)}">${sig||'—'}</span></td><td>${dp}</td></tr>`;
+  });
+  scroll.innerHTML+=`<div class="profile-card">
+    <div class="pc-title">Recent ${Math.min(12,records.length)} Fixes</div>
+    <div class="tl-scroll"><table class="tl-tbl">
+      <thead><tr><th>Date/Time</th><th>Location</th><th>Signal</th><th>Dist Prev</th></tr></thead>
+      <tbody>${tRows}</tbody>
+    </table></div>
+    <button class="lp-btn" style="margin-top:7px;justify-content:center;" onclick="openMovDetailModal('${id}')">📈 Full Movement Analysis</button>
+  </div>`;
 }
- 
-// MCP — only for selected individual
+
+/* ══════════════════════════════════════════════════════
+   MCP HOME RANGE
+══════════════════════════════════════════════════════ */
 function convexHull(pts){
-  if(pts.length<3)return pts;pts=[...pts].sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
+  if(pts.length<3)return pts;
+  pts=[...pts].sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
   const cross=(O,A,B)=>(A[0]-O[0])*(B[1]-O[1])-(A[1]-O[1])*(B[0]-O[0]);
   const lower=[],upper=[];
   for(const p of pts){while(lower.length>=2&&cross(lower[lower.length-2],lower[lower.length-1],p)<=0)lower.pop();lower.push(p);}
   for(let i=pts.length-1;i>=0;i--){const p=pts[i];while(upper.length>=2&&cross(upper[upper.length-2],upper[upper.length-1],p)<=0)upper.pop();upper.push(p);}
-  upper.pop();lower.pop();return lower.concat(upper);
+  upper.pop();lower.pop();
+  return lower.concat(upper);
 }
-function latLngAreaHa(pts){const R=6371,toR=x=>x*Math.PI/180;let area=0;for(let i=0;i<pts.length;i++){const j=(i+1)%pts.length;area+=(toR(pts[j][1])-toR(pts[i][1]))*(2+Math.sin(toR(pts[i][0]))+Math.sin(toR(pts[j][0])));}return(Math.abs(area)*R*R/2*100).toFixed(2);}
-function computeMCPArea(id,ordered){const pts=ordered.map(r=>[parseFloat(r['Latitude']),parseFloat(r['Longitude'])]).filter(ll=>!isNaN(ll[0])&&!isNaN(ll[1]));if(pts.length<3)return null;const hull=convexHull(pts.map(([lat,lng])=>[lng,lat])).map(([lng,lat])=>[lat,lng]);if(hull.length<3)return null;return latLngAreaHa(hull);}
+function latLngAreaHa(pts){
+  const R=6371,toR=x=>x*Math.PI/180;let area=0;
+  for(let i=0;i<pts.length;i++){const j=(i+1)%pts.length;area+=(toR(pts[j][1])-toR(pts[i][1]))*(2+Math.sin(toR(pts[i][0]))+Math.sin(toR(pts[j][0])));}
+  return(Math.abs(area)*R*R/2*100).toFixed(2);
+}
+function computeMCPArea(id,ordered){
+  const pts=ordered.map(r=>[parseFloat(r['Latitude']),parseFloat(r['Longitude'])]).filter(ll=>!isNaN(ll[0])&&!isNaN(ll[1]));
+  if(pts.length<3)return null;
+  const hull=convexHull(pts.map(([lat,lng])=>[lng,lat])).map(([lng,lat])=>[lat,lng]);
+  return hull.length>=3?latLngAreaHa(hull):null;
+}
 function drawMCPForAnimal(id,ordered){
   clearMCPLayer();
   const pts=ordered.map(r=>[parseFloat(r['Latitude']),parseFloat(r['Longitude'])]).filter(ll=>!isNaN(ll[0])&&!isNaN(ll[1]));
@@ -679,123 +1296,613 @@ function drawMCPForAnimal(id,ordered){
   return ha;
 }
 function clearMCPLayer(){if(mcpLayer){map.removeLayer(mcpLayer);mcpLayer=null;}}
+let mcpVisibleForAnimal=null;
 function toggleMCPForIndividual(id){
   const toggle=document.getElementById('mcpToggle');
-  if(mcpVisible&&mcpLayer){clearMCPLayer();mcpVisible=false;toggle?.classList.remove('on');}
+  if(mcpLayer){clearMCPLayer();mcpVisible=false;toggle?.classList.remove('on');}
   else{const ord=[...animalsData[id]].sort((a,b)=>a._parsed-b._parsed);drawMCPForAnimal(id,ord);mcpVisible=true;toggle?.classList.add('on');}
 }
- 
+
+/* ══════════════════════════════════════════════════════
+   HEATMAP
+══════════════════════════════════════════════════════ */
 function toggleHeatmap(){
-  const btn=document.getElementById('heatmapBtn');
-  if(!heatmapLayer){const pts=rawArr.map(r=>[parseFloat(r['Latitude']),parseFloat(r['Longitude']),.7]).filter(p=>!isNaN(p[0])&&!isNaN(p[1]));heatmapLayer=L.heatLayer(pts,{radius:22,blur:16,maxZoom:17,gradient:{0.2:'#a8d5ba',0.5:'#52b788',0.75:'#1b7a4a',1:'#0a3d2a'}});}
-  if(map.hasLayer(heatmapLayer)){map.removeLayer(heatmapLayer);btn.classList.remove('active');}else{map.addLayer(heatmapLayer);btn.classList.add('active');}
+  const active=!document.getElementById('heatmapBtn').classList.contains('active');
+  ['heatmapBtn','heatmapBtn2'].forEach(id=>document.getElementById(id).classList.toggle('active',active));
+  if(!heatmapLayer){
+    const pts=rawArr.map(r=>[parseFloat(r['Latitude']),parseFloat(r['Longitude']),.7]).filter(p=>!isNaN(p[0])&&!isNaN(p[1]));
+    heatmapLayer=L.heatLayer(pts,{radius:22,blur:16,maxZoom:17,gradient:{0.2:'#a8d5ba',0.5:'#52b788',0.75:'#1b7a4a',1:'#0a3d2a'}});
+  }
+  if(active)map.addLayer(heatmapLayer);else map.removeLayer(heatmapLayer);
 }
-function drawAllTracks(){trackAllLayers.forEach(l=>map.removeLayer(l));trackAllLayers=[];for(const id in animalsData){const ord=[...animalsData[id]].sort((a,b)=>a._parsed-b._parsed);const lls=ord.map(r=>[parseFloat(r['Latitude']),parseFloat(r['Longitude'])]).filter(ll=>!isNaN(ll[0])&&!isNaN(ll[1]));if(lls.length>1){const line=L.polyline(lls,{color:statusColor(statusMap[id]),weight:1.5,opacity:.5}).addTo(map);trackAllLayers.push(line);}}}
-function toggleAllTracks(){showAllTracks=!showAllTracks;document.getElementById('tracksBtn').classList.toggle('active',showAllTracks);if(showAllTracks)drawAllTracks();else{trackAllLayers.forEach(l=>map.removeLayer(l));trackAllLayers=[];}}
- 
-function haversine(a,b){const R=6371000,toR=Math.PI/180,dlat=(b[0]-a[0])*toR,dlon=(b[1]-a[1])*toR,x=Math.sin(dlat/2)**2+Math.cos(a[0]*toR)*Math.cos(b[0]*toR)*Math.sin(dlon/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
-function classifyMovement(id,records){if(DEAD_IDS.has(id))return '—';if(SETTLER_IDS.has(id))return 'Settler';const ord=[...records].sort((a,b)=>a._parsed-b._parsed);const rel=[parseFloat(ord[0]['Latitude']),parseFloat(ord[0]['Longitude'])];if(isNaN(rel[0]))return 'Settler';let maxDisp=0;records.forEach(r=>{const pt=[parseFloat(r['Latitude']),parseFloat(r['Longitude'])];if(!isNaN(pt[0])){const d=haversine(rel,pt);if(d>maxDisp)maxDisp=d;}});if(maxDisp>1500)return 'Disperser';const last10=records.slice(0,10).map(r=>[parseFloat(r['Latitude']),parseFloat(r['Longitude'])]).filter(ll=>!isNaN(ll[0]));let maxSpread=0;for(let i=0;i<last10.length;i++)for(let j=i+1;j<last10.length;j++){const d=haversine(last10[i],last10[j]);if(d>maxSpread)maxSpread=d;}return maxSpread>300?'Explorer':'Settler';}
- 
-function updateStatusBar(){let latest=null;rawArr.forEach(r=>{if(!latest||r._parsed>latest)latest=r._parsed;});if(latest)document.getElementById('statusBarTxt').textContent='📡 Latest fix: '+fmtDT(latest)+' · '+rawArr.length+' observations';}
-function populateDropdown(){const sel=document.getElementById('animalFilter');Object.keys(animalsData).sort((a,b)=>+a-+b).forEach(id=>{const o=document.createElement('option');o.value=id;const s=statusMap[id];o.textContent=(s==='dead'?'⚰ ':s==='tmiss'?'⚠ ':s==='gone'?'☁ ':'🐊 ')+'ID '+id;sel.appendChild(o);});}
- 
-// ── BLANK FILTER ─────────────────────────────────────────────────
-function isBlank(v){if(!v&&v!==0)return true;const s=String(v).trim().toLowerCase();return !s||s==='-'||s==='—'||s==='na'||s==='n/a'||s==='not recorded'||s==='unknown'||s==='unknown activity'||s==='none'||s==='null';}
- 
-// STATS MODAL
+
+/* ══════════════════════════════════════════════════════
+   KDE LAYER (proper Kernel Density Estimation)
+══════════════════════════════════════════════════════ */
+function toggleKDE(){
+  const active=!document.getElementById('kdeBtn').classList.contains('active');
+  ['kdeBtn','kdeBtn2'].forEach(id=>document.getElementById(id).classList.toggle('active',active));
+  if(kdeLayer){map.removeLayer(kdeLayer);kdeLayer=null;}
+  if(!active)return;
+
+  const pts=rawArr.map(r=>[parseFloat(r['Latitude']),parseFloat(r['Longitude'])]).filter(p=>!isNaN(p[0])&&!isNaN(p[1]));
+  if(pts.length<4){alert('Not enough fixes for KDE');return;}
+
+  kdeLayer=L.Layer.extend({
+    onAdd:function(m){
+      this._map=m;
+      this._canvas=document.createElement('canvas');
+      this._canvas.style.cssText='position:absolute;top:0;left:0;pointer-events:none;opacity:0.65;';
+      m.getPanes().overlayPane.appendChild(this._canvas);
+      m.on('viewreset moveend zoomend',this._redraw,this);
+      this._redraw();return this;
+    },
+    onRemove:function(m){
+      L.DomUtil.remove(this._canvas);
+      m.off('viewreset moveend zoomend',this._redraw,this);
+    },
+    _redraw:function(){
+      const sz=this._map.getSize();
+      this._canvas.width=sz.x;this._canvas.height=sz.y;
+      const ctx=this._canvas.getContext('2d');
+      ctx.clearRect(0,0,sz.x,sz.y);
+      const topLeft=this._map.containerPointToLayerPoint([0,0]);
+      L.DomUtil.setPosition(this._canvas,topLeft);
+      const pxPts=pts.map(p=>this._map.latLngToContainerPoint(L.latLng(p[0],p[1])));
+      const xs=pxPts.map(p=>p.x),ys=pxPts.map(p=>p.y);
+      const n=xs.length;
+      const sdX=arrStd(xs),sdY=arrStd(ys);
+      const bw=Math.max(0.9*Math.min(sdX,sdY)*Math.pow(n,-0.2),18);
+      const bw2=bw*bw;
+      const cellSz=Math.max(4,Math.round(bw/6));
+      const cols=Math.ceil(sz.x/cellSz),rows=Math.ceil(sz.y/cellSz);
+      const density=new Float32Array(rows*cols);
+      let maxD=0;
+      for(let r=0;r<rows;r++){for(let c=0;c<cols;c++){
+        const px=(c+.5)*cellSz,py=(r+.5)*cellSz;
+        let d=0;for(let k=0;k<n;k++){const dx=px-xs[k],dy=py-ys[k];d+=Math.exp(-.5*(dx*dx+dy*dy)/bw2);}
+        density[r*cols+c]=d;if(d>maxD)maxD=d;
+      }}
+      if(!maxD)return;
+      const imgData=ctx.createImageData(sz.x,sz.y);
+      for(let r=0;r<rows;r++){for(let c=0;c<cols;c++){
+        const norm=density[r*cols+c]/maxD;
+        if(norm<0.04)continue;
+        const [R,G,B]=kdeColor(norm),A=Math.round(norm*190);
+        for(let dr=0;dr<cellSz&&r*cellSz+dr<sz.y;dr++){for(let dc=0;dc<cellSz&&c*cellSz+dc<sz.x;dc++){
+          const px=((r*cellSz+dr)*sz.x+(c*cellSz+dc))*4;
+          imgData.data[px]=R;imgData.data[px+1]=G;imgData.data[px+2]=B;imgData.data[px+3]=A;
+        }}
+      }}
+      ctx.putImageData(imgData,0,0);
+    }
+  });
+  kdeLayer=new (L.Layer.extend(Object.getOwnPropertyDescriptors(kdeLayer.prototype||kdeLayer)))();
+  // Simpler approach: use anonymous class
+  const KDELayerClass=L.Layer.extend({
+    initialize:function(){this._pts=pts;},
+    onAdd:function(m){
+      this._map=m;
+      this._canvas=document.createElement('canvas');
+      this._canvas.style.cssText='position:absolute;top:0;left:0;pointer-events:none;opacity:0.6;z-index:200;';
+      m.getPanes().overlayPane.appendChild(this._canvas);
+      m.on('viewreset moveend zoomend resize',this._redraw,this);
+      this._redraw();
+    },
+    onRemove:function(m){
+      if(this._canvas&&this._canvas.parentNode)this._canvas.parentNode.removeChild(this._canvas);
+      m.off('viewreset moveend zoomend resize',this._redraw,this);
+    },
+    _redraw:function(){
+      const sz=this._map.getSize();
+      this._canvas.width=sz.x;this._canvas.height=sz.y;
+      const ctx=this._canvas.getContext('2d');
+      ctx.clearRect(0,0,sz.x,sz.y);
+      const tl=this._map.containerPointToLayerPoint([0,0]);
+      L.DomUtil.setPosition(this._canvas,tl);
+      const pxPts=this._pts.map(p=>this._map.latLngToContainerPoint(L.latLng(p[0],p[1])));
+      const xs=pxPts.map(p=>p.x),ys=pxPts.map(p=>p.y);
+      const n=xs.length;
+      const bw=Math.max(0.9*Math.min(arrStd(xs),arrStd(ys))*Math.pow(n,-0.2),16);
+      const bw2=bw*bw;
+      const cs=Math.max(3,Math.round(bw/7));
+      const nc=Math.ceil(sz.x/cs),nr=Math.ceil(sz.y/cs);
+      const den=new Float32Array(nr*nc);let mx=0;
+      for(let r=0;r<nr;r++)for(let c=0;c<nc;c++){
+        const px=(c+.5)*cs,py=(r+.5)*cs;let d=0;
+        for(let k=0;k<n;k++){const dx=px-xs[k],dy=py-ys[k];d+=Math.exp(-.5*(dx*dx+dy*dy)/bw2);}
+        den[r*nc+c]=d;if(d>mx)mx=d;
+      }
+      if(!mx)return;
+      const imgD=ctx.createImageData(sz.x,sz.y);
+      for(let r=0;r<nr;r++)for(let c=0;c<nc;c++){
+        const norm=den[r*nc+c]/mx;if(norm<0.035)continue;
+        const[R,G,B]=kdeColor(norm),A=Math.round(norm*185);
+        for(let dr=0;dr<cs&&r*cs+dr<sz.y;dr++)for(let dc=0;dc<cs&&c*cs+dc<sz.x;dc++){
+          const idx=((r*cs+dr)*sz.x+(c*cs+dc))*4;
+          imgD.data[idx]=R;imgD.data[idx+1]=G;imgD.data[idx+2]=B;imgD.data[idx+3]=A;
+        }
+      }
+      ctx.putImageData(imgD,0,0);
+    }
+  });
+  kdeLayer=new KDELayerClass();
+  map.addLayer(kdeLayer);
+}
+
+function kdeColor(t){
+  if(t<0.33)return[Math.round(t*3*50),Math.round(80+t*3*100),50];
+  if(t<0.66)return[Math.round((t-.33)*3*200),200,Math.round(50-(t-.33)*3*50)];
+  return[255,Math.round(200-(t-.66)*3*200),0];
+}
+
+/* ══════════════════════════════════════════════════════
+   ALL TRACKS
+══════════════════════════════════════════════════════ */
+function drawAllTracks(){
+  trackAllLayers.forEach(l=>map.removeLayer(l));trackAllLayers=[];
+  for(const id in animalsData){
+    const ord=[...animalsData[id]].sort((a,b)=>a._parsed-b._parsed);
+    const lls=ord.map(r=>[parseFloat(r['Latitude']),parseFloat(r['Longitude'])]).filter(ll=>!isNaN(ll[0])&&!isNaN(ll[1]));
+    if(lls.length>1){const line=L.polyline(lls,{color:statusColor(statusMap[id]),weight:1.5,opacity:.5}).addTo(map);trackAllLayers.push(line);}
+  }
+}
+function toggleAllTracks(){
+  showAllTracks=!showAllTracks;
+  ['tracksBtn','tracksBtn2'].forEach(id=>document.getElementById(id).classList.toggle('active',showAllTracks));
+  if(showAllTracks)drawAllTracks();else{trackAllLayers.forEach(l=>map.removeLayer(l));trackAllLayers=[];}
+}
+
+/* ══════════════════════════════════════════════════════
+   MOVEMENT ECOLOGY CALCULATIONS
+══════════════════════════════════════════════════════ */
+function haversine(a,b){
+  const R=6371000,toR=Math.PI/180,dlat=(b[0]-a[0])*toR,dlon=(b[1]-a[1])*toR;
+  const x=Math.sin(dlat/2)**2+Math.cos(a[0]*toR)*Math.cos(b[0]*toR)*Math.sin(dlon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+}
+
+function computeStepLengths(ordered){
+  const steps=[];
+  for(let i=1;i<ordered.length;i++){
+    const a=[parseFloat(ordered[i-1]['Latitude']),parseFloat(ordered[i-1]['Longitude'])];
+    const b=[parseFloat(ordered[i]['Latitude']),parseFloat(ordered[i]['Longitude'])];
+    if(!isNaN(a[0])&&!isNaN(b[0]))steps.push(haversine(a,b));
+  }
+  return steps;
+}
+
+function computeSI(ordered){
+  const pts=ordered.map(r=>[parseFloat(r['Latitude']),parseFloat(r['Longitude'])]).filter(ll=>!isNaN(ll[0])&&!isNaN(ll[1]));
+  if(pts.length<2)return 0;
+  const net=haversine(pts[0],pts[pts.length-1]);
+  let tot=0;for(let i=1;i<pts.length;i++)tot+=haversine(pts[i-1],pts[i]);
+  return tot>0?net/tot:0;
+}
+
+function computeTurnAngles(ordered){
+  const pts=ordered.map(r=>[parseFloat(r['Latitude']),parseFloat(r['Longitude'])]).filter(ll=>!isNaN(ll[0])&&!isNaN(ll[1]));
+  const angles=[];
+  for(let i=1;i<pts.length-1;i++){
+    const a1=Math.atan2(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1])*180/Math.PI;
+    const a2=Math.atan2(pts[i+1][0]-pts[i][0],pts[i+1][1]-pts[i][1])*180/Math.PI;
+    let turn=a2-a1;
+    while(turn>180)turn-=360;while(turn<-180)turn+=360;
+    angles.push(Math.round(turn));
+  }
+  return angles;
+}
+
+function computeNSD(ordered,release){
+  return ordered.map(r=>{
+    const p=[parseFloat(r['Latitude']),parseFloat(r['Longitude'])];
+    if(isNaN(p[0])||isNaN(release[0]))return 0;
+    const d=haversine(release,p);
+    return(d/1000)**2;// km²
+  });
+}
+
+// Grid-based KDE home range (Gaussian kernel)
+function kdeHomeRange(points){
+  if(points.length<4)return{a95:null,a50:null};
+  const latMid=(Math.min(...points.map(p=>p[0]))+Math.max(...points.map(p=>p[0])))/2;
+  const mLat=111320,mLng=111320*Math.cos(latMid*Math.PI/180);
+  const xs=points.map(p=>p[1]*mLng),ys=points.map(p=>p[0]*mLat);
+  const n=xs.length;
+  const sdX=arrStd(xs),sdY=arrStd(ys);
+  const h=Math.max(0.9*Math.min(sdX,sdY)*Math.pow(n,-0.2),10);
+  const pad=h*3;
+  const mnX=Math.min(...xs)-pad,mxX=Math.max(...xs)+pad;
+  const mnY=Math.min(...ys)-pad,mxY=Math.max(...ys)+pad;
+  const cs=Math.max(h/3,5);
+  const nc=Math.ceil((mxX-mnX)/cs),nr=Math.ceil((mxY-mnY)/cs);
+  if(nc>300||nr>300||nc*nr>60000)return{a95:'—',a50:'—'};
+  const den=new Float64Array(nr*nc);let tot=0;
+  const h2=h*h;
+  for(let r=0;r<nr;r++)for(let c=0;c<nc;c++){
+    const x=mnX+(c+.5)*cs,y=mnY+(r+.5)*cs;let d=0;
+    for(let k=0;k<n;k++){const dx=x-xs[k],dy=y-ys[k];d+=Math.exp(-.5*(dx*dx+dy*dy)/h2);}
+    den[r*nc+c]=d;tot+=d;
+  }
+  const sorted=[...den].sort((a,b)=>b-a);
+  let cum=0,t95=0,t50=0;
+  for(const d of sorted){
+    cum+=d;
+    if(!t50&&cum/tot>=0.50)t50=d;
+    if(!t95&&cum/tot>=0.95){t95=d;break;}
+  }
+  const cellArea=cs*cs;// m²
+  const c95=Array.from(den).filter(d=>d>=t95).length;
+  const c50=Array.from(den).filter(d=>d>=t50).length;
+  return{
+    a95:(c95*cellArea/10000).toFixed(2),
+    a50:(c50*cellArea/10000).toFixed(2)
+  };
+}
+
+function classifyMovement(id,records){
+  if(DEAD_IDS.has(id))return '—';
+  if(SETTLER_IDS.has(id))return 'Settler';
+  const ord=[...records].sort((a,b)=>a._parsed-b._parsed);
+  const rel=[parseFloat(ord[0]['Latitude']),parseFloat(ord[0]['Longitude'])];
+  if(isNaN(rel[0]))return 'Settler';
+  let maxDisp=0;
+  records.forEach(r=>{const p=[parseFloat(r['Latitude']),parseFloat(r['Longitude'])];if(!isNaN(p[0])){const d=haversine(rel,p);if(d>maxDisp)maxDisp=d;}});
+  if(maxDisp>1500)return 'Disperser';
+  const last10=records.slice(0,10).map(r=>[parseFloat(r['Latitude']),parseFloat(r['Longitude'])]).filter(ll=>!isNaN(ll[0]));
+  let ms=0;
+  for(let i=0;i<last10.length;i++)for(let j=i+1;j<last10.length;j++){const d=haversine(last10[i],last10[j]);if(d>ms)ms=d;}
+  return ms>300?'Explorer':'Settler';
+}
+
+/* ══════════════════════════════════════════════════════
+   STATS MODAL
+══════════════════════════════════════════════════════ */
 function openStats(){document.getElementById('statsModal').classList.add('open');switchTab('ts');}
 function closeStats(){document.getElementById('statsModal').classList.remove('open');}
-function switchTab(id){document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.getElementById(id).classList.add('active');['ts','tm','ta'].forEach((t,i)=>{if(t===id)document.querySelectorAll('.tab-btn')[i]?.classList.add('active');});if(id==='ts')renderSurvivalTab();if(id==='tm')renderMovementTab();if(id==='ta')renderActivityTab();}
- 
+
+function switchTab(id){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  ['ts','tm','ta','te'].forEach((t,i)=>{if(t===id)document.querySelectorAll('.tab-btn')[i]?.classList.add('active');});
+  if(id==='ts')renderSurvivalTab();
+  if(id==='tm')renderMovementTab();
+  if(id==='ta')renderActivityTab();
+  if(id==='te')renderEcologyTab();
+}
+
 function renderSurvivalTab(){
-  const total=Object.keys(latestRecords).length;const nA=cnt('active'),nD=cnt('dead'),nT=cnt('tmiss'),nG=cnt('gone');const survRate=total?((nA/(nA+nD))*100).toFixed(1)+'%':'—';const nS=Object.values(categoryMap).filter(c=>c==='settler').length;const nE=Object.values(categoryMap).filter(c=>c==='explorer').length;
-  document.getElementById('survCards').innerHTML=`<div class="stat-card"><div class="val">${total}</div><div class="lbl">Total Tagged</div></div><div class="stat-card"><div class="val">${nA}</div><div class="lbl">Active</div><div class="sub">≤10 days</div></div><div class="stat-card s-red"><div class="val">${nD}</div><div class="lbl">Dead/Missing</div></div><div class="stat-card s-orange"><div class="val">${nT}</div><div class="lbl">Temp Missing</div><div class="sub">10–30d</div></div><div class="stat-card s-grey"><div class="val">${nG}</div><div class="lbl">Gone &gt;30d</div></div><div class="stat-card s-green"><div class="val">${survRate}</div><div class="lbl">Survival Rate</div></div><div class="stat-card s-purple"><div class="val">${nS}</div><div class="lbl">Settlers</div></div><div class="stat-card s-teal"><div class="val">${nE}</div><div class="lbl">Explorers</div></div>`;
-  const tbody=document.querySelector('#mortTbl tbody');tbody.innerHTML='';Object.entries(MORTALITY).forEach(([id,info])=>{const tr=document.createElement('tr');tr.innerHTML=`<td><b style="color:var(--forest)">${id}</b></td><td>${info.cause}</td><td><span class="badge b-dead">${info.type}</span></td>`;tbody.appendChild(tr);});
+  const total=Object.keys(latestRecords).length;
+  const nA=cnt('active'),nD=cnt('dead'),nT=cnt('tmiss'),nG=cnt('gone');
+  const survRate=total?((nA/(nA+nD))*100).toFixed(1)+'%':'—';
+  const nS=Object.values(categoryMap).filter(c=>c==='settler').length;
+  const nE=Object.values(categoryMap).filter(c=>c==='explorer').length;
+  document.getElementById('survCards').innerHTML=`
+    <div class="stat-card"><div class="val">${total}</div><div class="lbl">Total Tagged</div></div>
+    <div class="stat-card"><div class="val">${nA}</div><div class="lbl">Active</div><div class="sub">≤10d</div></div>
+    <div class="stat-card sr"><div class="val">${nD}</div><div class="lbl">Dead/Missing</div></div>
+    <div class="stat-card so"><div class="val">${nT}</div><div class="lbl">Temp Missing</div><div class="sub">10–30d</div></div>
+    <div class="stat-card sg2"><div class="val">${nG}</div><div class="lbl">Gone &gt;30d</div></div>
+    <div class="stat-card sg"><div class="val">${survRate}</div><div class="lbl">Survival Rate</div></div>
+    <div class="stat-card sp"><div class="val">${nS}</div><div class="lbl">Settlers</div></div>
+    <div class="stat-card st"><div class="val">${nE}</div><div class="lbl">Explorers</div></div>`;
+  const tbody=document.querySelector('#mortTbl tbody');tbody.innerHTML='';
+  Object.entries(MORTALITY).forEach(([id,info])=>{const tr=document.createElement('tr');tr.innerHTML=`<td><b style="color:var(--forest)">${id}</b></td><td>${info.cause}</td><td><span class="badge b-dead">${info.type}</span></td>`;tbody.appendChild(tr);});
   mkDonut('cStatus',['Active','Dead/Missing','Temp Missing','Gone >30d'],[nA,nD,nT,nG],['#1565c0','#c62828','#e65100','#607d8b']);
-  const bk={'0–3d':0,'4–7d':0,'8–14d':0,'15–30d':0,'31–60d':0,'>60d':0};Object.values(latestRecords).forEach(r=>{const d=(TODAY-r._parsed)/86400000;if(d<=3)bk['0–3d']++;else if(d<=7)bk['4–7d']++;else if(d<=14)bk['8–14d']++;else if(d<=30)bk['15–30d']++;else if(d<=60)bk['31–60d']++;else bk['>60d']++;});
+  const bk={'0–3d':0,'4–7d':0,'8–14d':0,'15–30d':0,'31–60d':0,'>60d':0};
+  Object.values(latestRecords).forEach(r=>{const d=(TODAY-r._parsed)/86400000;if(d<=3)bk['0–3d']++;else if(d<=7)bk['4–7d']++;else if(d<=14)bk['8–14d']++;else if(d<=30)bk['15–30d']++;else if(d<=60)bk['31–60d']++;else bk['>60d']++;});
   mkBar('cRecency',Object.keys(bk),Object.values(bk),'#1565c0');
   mkDonut('cCategory',['Settler','Explorer','Dead'],[nS,nE,nD],['#6a1b9a','#00796b','#c62828']);
 }
- 
+
 function renderMovementTab(){
-  const dispMap={};for(const id in animalsData){const ord=[...animalsData[id]].sort((a,b)=>a._parsed-b._parsed);const rel=[parseFloat(ord[0]['Latitude']),parseFloat(ord[0]['Longitude'])];if(isNaN(rel[0]))continue;let maxD=0;animalsData[id].forEach(r=>{const pt=[parseFloat(r['Latitude']),parseFloat(r['Longitude'])];if(!isNaN(pt[0])){const d=haversine(rel,pt);if(d>maxD)maxD=d;}});dispMap[id]=Math.round(maxD);}
-  const vals=Object.values(dispMap);const maxD2=Math.max(...vals),avgD=Math.round(vals.reduce((a,b)=>a+b,0)/(vals.length||1));const maxId=Object.keys(dispMap).find(id=>dispMap[id]===maxD2)||'—';const avgFix=(rawArr.length/Math.max(Object.keys(animalsData).length,1)).toFixed(1);
-  document.getElementById('movCards').innerHTML=`<div class="stat-card"><div class="val">${rawArr.length}</div><div class="lbl">Total Fixes</div></div><div class="stat-card"><div class="val">${avgFix}</div><div class="lbl">Avg Fixes/Animal</div></div><div class="stat-card s-teal"><div class="val">${maxD2}m</div><div class="lbl">Max Dispersal</div><div class="sub">ID ${maxId}</div></div><div class="stat-card s-purple"><div class="val">${avgD}m</div><div class="lbl">Avg Max Displ.</div></div>`;
-  const top12=Object.entries(animalsData).map(([id,r])=>({id,n:r.length})).sort((a,b)=>b.n-a.n).slice(0,12);mkBar('cFixes',top12.map(x=>x.id),top12.map(x=>x.n),'#2e7d52');
-  const mt={Settler:0,Explorer:0,Disperser:0};for(const id in animalsData){const v=classifyMovement(id,animalsData[id]);if(v!=='—')mt[v]=(mt[v]||0)+1;}const mtF=Object.entries(mt).filter(([,v])=>v>0);if(mtF.length)mkDonut('cMovType',mtF.map(x=>x[0]),mtF.map(x=>x[1]),['#6a1b9a','#00796b','#e65100']);
-  const sorted=Object.entries(dispMap).sort((a,b)=>b[1]-a[1]).slice(0,20);const colors=sorted.map(([id])=>{const s=statusMap[id];return s==='dead'?'#c62828':s==='tmiss'?'#e65100':s==='gone'?'#607d8b':'#1565c0';});mkBar('cDisplacement',sorted.map(x=>x[0]),sorted.map(x=>x[1]),colors,true);
+  const dispMap={};
+  for(const id in animalsData){
+    const ord=[...animalsData[id]].sort((a,b)=>a._parsed-b._parsed);
+    const rel=[parseFloat(ord[0]['Latitude']),parseFloat(ord[0]['Longitude'])];if(isNaN(rel[0]))continue;
+    let mx=0;animalsData[id].forEach(r=>{const p=[parseFloat(r['Latitude']),parseFloat(r['Longitude'])];if(!isNaN(p[0])){const d=haversine(rel,p);if(d>mx)mx=d;}});
+    dispMap[id]=Math.round(mx);
+  }
+  const vals=Object.values(dispMap);const maxD=Math.max(...vals),avgD=Math.round(vals.reduce((a,b)=>a+b,0)/(vals.length||1));
+  const maxId=Object.keys(dispMap).find(id=>dispMap[id]===maxD)||'—';
+  const avgFx=(rawArr.length/Math.max(Object.keys(animalsData).length,1)).toFixed(1);
+  document.getElementById('movCards').innerHTML=`
+    <div class="stat-card"><div class="val">${rawArr.length}</div><div class="lbl">Total Fixes</div></div>
+    <div class="stat-card"><div class="val">${avgFx}</div><div class="lbl">Avg Fixes/Animal</div></div>
+    <div class="stat-card st"><div class="val">${maxD}m</div><div class="lbl">Max Dispersal</div><div class="sub">ID ${maxId}</div></div>
+    <div class="stat-card sp"><div class="val">${avgD}m</div><div class="lbl">Avg Max Displ.</div></div>`;
+  const top12=Object.entries(animalsData).map(([id,r])=>({id,n:r.length})).sort((a,b)=>b.n-a.n).slice(0,12);
+  mkBar('cFixes',top12.map(x=>x.id),top12.map(x=>x.n),'#2e7d52');
+  const mt={Settler:0,Explorer:0,Disperser:0};
+  for(const id in animalsData){const v=classifyMovement(id,animalsData[id]);if(v!=='—')mt[v]=(mt[v]||0)+1;}
+  const mtF=Object.entries(mt).filter(([,v])=>v>0);
+  if(mtF.length)mkDonut('cMovType',mtF.map(x=>x[0]),mtF.map(x=>x[1]),['#6a1b9a','#00796b','#e65100']);
+  const sorted=Object.entries(dispMap).sort((a,b)=>b[1]-a[1]).slice(0,20);
+  const cols=sorted.map(([id])=>{const s=statusMap[id];return s==='dead'?'#c62828':s==='tmiss'?'#e65100':s==='gone'?'#607d8b':'#1565c0';});
+  mkBar('cDisplacement',sorted.map(x=>x[0]),sorted.map(x=>x[1]),cols,true);
 }
- 
+
 function renderActivityTab(){
-  // Exclude blanks from activity
-  const acts={};rawArr.forEach(r=>{const a=(r['Activity']||'').trim();if(!isBlank(a))acts[a]=(acts[a]||0)+1;});
+  const acts={};
+  rawArr.forEach(r=>{const a=(r['Activity']||'').trim();if(!isBlank(a))acts[a]=(acts[a]||0)+1;});
   const actS=Object.entries(acts).sort((a,b)=>b[1]-a[1]);
   const COLS=['#2e7d52','#1565c0','#e65100','#c62828','#6a1b9a','#00796b','#f9a825','#546e7a','#00838f'];
-  if(actS.length>0)mkBar('cActivity',actS.map(x=>x[0]),actS.map(x=>x[1]),actS.map((_,i)=>COLS[i%COLS.length]));
-  else noDataChart('cActivity','No activity data recorded');
- 
-  // Exclude blanks from signal
+  if(actS.length)mkBar('cActivity',actS.map(x=>x[0]),actS.map(x=>x[1]),actS.map((_,i)=>COLS[i%COLS.length]));
+  else noDataChart('cActivity','No activity data');
   const sigs={};rawArr.forEach(r=>{const s=(r['Signal']||'').trim();if(!isBlank(s))sigs[s]=(sigs[s]||0)+1;});
   const sigF=Object.entries(sigs).filter(([,v])=>v>0);
-  if(sigF.length>0)mkDonut('cSignal',sigF.map(x=>x[0]),sigF.map(x=>x[1]),['#2e7d52','#f9a825','#c62828','#e65100','#1565c0']);
-  else noDataChart('cSignal','No signal data recorded');
- 
-  const weekly={};rawArr.forEach(r=>{if(!r._parsed||r._parsed<=new Date(2000,0,1))return;const mon=r._parsed.getFullYear()+'-'+String(r._parsed.getMonth()+1).padStart(2,'0');weekly[mon]=(weekly[mon]||0)+1;});
-  const wS=Object.entries(weekly).sort((a,b)=>a[0].localeCompare(b[0]));mkLine('cTimeline',wS.map(x=>x[0]),wS.map(x=>x[1]));
+  if(sigF.length)mkDonut('cSignal',sigF.map(x=>x[0]),sigF.map(x=>x[1]),['#2e7d52','#f9a825','#c62828','#e65100','#1565c0']);
+  else noDataChart('cSignal','No signal data');
+  const wk={};rawArr.forEach(r=>{if(!r._parsed||r._parsed<=new Date(2000,0,1))return;const m=r._parsed.getFullYear()+'-'+String(r._parsed.getMonth()+1).padStart(2,'0');wk[m]=(wk[m]||0)+1;});
+  const wS=Object.entries(wk).sort((a,b)=>a[0].localeCompare(b[0]));
+  mkLine('cTimeline',wS.map(x=>x[0]),wS.map(x=>x[1]));
 }
- 
+
+function renderEcologyTab(){
+  if(ecoDataCache){renderEcologyFromCache();return;}
+  // Compute for all animals
+  const allSteps=[], allAngles=[], siData=[], nsdMean=[];
+  const ecoRows=[];
+
+  for(const id in animalsData){
+    const ord=[...animalsData[id]].sort((a,b)=>a._parsed-b._parsed);
+    const pts=ord.map(r=>[parseFloat(r['Latitude']),parseFloat(r['Longitude'])]).filter(ll=>!isNaN(ll[0])&&!isNaN(ll[1]));
+    if(pts.length<2)continue;
+    const steps=computeStepLengths(ord);
+    const si=computeSI(ord);
+    const angles=computeTurnAngles(ord);
+    const rel=pts[0];
+    const mcpHa=computeMCPArea(id,ord);
+    allSteps.push(...steps.filter(s=>s>0));
+    allAngles.push(...angles);
+    siData.push({id,si,n:pts.length});
+
+    // NSD
+    const nsd=computeNSD(ord,rel);
+    nsdMean.push(nsd);
+
+    // KDE (only for animals with ≥6 fixes for performance)
+    let kde95='—',kde50='—';
+    if(pts.length>=6){
+      const kde=kdeHomeRange(pts);
+      kde95=kde.a95??'—';kde50=kde.a50??'—';
+    }
+    let maxDisp=0;
+    pts.forEach(p=>{const d=haversine(rel,p);if(d>maxDisp)maxDisp=d;});
+    ecoRows.push({id,s:statusMap[id]||'active',n:pts.length,mcp:mcpHa??'—',kde95,kde50,si:si.toFixed(3),meanStep:steps.length?Math.round(arrMean(steps)):'—',maxDisp:Math.round(maxDisp)});
+  }
+
+  ecoDataCache={allSteps,allAngles,siData,nsdMean,ecoRows};
+  renderEcologyFromCache();
+}
+
+function renderEcologyFromCache(){
+  const{allSteps,allAngles,siData,nsdMean,ecoRows}=ecoDataCache;
+
+  const meanSI=siData.length?arrMean(siData.map(x=>x.si)).toFixed(3):'—';
+  const meanStep=allSteps.length?Math.round(arrMean(allSteps)):'—';
+  const maxStep=allSteps.length?Math.round(Math.max(...allSteps)):'—';
+  const nValid=siData.length;
+
+  document.getElementById('ecoCards').innerHTML=`
+    <div class="stat-card sg"><div class="val">${nValid}</div><div class="lbl">Animals w/ ≥2 Fixes</div></div>
+    <div class="stat-card"><div class="val">${meanSI}</div><div class="lbl">Mean Straightness Index</div><div class="sub">0=tortuous, 1=straight</div></div>
+    <div class="stat-card st"><div class="val">${meanStep}m</div><div class="lbl">Mean Step Length</div></div>
+    <div class="stat-card sa"><div class="val">${maxStep}m</div><div class="lbl">Max Step Length</div></div>
+    <div class="stat-card sp"><div class="val">${allAngles.length}</div><div class="lbl">Turn Angles Computed</div></div>
+    <div class="stat-card so"><div class="val">${ecoRows.filter(r=>r.kde95!=='—').length}</div><div class="lbl">KDE Ranges Estimated</div></div>`;
+
+  // Step length histogram
+  if(allSteps.length>0){
+    const maxS=Math.min(Math.max(...allSteps),2000);
+    const binSize=100;const bins=[];const binLabels=[];
+    for(let b=0;b<maxS;b+=binSize){bins.push(0);binLabels.push(b+'-'+(b+binSize));}
+    allSteps.forEach(s=>{const idx=Math.min(Math.floor(s/binSize),bins.length-1);if(idx>=0)bins[idx]++;});
+    mkBar('cStepLen',binLabels,bins,'#2e7d52');
+  } else noDataChart('cStepLen','No step data');
+
+  // Turn angle histogram (bins of 30°)
+  if(allAngles.length>0){
+    const aBins={};
+    for(let a=-180;a<180;a+=30)aBins[a]=0;
+    allAngles.forEach(a=>{const b=Math.floor(a/30)*30;if(aBins[b]!==undefined)aBins[b]++;});
+    mkBar('cTurnAngle',Object.keys(aBins).map(k=>k+'°'),Object.values(aBins),'#1565c0');
+  } else noDataChart('cTurnAngle','No angle data');
+
+  // Mean NSD over time (normalize to fix index)
+  if(nsdMean.length>0){
+    const maxLen=Math.max(...nsdMean.map(a=>a.length));
+    const meanNSD=[];
+    for(let i=0;i<maxLen;i++){
+      const vals=nsdMean.map(arr=>arr[Math.min(i,arr.length-1)]).filter(v=>!isNaN(v));
+      meanNSD.push(vals.length?arrMean(vals):0);
+    }
+    const labels=meanNSD.map((_,i)=>`Fix ${i+1}`);
+    mkLine('cNSD',labels.slice(0,30),meanNSD.slice(0,30));
+  } else noDataChart('cNSD','No NSD data');
+
+  // Straightness Index bar chart
+  const siSorted=siData.filter(x=>x.n>=3).sort((a,b)=>b.si-a.si);
+  if(siSorted.length){
+    const siCols=siSorted.map(x=>x.si>=0.7?'#2e7d52':x.si>=0.4?'#f9a825':'#c62828');
+    mkBar('cSI',siSorted.map(x=>x.id),siSorted.map(x=>parseFloat(x.si.toFixed(3))),siCols,true);
+  } else noDataChart('cSI','Not enough fixes');
+
+  // Eco table
+  const tbody=document.querySelector('#ecoTable tbody');tbody.innerHTML='';
+  ecoRows.sort((a,b)=>b.maxDisp-a.maxDisp).forEach(row=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><b>${row.id}</b></td><td>${statusBadge(row.s)}</td><td>${row.n}</td>
+      <td>${row.mcp}</td><td>${row.kde95}</td><td>${row.kde50}</td>
+      <td>${row.si}<div class="si-bar" style="width:${Math.round(parseFloat(row.si||0)*50)}px"></div></td>
+      <td>${row.meanStep}</td><td>${row.maxDisp}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+/* ══════════════════════════════════════════════════════
+   MOVEMENT DETAIL MODAL
+══════════════════════════════════════════════════════ */
 function openMovDetailModal(id){
   const records=animalsData[id];if(!records||!records.length)return;
   document.getElementById('movModalTitle').textContent=`📈 Movement Details — Animal ID ${id}`;
   document.getElementById('movModal').classList.add('open');
   const ordered=[...records].sort((a,b)=>a._parsed-b._parsed);
   const rel=[parseFloat(ordered[0]['Latitude']),parseFloat(ordered[0]['Longitude'])];
-  const fixData=ordered.map((r,i)=>{const pt=[parseFloat(r['Latitude']),parseFloat(r['Longitude'])];const dist=(!isNaN(pt[0])&&!isNaN(rel[0]))?Math.round(haversine(rel,pt)):0;return{r,dist,i:i+1};});
-  const maxDisp=Math.max(...fixData.map(f=>f.dist));const finalDist=fixData.length?fixData[fixData.length-1].dist:0;
-  let totalPath=0;for(let i=1;i<fixData.length;i++){const a=[parseFloat(fixData[i-1].r['Latitude']),parseFloat(fixData[i-1].r['Longitude'])];const b=[parseFloat(fixData[i].r['Latitude']),parseFloat(fixData[i].r['Longitude'])];if(!isNaN(a[0])&&!isNaN(b[0]))totalPath+=haversine(a,b);}
-  document.getElementById('movStatCards').innerHTML=`<div class="mov-stat"><div class="v">${records.length}</div><div class="l">Total Fixes</div></div><div class="mov-stat"><div class="v">${maxDisp}m</div><div class="l">Max Displacement</div></div><div class="mov-stat"><div class="v">${finalDist}m</div><div class="l">Current from Release</div></div><div class="mov-stat"><div class="v">${Math.round(totalPath)}m</div><div class="l">Total Path Length</div></div><div class="mov-stat"><div class="v">${classifyMovement(id,records)}</div><div class="l">Movement Type</div></div><div class="mov-stat"><div class="v">${Math.round((TODAY-records[0]._parsed)/86400000)}d</div><div class="l">Days Since Fix</div></div>`;
+  const fixData=ordered.map((r,i)=>{const p=[parseFloat(r['Latitude']),parseFloat(r['Longitude'])];const dist=(!isNaN(p[0])&&!isNaN(rel[0]))?Math.round(haversine(rel,p)):0;return{r,dist,i:i+1};});
+  const maxDisp=Math.max(...fixData.map(f=>f.dist));
+  const finalDist=fixData.length?fixData[fixData.length-1].dist:0;
+  let totalPath=0;
+  for(let i=1;i<fixData.length;i++){const a=[parseFloat(fixData[i-1].r['Latitude']),parseFloat(fixData[i-1].r['Longitude'])];const b=[parseFloat(fixData[i].r['Latitude']),parseFloat(fixData[i].r['Longitude'])];if(!isNaN(a[0])&&!isNaN(b[0]))totalPath+=haversine(a,b);}
+  const si=computeSI(ordered);
+  const steps=computeStepLengths(ordered);
+  document.getElementById('movStatCards').innerHTML=`
+    <div class="mov-stat"><div class="v">${records.length}</div><div class="l">Total Fixes</div></div>
+    <div class="mov-stat"><div class="v">${maxDisp}m</div><div class="l">Max Displacement</div></div>
+    <div class="mov-stat"><div class="v">${finalDist}m</div><div class="l">Current from Release</div></div>
+    <div class="mov-stat"><div class="v">${Math.round(totalPath)}m</div><div class="l">Total Path Length</div></div>
+    <div class="mov-stat"><div class="v">${classifyMovement(id,records)}</div><div class="l">Movement Type</div></div>
+    <div class="mov-stat"><div class="v">${si.toFixed(3)}</div><div class="l">Straightness Index</div></div>
+    <div class="mov-stat"><div class="v">${steps.length?Math.round(arrMean(steps))+'m':'—'}</div><div class="l">Mean Step Length</div></div>
+    <div class="mov-stat"><div class="v">${Math.round((TODAY-records[0]._parsed)/86400000)}d</div><div class="l">Days Since Fix</div></div>`;
   mkLine('cMovLine',fixData.map(f=>f.r['Timestamp']||'Fix '+f.i),fixData.map(f=>f.dist),true);
-  // Activity — exclude blanks
-  const acts={};records.forEach(r=>{const a=(r['Activity']||'').trim();if(!isBlank(a))acts[a]=(acts[a]||0)+1;});const actE=Object.entries(acts).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
-  if(actE.length>0)mkDonut('cMovAct',actE.map(x=>x[0]),actE.map(x=>x[1]),['#2e7d52','#1565c0','#e65100','#c62828','#6a1b9a','#00796b']);
+  const acts={};records.forEach(r=>{const a=(r['Activity']||'').trim();if(!isBlank(a))acts[a]=(acts[a]||0)+1;});
+  const actE=Object.entries(acts).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  if(actE.length)mkDonut('cMovAct',actE.map(x=>x[0]),actE.map(x=>x[1]),['#2e7d52','#1565c0','#e65100','#c62828','#6a1b9a','#00796b']);
   else noDataChart('cMovAct','No activity data');
-  // Signal — exclude blanks
-  const sigs={};records.forEach(r=>{const s=(r['Signal']||'').trim();if(!isBlank(s))sigs[s]=(sigs[s]||0)+1;});const sigE=Object.entries(sigs).filter(([,v])=>v>0);
-  if(sigE.length>0)mkDonut('cMovSig',sigE.map(x=>x[0]),sigE.map(x=>x[1]),['#2e7d52','#f9a825','#c62828','#e65100','#1565c0']);
+  const sigs={};records.forEach(r=>{const s=(r['Signal']||'').trim();if(!isBlank(s))sigs[s]=(sigs[s]||0)+1;});
+  const sigE=Object.entries(sigs).filter(([,v])=>v>0);
+  if(sigE.length)mkDonut('cMovSig',sigE.map(x=>x[0]),sigE.map(x=>x[1]),['#2e7d52','#f9a825','#c62828','#e65100','#1565c0']);
   else noDataChart('cMovSig','No signal data');
-  const ftBody=document.querySelector('#fixTbl tbody');ftBody.innerHTML='';fixData.forEach((f,i)=>{const sig=getSignal(f.r);const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td>${f.r['Timestamp']||'—'}</td><td>${f.r['Place']||'—'}</td><td>${f.r['Activity']||'—'}</td><td><span class="${sigCls(sig)}">${sig||'—'}</span></td><td><b style="color:var(--teal)">${f.dist}</b></td><td>${f.r['Latitude']||'—'}</td><td>${f.r['Longitude']||'—'}</td>`;ftBody.appendChild(tr);});
+  const ftBody=document.querySelector('#fixTbl tbody');ftBody.innerHTML='';
+  fixData.forEach((f,i)=>{const sig=getSignal(f.r);const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td>${f.r['Timestamp']||'—'}</td><td>${f.r['Place']||'—'}</td><td>${f.r['Activity']||'—'}</td><td><span class="${sigCls(sig)}">${sig||'—'}</span></td><td><b style="color:var(--teal)">${f.dist}</b></td><td>${f.r['Latitude']||'—'}</td><td>${f.r['Longitude']||'—'}</td>`;ftBody.appendChild(tr);});
 }
 function closeMovModal(){document.getElementById('movModal').classList.remove('open');}
- 
-Chart.defaults.color='#4a6858';Chart.defaults.borderColor='#d4ddd0';Chart.defaults.font.family="'IBM Plex Mono',monospace";Chart.defaults.font.size=10;
+
+/* ══════════════════════════════════════════════════════
+   CHART HELPERS
+══════════════════════════════════════════════════════ */
+Chart.defaults.color='#4a6858';Chart.defaults.borderColor='#d4ddd0';
+Chart.defaults.font.family="'IBM Plex Mono',monospace";Chart.defaults.font.size=10;
 function destroyChart(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
-function noDataChart(id,msg){destroyChart(id);const ctx=document.getElementById(id)?.getContext('2d');if(!ctx)return;ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);ctx.fillStyle='#7a9680';ctx.font='12px IBM Plex Mono';ctx.textAlign='center';ctx.fillText(msg,ctx.canvas.width/2,ctx.canvas.height/2);}
-function mkDonut(id,labels,data,colors){destroyChart(id);const ctx=document.getElementById(id)?.getContext('2d');if(!ctx)return;charts[id]=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:10},boxWidth:12,color:'#4a6858'}},tooltip:{callbacks:{label:c=>`${c.label}: ${c.raw}`}}}}});}
-function mkBar(id,labels,data,color,multicolor){destroyChart(id);const ctx=document.getElementById(id)?.getContext('2d');if(!ctx)return;const bg=multicolor&&Array.isArray(color)?color:labels.map(()=>typeof color==='string'?color:'#2e7d52');charts[id]=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Count',data,backgroundColor:bg,borderRadius:4,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#eef2ed'},ticks:{color:'#4a6858'}},x:{grid:{color:'#eef2ed'},ticks:{color:'#4a6858',maxRotation:45}}}}});}
-function mkLine(id,labels,data,small){destroyChart(id);const ctx=document.getElementById(id)?.getContext('2d');if(!ctx)return;charts[id]=new Chart(ctx,{type:'line',data:{labels,datasets:[{label:'Value',data,borderColor:'#2e7d52',backgroundColor:'rgba(46,125,82,0.1)',borderWidth:2,pointRadius:small?1.5:3,fill:true,tension:0.35}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},spaces:{y:{beginAtZero:true,grid:{color:'#eef2ed'},ticks:{color:'#4a6858'}},x:{grid:{color:'#eef2ed'},ticks:{color:'#4a6858',maxRotation:45,maxTicksLimit:small?8:15}}},scales:{y:{beginAtZero:true,grid:{color:'#eef2ed'},ticks:{color:'#4a6858'}},x:{grid:{color:'#eef2ed'},ticks:{color:'#4a6858',maxRotation:45,maxTicksLimit:small?8:15}}}}});}
- 
-function downloadCSV(rows,filename){const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=filename;a.click();URL.revokeObjectURL(a.href);}
-function exportDispersal(){const rows=[['ID','Release_Lat','Release_Lng','Latest_Lat','Latest_Lng','Max_Dist_Release_m','Current_Dist_Release_m','Movement_Type','Status']];for(const id in animalsData){const ord=[...animalsData[id]].sort((a,b)=>a._parsed-b._parsed);const rel=[parseFloat(ord[0]['Latitude']),parseFloat(ord[0]['Longitude'])];const latest=animalsData[id][0];const curr=[parseFloat(latest['Latitude']),parseFloat(latest['Longitude'])];let maxD=0;animalsData[id].forEach(r=>{const pt=[parseFloat(r['Latitude']),parseFloat(r['Longitude'])];if(!isNaN(pt[0])&&!isNaN(rel[0])){const d=haversine(rel,pt);if(d>maxD)maxD=d;}});const currD=(!isNaN(rel[0])&&!isNaN(curr[0]))?haversine(rel,curr):0;rows.push([id,rel[0]||'',rel[1]||'',curr[0]||'',curr[1]||'',Math.round(maxD),Math.round(currD),classifyMovement(id,animalsData[id]),statusMap[id]||'']);}downloadCSV(rows,'chambal_dispersal_dataset.csv');}
-function exportSurvival(){const rows=[['ID','First_Fix_Date','Last_Fix_Date','Signal_Count','Status','Category','Days_Since_Last_Fix']];for(const id in animalsData){const ord=[...animalsData[id]].sort((a,b)=>a._parsed-b._parsed);const first=ord[0],last=animalsData[id][0];rows.push([id,first['Timestamp']||'',last['Timestamp']||'',animalsData[id].length,statusMap[id]||'',categoryMap[id]||'',Math.round((TODAY-last._parsed)/86400000)]);}downloadCSV(rows,'chambal_survival_dataset.csv');}
-function exportMovement(){const rows=[['ID','Timestamp','Place','Activity','Signal','Latitude','Longitude','Dist_From_Release_m','Cumulative_Path_m']];for(const id in animalsData){const ord=[...animalsData[id]].sort((a,b)=>a._parsed-b._parsed);const rel=[parseFloat(ord[0]['Latitude']),parseFloat(ord[0]['Longitude'])];let cum=0;ord.forEach((r,i)=>{const pt=[parseFloat(r['Latitude']),parseFloat(r['Longitude'])];if(i>0){const prev=[parseFloat(ord[i-1]['Latitude']),parseFloat(ord[i-1]['Longitude'])];if(!isNaN(prev[0])&&!isNaN(pt[0]))cum+=haversine(prev,pt);}const distR=(!isNaN(rel[0])&&!isNaN(pt[0]))?Math.round(haversine(rel,pt)):0;rows.push([id,r['Timestamp']||'',r['Place']||'',r['Activity']||'',r['Signal']||'',r['Latitude']||'',r['Longitude']||'',distR,Math.round(cum)]);})}downloadCSV(rows,'chambal_movement_dataset.csv');}
- 
-async function fetchCurrentWeather(){
-  try{const url='https://api.open-meteo.com/v1/forecast?latitude=25.84&longitude=76.56&current=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation&daily=sunrise,sunset&timezone=Asia%2FKolkata&forecast_days=1';const res=await fetch(url);const d=await res.json();const c=d.current;document.getElementById('eTemp').textContent=(c.temperature_2m??'—')+'°';document.getElementById('eHumidity').textContent=(c.relative_humidity_2m??'—')+'%';document.getElementById('eWind').textContent=(c.wind_speed_10m??'—');document.getElementById('eRain').textContent=(c.precipitation??0)+' mm';const fmt=s=>{if(!s)return '—';const t=new Date(s);return t.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});};document.getElementById('eSunrise').textContent=fmt(d.daily?.sunrise?.[0]);document.getElementById('eSunset').textContent=fmt(d.daily?.sunset?.[0]);document.getElementById('eMoon').textContent=getMoonPhase();document.getElementById('envStatus').textContent='✅ Updated: '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});}catch(e){document.getElementById('envStatus').textContent='⚠ Weather unavailable';document.getElementById('eMoon').textContent=getMoonPhase();}
+function noDataChart(id,msg){
+  destroyChart(id);const ctx=document.getElementById(id)?.getContext('2d');if(!ctx)return;
+  ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+  ctx.fillStyle='#7a9680';ctx.font='12px IBM Plex Mono';ctx.textAlign='center';
+  ctx.fillText(msg,ctx.canvas.width/2,ctx.canvas.height/2);
 }
-function getMoonPhase(){const phase=((TODAY-new Date(2024,0,11))/86400000%29.53+29.53)%29.53;if(phase<1.85)return '🌑 New Moon';if(phase<7.38)return '🌒 Waxing Crescent';if(phase<9.22)return '🌓 First Quarter';if(phase<14.76)return '🌔 Waxing Gibbous';if(phase<16.61)return '🌕 Full Moon';if(phase<22.15)return '🌖 Waning Gibbous';if(phase<24.0)return '🌗 Last Quarter';return '🌘 Waning Crescent';}
- 
+function mkDonut(id,labels,data,colors){
+  destroyChart(id);const ctx=document.getElementById(id)?.getContext('2d');if(!ctx)return;
+  charts[id]=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:9},boxWidth:11,color:'#4a6858'}},tooltip:{callbacks:{label:c=>`${c.label}: ${c.raw}`}}}}});
+}
+function mkBar(id,labels,data,color,multicolor){
+  destroyChart(id);const ctx=document.getElementById(id)?.getContext('2d');if(!ctx)return;
+  const bg=multicolor&&Array.isArray(color)?color:labels.map(()=>typeof color==='string'?color:'#2e7d52');
+  charts[id]=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Count',data,backgroundColor:bg,borderRadius:3,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#eef2ed'},ticks:{color:'#4a6858'}},x:{grid:{color:'#eef2ed'},ticks:{color:'#4a6858',maxRotation:45}}}}});
+}
+function mkLine(id,labels,data,small){
+  destroyChart(id);const ctx=document.getElementById(id)?.getContext('2d');if(!ctx)return;
+  charts[id]=new Chart(ctx,{type:'line',data:{labels,datasets:[{label:'Value',data,borderColor:'#2e7d52',backgroundColor:'rgba(46,125,82,0.1)',borderWidth:2,pointRadius:small?1.5:3,fill:true,tension:0.35}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#eef2ed'},ticks:{color:'#4a6858'}},x:{grid:{color:'#eef2ed'},ticks:{color:'#4a6858',maxRotation:45,maxTicksLimit:small?8:15}}}}});
+}
+
+/* ══════════════════════════════════════════════════════
+   EXPORTS
+══════════════════════════════════════════════════════ */
+function dlCSV(rows,fname){const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=fname;a.click();URL.revokeObjectURL(a.href);}
+function exportDispersal(){
+  const rows=[['ID','Release_Lat','Release_Lng','Latest_Lat','Latest_Lng','Max_Dist_m','Current_Dist_m','Movement_Type','Status']];
+  for(const id in animalsData){const ord=[...animalsData[id]].sort((a,b)=>a._parsed-b._parsed);const rel=[parseFloat(ord[0]['Latitude']),parseFloat(ord[0]['Longitude'])];const lt=animalsData[id][0];const cur=[parseFloat(lt['Latitude']),parseFloat(lt['Longitude'])];let mx=0;animalsData[id].forEach(r=>{const p=[parseFloat(r['Latitude']),parseFloat(r['Longitude'])];if(!isNaN(p[0])&&!isNaN(rel[0])){const d=haversine(rel,p);if(d>mx)mx=d;}});const cd=(!isNaN(rel[0])&&!isNaN(cur[0]))?haversine(rel,cur):0;rows.push([id,rel[0]||'',rel[1]||'',cur[0]||'',cur[1]||'',Math.round(mx),Math.round(cd),classifyMovement(id,animalsData[id]),statusMap[id]||'']);}
+  dlCSV(rows,'chambal_dispersal.csv');
+}
+function exportSurvival(){
+  const rows=[['ID','First_Fix','Last_Fix','Signal_Count','Status','Category','Days_Since_Last_Fix']];
+  for(const id in animalsData){const ord=[...animalsData[id]].sort((a,b)=>a._parsed-b._parsed);const f=ord[0],l=animalsData[id][0];rows.push([id,f['Timestamp']||'',l['Timestamp']||'',animalsData[id].length,statusMap[id]||'',categoryMap[id]||'',Math.round((TODAY-l._parsed)/86400000)]);}
+  dlCSV(rows,'chambal_survival.csv');
+}
+function exportMovement(){
+  const rows=[['ID','Timestamp','Place','Activity','Signal','Lat','Lng','Dist_Release_m','Cumulative_m','Step_m','SI','Turn_Angle_deg']];
+  for(const id in animalsData){
+    const ord=[...animalsData[id]].sort((a,b)=>a._parsed-b._parsed);
+    const rel=[parseFloat(ord[0]['Latitude']),parseFloat(ord[0]['Longitude'])];
+    const steps=computeStepLengths(ord);const angles=computeTurnAngles(ord);
+    let cum=0;
+    ord.forEach((r,i)=>{
+      const p=[parseFloat(r['Latitude']),parseFloat(r['Longitude'])];
+      if(i>0){const pv=[parseFloat(ord[i-1]['Latitude']),parseFloat(ord[i-1]['Longitude'])];if(!isNaN(pv[0])&&!isNaN(p[0]))cum+=haversine(pv,p);}
+      const dr=(!isNaN(rel[0])&&!isNaN(p[0]))?Math.round(haversine(rel,p)):0;
+      rows.push([id,r['Timestamp']||'',r['Place']||'',r['Activity']||'',r['Signal']||'',r['Latitude']||'',r['Longitude']||'',dr,Math.round(cum),steps[i-1]?Math.round(steps[i-1]):'',i===0?computeSI(ord).toFixed(3):'',angles[i-1]?angles[i-1].toFixed(1):'']);
+    });
+  }
+  dlCSV(rows,'chambal_movement.csv');
+}
+
+/* ══════════════════════════════════════════════════════
+   CURRENT WEATHER (SIDEBAR)
+══════════════════════════════════════════════════════ */
+async function fetchCurrentWeather(){
+  try{
+    const url='https://api.open-meteo.com/v1/forecast?latitude=25.84&longitude=76.56&current=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation&daily=sunrise,sunset&timezone=Asia%2FKolkata&forecast_days=1';
+    const res=await fetch(url);const d=await res.json();const c=d.current;
+    document.getElementById('eTemp').textContent=(c.temperature_2m??'—')+'°';
+    document.getElementById('eHumidity').textContent=(c.relative_humidity_2m??'—')+'%';
+    document.getElementById('eWind').textContent=(c.wind_speed_10m??'—');
+    document.getElementById('eRain').textContent=(c.precipitation??0)+' mm';
+    const fmt=s=>{if(!s)return '—';const t=new Date(s);return t.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});};
+    document.getElementById('eSunrise').textContent=fmt(d.daily?.sunrise?.[0]);
+    document.getElementById('eSunset').textContent=fmt(d.daily?.sunset?.[0]);
+    document.getElementById('eMoon').textContent=getMoonPhase();
+    document.getElementById('envStatus').textContent='✅ Updated '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){document.getElementById('envStatus').textContent='⚠ Weather unavailable';document.getElementById('eMoon').textContent=getMoonPhase();}
+}
+function getMoonPhase(){const p=((TODAY-new Date(2024,0,11))/86400000%29.53+29.53)%29.53;if(p<1.85)return '🌑 New Moon';if(p<7.38)return '🌒 Waxing Crescent';if(p<9.22)return '🌓 First Quarter';if(p<14.76)return '🌔 Waxing Gibbous';if(p<16.61)return '🌕 Full Moon';if(p<22.15)return '🌖 Waning Gibbous';if(p<24.0)return '🌗 Last Quarter';return '🌘 Waning Crescent';}
+
+/* ══════════════════════════════════════════════════════
+   STATUS BAR / DROPDOWN
+══════════════════════════════════════════════════════ */
+function updateStatusBar(){
+  let latest=null;rawArr.forEach(r=>{if(!latest||r._parsed>latest)latest=r._parsed;});
+  if(latest)document.getElementById('statusBarTxt').textContent='📡 Latest fix: '+fmtDT(latest)+' · '+rawArr.length+' observations';
+}
+function populateDropdown(){
+  const selectors=['animalFilter','animalFilter2'];
+  selectors.forEach(sId=>{
+    const sel=document.getElementById(sId);
+    Object.keys(animalsData).sort((a,b)=>+a-+b).forEach(id=>{
+      const o=document.createElement('option');o.value=id;
+      const s=statusMap[id];o.textContent=(s==='dead'?'⚰ ':s==='tmiss'?'⚠ ':s==='gone'?'☁ ':'🐊 ')+'ID '+id;
+      sel.appendChild(o);
+    });
+  });
+}
+
+/* ══════════════════════════════════════════════════════
+   FIELD PANEL
+══════════════════════════════════════════════════════ */
 function toggleFP(){document.getElementById('fieldPanel').classList.toggle('open');document.getElementById('fpOverlay').classList.toggle('open');}
 function closeFP(){document.getElementById('fieldPanel').classList.remove('open');document.getElementById('fpOverlay').classList.remove('open');}
+
+/* ══════════════════════════════════════════════════════
+   MATH UTILS
+══════════════════════════════════════════════════════ */
+function arrMean(arr){return arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0;}
+function arrStd(arr){if(arr.length<2)return 0;const m=arrMean(arr);return Math.sqrt(arr.reduce((a,b)=>a+(b-m)**2,0)/arr.length);}
 function cnt(s){return Object.values(statusMap).filter(v=>v===s).length;}
-function isoDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+
+/* ══════════════════════════════════════════════════════
+   FORMATTING HELPERS
+══════════════════════════════════════════════════════ */
 function parseDT(s){if(!s||!s.trim())return new Date(0);const p=s.trim().split(' '),dp=p[0].split('-');if(dp.length<3)return new Date(0);const tp=p[1]?p[1].split(':'):['0','0'];return new Date(+dp[2],+dp[1]-1,+dp[0],+tp[0],+tp[1]);}
+function isoDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function fmtDT(d){if(!d||d.getFullYear()<2000)return '';return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});}
 function fmtDateOnly(d){if(!d||d.getFullYear()<2000)return '';return d.toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});}
-function getSignal(r){return (r['Signal']||'').trim();}
+function getSignal(r){return(r['Signal']||'').trim();}
 function sigCls(s){if(!s)return '';const v=s.toLowerCase();if(v.includes('strong'))return 'sig-strong';if(v.includes('medium'))return 'sig-medium';if(v.includes('weak'))return 'sig-weak';return '';}
+function isBlank(v){if(!v&&v!==0)return true;const s=String(v).trim().toLowerCase();return !s||s==='-'||s==='—'||s==='na'||s==='n/a'||s==='not recorded'||s==='unknown'||s==='unknown activity'||s==='none'||s==='null';}
 function statusText(s){return{active:'Active',dead:'Dead',tmiss:'Temp Miss',gone:'Gone >30d'}[s]||s;}
+function statusBadge(s){const m={active:'<span class="badge b-active">Active</span>',dead:'<span class="badge b-dead">Dead/Missing</span>',tmiss:'<span class="badge b-tmiss">Temp Missing</span>',gone:'<span class="badge b-gone">Gone >30d</span>'};return m[s]||'';}
 function catBadge(c){if(c==='settler')return '<span class="badge b-settler">Settler</span>';if(c==='explorer')return '<span class="badge b-explorer">Explorer</span>';return '';}
- 
+
 document.addEventListener('DOMContentLoaded',init);
 </script>
 </body>
