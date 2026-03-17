@@ -5,42 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chambal Gharial Field Platform</title>
   
-  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  
-  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
 
 <style>
 :root {
-  /* Header */
   --hdr: #1b3d2a;
   --hdr-border: #2e5840;
-
-  /* Surfaces */
   --bg: #eef2ef;
   --sur: #ffffff;
   --sur2: #f5f8f6;
-
-  /* Borders */
   --brd: #dce8e1;
   --brd2: #c4d8cc;
-
-  /* Category colours */
   --af: #c0275a;
   --am: #1256a8;
   --sa: #107060;
-
-  /* Activity colours */
   --bask: #b07000;
   --swim: #1a7050;
   --actw: #1256a8;
   --bred: #9b2060;
   --surf: #0a6868;
-
-  /* Text */
   --t1: #0c1e14;
   --t2: #3a5848;
   --t3: #7a9888;
@@ -64,7 +50,6 @@ body {
   font-family: 'JetBrains Mono', monospace;
 }
 
-/* === LOADER === */
 #loader {
   position: fixed;
   top: 0;
@@ -132,7 +117,6 @@ body {
   background: #4fc997;
 }
 
-/* === HEADER === */
 #header {
   height: 50px;
   background: var(--hdr);
@@ -217,7 +201,6 @@ body {
   color: var(--hdr);
 }
 
-/* === FILTER BAR === */
 #filter-bar {
   height: 40px;
   background: var(--sur);
@@ -228,7 +211,9 @@ body {
   gap: 12px;
 }
 
-#filter-bar select, #filter-bar input[type="text"], #filter-bar input[type="date"] {
+#filter-bar select, 
+#filter-bar input[type="text"], 
+#filter-bar input[type="date"] {
   padding: 5px 10px;
   border: 1px solid var(--brd2);
   border-radius: 4px;
@@ -277,7 +262,6 @@ body {
   font-weight: 500;
 }
 
-/* === MAP CONTAINER === */
 #map-container {
   position: relative;
   flex: 1;
@@ -289,7 +273,6 @@ body {
   height: 100%;
 }
 
-/* === MARKERS === */
 .mk {
   border-radius: 50%;
   display: flex;
@@ -316,7 +299,6 @@ body {
   box-shadow: 0 0 0 3px rgba(98, 224, 168, 0.4), 0 2px 8px rgba(0,0,0,0.4);
 }
 
-/* Marker Cluster */
 .marker-cluster {
   background: rgba(16, 112, 96, 0.7);
   border-radius: 50%;
@@ -339,7 +321,6 @@ body {
   border: 3px solid rgba(98, 224, 168, 0.6);
 }
 
-/* === POPUPS === */
 .leaflet-popup-content-wrapper {
   background: rgba(8, 18, 12, 0.93) !important;
   border: 2px solid #2e5840;
@@ -351,6 +332,10 @@ body {
 .leaflet-popup-content {
   margin: 0;
   min-width: 280px;
+}
+
+.leaflet-popup-tip {
+  background: rgba(8, 18, 12, 0.93) !important;
 }
 
 .popup-header {
@@ -430,7 +415,6 @@ body {
   line-height: 1.5;
 }
 
-/* === TABLE DRAWER === */
 #table-drawer {
   position: absolute;
   bottom: 0;
@@ -459,6 +443,7 @@ body {
   font-size: 12px;
   font-weight: 600;
   color: var(--t2);
+  cursor: pointer;
 }
 
 .drawer-header .dot {
@@ -571,7 +556,6 @@ tr.new-row {
 .signal-mediumweak { background: #d98c3a; color: white; }
 .signal-weak { background: var(--af); color: white; }
 
-/* === NEW DATA BANNER === */
 #new-data-banner {
   position: fixed;
   top: -60px;
@@ -609,7 +593,6 @@ tr.new-row {
   50% { opacity: 0.5; transform: scale(1.2); }
 }
 
-/* === MODALS === */
 .modal {
   display: none;
   position: fixed;
@@ -800,7 +783,6 @@ tr.new-row {
   color: var(--t1);
 }
 
-/* Animal Profile Modal */
 .profile-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -824,7 +806,6 @@ tr.new-row {
   font-size: 11px;
 }
 
-/* App Container */
 #app {
   display: flex;
   flex-direction: column;
@@ -834,7 +815,6 @@ tr.new-row {
 </head>
 
 <body>
-  <!-- Loader -->
   <div id="loader">
     <div class="spinner"></div>
     <h1>Chambal Gharial Field Platform</h1>
@@ -845,12 +825,9 @@ tr.new-row {
     </div>
   </div>
 
-  <!-- Main App -->
   <div id="app" style="display: none;">
-    <!-- Header -->
     <div id="header">
       <div class="header-left">
-        <!-- Logo SVG -->
         <svg class="logo-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M4 16C4 12 6 8 10 6C12 5 14 5 16 5C18 5 20 5 22 6C26 8 28 12 28 16C28 18 27 20 26 22L24 24C22 26 19 27 16 27C13 27 10 26 8 24L6 22C5 20 4 18 4 16Z" fill="#62e0a8"/>
           <ellipse cx="11" cy="13" rx="2" ry="2.5" fill="#1b3d2a"/>
@@ -879,14 +856,12 @@ tr.new-row {
       </div>
     </div>
 
-    <!-- Filter Bar -->
     <div id="filter-bar">
       <select id="type-filter">
         <option value="">All Types</option>
       </select>
 
       <input type="text" id="radio-id-filter" placeholder="Radio ID...">
-
       <input type="date" id="date-from">
       <input type="date" id="date-to">
 
@@ -898,19 +873,17 @@ tr.new-row {
       <span class="latest-fix-text">Latest fix: <span id="latest-fix-display">—</span></span>
     </div>
 
-    <!-- Map Container -->
     <div id="map-container">
       <div id="map"></div>
 
-      <!-- Table Drawer -->
       <div id="table-drawer">
         <div class="drawer-header" onclick="toggleDrawer()">
           <span class="dot"></span>
           Latest fix: <span id="drawer-latest">—</span> · <span id="drawer-count">0</span> observations
-          <div class="drawer-controls">
-            <button class="drawer-btn" onclick="event.stopPropagation(); exportCSV()">Telemetry</button>
+          <div class="drawer-controls" onclick="event.stopPropagation()">
+            <button class="drawer-btn" onclick="exportCSV()">Telemetry</button>
             <span style="font-size: 11px; color: var(--t3);"><span id="table-rows">0</span> rows</span>
-            <button class="drawer-btn" onclick="event.stopPropagation(); toggleDrawer()">
+            <button class="drawer-btn" onclick="toggleDrawer()">
               <span id="drawer-toggle-text">Hide ▲</span>
             </button>
           </div>
@@ -939,13 +912,11 @@ tr.new-row {
     </div>
   </div>
 
-  <!-- New Data Banner -->
   <div id="new-data-banner">
     <div class="pulse-dot"></div>
     <span id="banner-text">5 new observations loaded · tap to zoom</span>
   </div>
 
-  <!-- Field Data Modal -->
   <div class="modal" id="field-data-modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -956,7 +927,6 @@ tr.new-row {
     </div>
   </div>
 
-  <!-- Animal Profile Modal -->
   <div class="modal" id="animal-profile-modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -970,17 +940,14 @@ tr.new-row {
     </div>
   </div>
 
-  <!-- Leaflet & Chart.js -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 
 <script>
-// === GLOBAL STATE ===
 const SHEET_ID = '1-qg3MnjhJn2SCwPYnyCPgI2ujy235X-chN_EHlJDK3g';
 const GID = '0';
-
 let allRecords = [];
 let filteredRecords = [];
 let map = null;
@@ -993,126 +960,71 @@ let autoRefreshInterval = null;
 let previousRecordCount = 0;
 let isDrawerCollapsed = false;
 
-// === SOLAR CALCULATIONS ===
 function solarCalc(lat, lon, date) {
   const DEG = Math.PI / 180;
   const toRad = d => d * DEG;
   const toDeg = r => r / DEG;
-
   const start = new Date(date.getFullYear(), 0, 0);
   const doy = Math.floor((date - start) / 86400000);
-
   const B = toRad((360/365) * (doy - 81));
   const eqnOfTime = 9.87*Math.sin(2*B) - 7.53*Math.cos(B) - 1.5*Math.sin(B);
-
   const lstm = 15 * Math.round(lon / 15);
   const tc = 4*(lon - lstm) + eqnOfTime;
   const utcH = date.getUTCHours() + date.getUTCMinutes()/60 + date.getUTCSeconds()/3600;
   const lst = utcH + tc/60;
   const ha = 15*(lst - 12);
-
   const dec = toDeg(Math.asin(Math.sin(toRad(23.45)) * Math.sin(B)));
-
-  const el = toDeg(Math.asin(
-    Math.sin(toRad(lat))*Math.sin(toRad(dec)) +
-    Math.cos(toRad(lat))*Math.cos(toRad(dec))*Math.cos(toRad(ha))
-  ));
-
-  const az = toDeg(Math.atan2(
-    -Math.cos(toRad(dec))*Math.sin(toRad(ha)),
-    Math.sin(toRad(dec))*Math.cos(toRad(lat)) -
-    Math.cos(toRad(dec))*Math.cos(toRad(ha))*Math.sin(toRad(lat))
-  )) + 180;
-
+  const el = toDeg(Math.asin(Math.sin(toRad(lat))*Math.sin(toRad(dec)) + Math.cos(toRad(lat))*Math.cos(toRad(dec))*Math.cos(toRad(ha))));
+  const az = toDeg(Math.atan2(-Math.cos(toRad(dec))*Math.sin(toRad(ha)), Math.sin(toRad(dec))*Math.cos(toRad(lat)) - Math.cos(toRad(dec))*Math.cos(toRad(ha))*Math.sin(toRad(lat)))) + 180;
   const uvIndex = el > 0 ? Math.min(11, Math.round(el/9)) : 0;
   const baskingQuality = el >= 15 && el <= 65 ? 'Optimal' : el >= 5 ? 'Moderate' : 'Poor';
-
-  return {
-    elevation: el.toFixed(1),
-    azimuth: az.toFixed(1),
-    declination: dec.toFixed(2),
-    uvIndex,
-    baskingQuality
-  };
+  return { elevation: el.toFixed(1), azimuth: az.toFixed(1), declination: dec.toFixed(2), uvIndex, baskingQuality };
 }
 
-// === DATE FORMATTING ===
 function parseDate(dateStr) {
   if (!dateStr) return null;
-  
-  // Try various formats
   const formats = [
-    // M/D/YYYY HH:MM:SS (Google Sheets export)
     /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})$/,
-    // YYYY-MM-DD HH:MM:SS
     /^(\d{4})-(\d{2})-(\d{2})\s+(\d{1,2}):(\d{2}):(\d{2})$/,
-    // DD-MM-YYYY HH:MM:SS
     /^(\d{2})-(\d{2})-(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})$/,
-    // DD/MM/YYYY HH:MM:SS
     /^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})$/
   ];
-
   for (let i = 0; i < formats.length; i++) {
     const match = dateStr.match(formats[i]);
     if (match) {
-      if (i === 0) {
-        // M/D/YYYY format (Google Sheets)
-        return new Date(match[3], match[1] - 1, match[2], match[4], match[5], match[6]);
-      } else if (i === 1) {
-        // YYYY-MM-DD
-        return new Date(match[1], match[2] - 1, match[3], match[4], match[5], match[6]);
-      } else {
-        // DD-MM-YYYY or DD/MM/YYYY
-        return new Date(match[3], match[2] - 1, match[1], match[4], match[5], match[6]);
-      }
+      if (i === 0) return new Date(match[3], match[1] - 1, match[2], match[4], match[5], match[6]);
+      else if (i === 1) return new Date(match[1], match[2] - 1, match[3], match[4], match[5], match[6]);
+      else return new Date(match[3], match[2] - 1, match[1], match[4], match[5], match[6]);
     }
   }
-  
   return new Date(dateStr);
 }
 
 function formatDate(dateObj) {
   if (!dateObj || !(dateObj instanceof Date) || isNaN(dateObj)) return '—';
-  
   const dd = String(dateObj.getDate()).padStart(2, '0');
   const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
   const yyyy = dateObj.getFullYear();
   const hh = String(dateObj.getHours()).padStart(2, '0');
   const min = String(dateObj.getMinutes()).padStart(2, '0');
   const ss = String(dateObj.getSeconds()).padStart(2, '0');
-  
   return `${dd}-${mm}-${yyyy} ${hh}:${min}:${ss}`;
 }
 
-// === DATA FETCHING ===
 async function fetchData() {
   const cacheBust = Date.now();
   const primaryURL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}&cachebust=${cacheBust}`;
   const fallbackURL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}&cachebust=${cacheBust}`;
-
   try {
-    const response = await fetch(primaryURL, {
-      cache: 'no-store',
-      headers: { 'Cache-Control': 'no-cache, no-store' }
-    });
-    
+    const response = await fetch(primaryURL, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache, no-store' } });
     if (!response.ok) throw new Error('Primary fetch failed');
-    
-    const text = await response.text();
-    return parseCSV(text);
+    return parseCSV(await response.text());
   } catch (err) {
     console.warn('Primary URL failed, trying fallback:', err);
-    
     try {
-      const response = await fetch(fallbackURL, {
-        cache: 'no-store',
-        headers: { 'Cache-Control': 'no-cache, no-store' }
-      });
-      
+      const response = await fetch(fallbackURL, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache, no-store' } });
       if (!response.ok) throw new Error('Fallback fetch failed');
-      
-      const text = await response.text();
-      return parseCSV(text);
+      return parseCSV(await response.text());
     } catch (fallbackErr) {
       console.error('Both fetch attempts failed:', fallbackErr);
       throw new Error('Could not load data from Google Sheets. Ensure sheet is set to Anyone with link → Viewer.');
@@ -1123,96 +1035,53 @@ async function fetchData() {
 function parseCSV(csvText) {
   const lines = csvText.split('\n').filter(l => l.trim());
   if (lines.length < 2) return [];
-
   const headers = parseCSVLine(lines[0]);
   const records = [];
-
-  // Map column names (case-insensitive)
   const colMap = {};
   const mappings = {
-    'Log_ID': ['log_id', 'log id'],
-    'Observer': ['observer'],
-    'Animal_Type': ['animal_type', 'animal type', 'type', 'category'],
-    'Radio_ID': ['radio_id', 'radio id', 'radio', 'animal id', 'id'],
-    'Signal_Strength': ['signal_strength', 'signal strength', 'signal'],
-    'Activity': ['activity'],
-    'Location': ['location', 'place', 'site'],
-    'Datetime': ['datetime', 'timestamp', 'date'],
-    'LatLong': ['latlong', 'lat_long', 'latlng', 'coordinates'],
-    'Notes': ['notes', 'note', 'remarks']
+    'Log_ID': ['log_id', 'log id'], 'Observer': ['observer'], 'Animal_Type': ['animal_type', 'animal type', 'type', 'category'],
+    'Radio_ID': ['radio_id', 'radio id', 'radio', 'animal id', 'id'], 'Signal_Strength': ['signal_strength', 'signal strength', 'signal'],
+    'Activity': ['activity'], 'Location': ['location', 'place', 'site'], 'Datetime': ['datetime', 'timestamp', 'date'],
+    'LatLong': ['latlong', 'lat_long', 'latlng', 'coordinates'], 'Notes': ['notes', 'note', 'remarks']
   };
-
   headers.forEach((h, idx) => {
     const lower = h.toLowerCase().trim();
     for (const [key, aliases] of Object.entries(mappings)) {
-      if (aliases.includes(lower)) {
-        colMap[key] = idx;
-        return;
-      }
+      if (aliases.includes(lower)) { colMap[key] = idx; return; }
     }
-    // Also check exact match
-    if (h.trim() in mappings) {
-      colMap[h.trim()] = idx;
-    }
+    if (h.trim() in mappings) colMap[h.trim()] = idx;
   });
-
-  // Also check for separate Lat/Lon columns
   headers.forEach((h, idx) => {
     const lower = h.toLowerCase().trim();
     if (['latitude', 'lat'].includes(lower)) colMap['_lat_col'] = idx;
     if (['longitude', 'lon', 'long', 'lng'].includes(lower)) colMap['_lon_col'] = idx;
   });
-
   for (let i = 1; i < lines.length; i++) {
     const cells = parseCSVLine(lines[i]);
-    
     const radioID = cells[colMap['Radio_ID']] || '';
     const datetime = cells[colMap['Datetime']] || '';
     const animalType = cells[colMap['Animal_Type']] || '';
-    
-    // Skip if missing required fields
     if (!radioID.trim() || !datetime.trim()) continue;
-    
-    // Exclude hatchlings
     if (animalType.toLowerCase().includes('hatchling')) continue;
-    
-    // Parse coordinates
     let lat = null, lon = null;
     const latLong = cells[colMap['LatLong']] || '';
     if (latLong.trim()) {
       const parts = latLong.split(',').map(p => parseFloat(p.trim()));
-      if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-        lat = parts[0];
-        lon = parts[1];
-      }
+      if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) { lat = parts[0]; lon = parts[1]; }
     } else if (colMap['_lat_col'] !== undefined && colMap['_lon_col'] !== undefined) {
       lat = parseFloat(cells[colMap['_lat_col']]);
       lon = parseFloat(cells[colMap['_lon_col']]);
     }
-    
     if (!lat || !lon || isNaN(lat) || isNaN(lon)) continue;
-    
     const dateObj = parseDate(datetime);
     if (!dateObj || isNaN(dateObj.getTime())) continue;
-    
     records.push({
-      Log_ID: cells[colMap['Log_ID']] || '',
-      Observer: cells[colMap['Observer']] || '',
-      Animal_Type: animalType.trim(),
-      Radio_ID: radioID.trim(),
-      Signal_Strength: cells[colMap['Signal_Strength']] || '',
-      Activity: cells[colMap['Activity']] || '',
-      Location: cells[colMap['Location']] || '',
-      Datetime: datetime,
-      _dateObj: dateObj,
-      _isoKey: dateObj.toISOString(),
-      LatLong: latLong,
-      _lat: lat,
-      _lon: lon,
-      Notes: cells[colMap['Notes']] || ''
+      Log_ID: cells[colMap['Log_ID']] || '', Observer: cells[colMap['Observer']] || '', Animal_Type: animalType.trim(),
+      Radio_ID: radioID.trim(), Signal_Strength: cells[colMap['Signal_Strength']] || '', Activity: cells[colMap['Activity']] || '',
+      Location: cells[colMap['Location']] || '', Datetime: datetime, _dateObj: dateObj, _isoKey: dateObj.toISOString(),
+      LatLong: latLong, _lat: lat, _lon: lon, Notes: cells[colMap['Notes']] || ''
     });
   }
-
   return records;
 }
 
@@ -1220,68 +1089,37 @@ function parseCSVLine(line) {
   const result = [];
   let cell = '';
   let inQuotes = false;
-
   for (let i = 0; i < line.length; i++) {
     const char = line[i];
-    
     if (char === '"') {
-      if (inQuotes && line[i + 1] === '"') {
-        cell += '"';
-        i++;
-      } else {
-        inQuotes = !inQuotes;
-      }
-    } else if (char === ',' && !inQuotes) {
-      result.push(cell.trim());
-      cell = '';
-    } else {
-      cell += char;
-    }
+      if (inQuotes && line[i + 1] === '"') { cell += '"'; i++; }
+      else inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) { result.push(cell.trim()); cell = ''; }
+    else cell += char;
   }
-  
   result.push(cell.trim());
   return result;
 }
 
-// === FILTERING ===
 function applyFilters() {
   const typeFilter = document.getElementById('type-filter').value;
   const radioIDFilter = document.getElementById('radio-id-filter').value.toLowerCase();
   const dateFrom = document.getElementById('date-from').value;
   const dateTo = document.getElementById('date-to').value;
-
   filteredRecords = allRecords.filter(r => {
     if (typeFilter && r.Animal_Type !== typeFilter) return false;
     if (radioIDFilter && !r.Radio_ID.toLowerCase().includes(radioIDFilter)) return false;
-    
-    if (dateFrom) {
-      const fromDate = new Date(dateFrom);
-      if (r._dateObj < fromDate) return false;
-    }
-    
-    if (dateTo) {
-      const toDate = new Date(dateTo);
-      toDate.setHours(23, 59, 59, 999);
-      if (r._dateObj > toDate) return false;
-    }
-    
+    if (dateFrom) { const fromDate = new Date(dateFrom); if (r._dateObj < fromDate) return false; }
+    if (dateTo) { const toDate = new Date(dateTo); toDate.setHours(23, 59, 59, 999); if (r._dateObj > toDate) return false; }
     return true;
   });
-
   updateHeaderPills();
   updateMap();
   updateTable();
   updateLatestFixDisplay();
-  
-  // Auto-zoom if Radio ID search returns specific results
   if (radioIDFilter) {
-    if (filteredRecords.length === 1) {
-      const r = filteredRecords[0];
-      map.setView([r._lat, r._lon], 15);
-    } else if (filteredRecords.length > 1) {
-      const bounds = L.latLngBounds(filteredRecords.map(r => [r._lat, r._lon]));
-      map.fitBounds(bounds);
-    }
+    if (filteredRecords.length === 1) { const r = filteredRecords[0]; map.setView([r._lat, r._lon], 15); }
+    else if (filteredRecords.length > 1) { const bounds = L.latLngBounds(filteredRecords.map(r => [r._lat, r._lon])); map.fitBounds(bounds); }
   }
 }
 
@@ -1293,965 +1131,275 @@ function clearFilters() {
   applyFilters();
 }
 
-// === MAP ===
 function initMap() {
-  map = L.map('map', {
-    center: [25.85, 76.56],
-    zoom: 12,
-    zoomControl: true
-  });
-
-  L.tileLayer('https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
-    subdomains: ['0', '1', '2', '3'],
-    attribution: 'Google Satellite'
-  }).addTo(map);
-
+  map = L.map('map', { center: [25.85, 76.56], zoom: 12, zoomControl: true });
+  L.tileLayer('https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { subdomains: ['0', '1', '2', '3'], attribution: 'Google Satellite' }).addTo(map);
   markerClusterGroup = L.markerClusterGroup({
-    maxClusterRadius: 44,
-    showCoverageOnHover: false,
+    maxClusterRadius: 44, showCoverageOnHover: false,
     iconCreateFunction: function(cluster) {
       const count = cluster.getChildCount();
-      return L.divIcon({
-        html: `<div><div>${count}</div></div>`,
-        className: 'marker-cluster',
-        iconSize: [40, 40]
-      });
+      return L.divIcon({ html: `<div><div>${count}</div></div>`, className: 'marker-cluster', iconSize: [40, 40] });
     }
   });
-
   map.addLayer(markerClusterGroup);
 }
 
 function updateMap() {
   markerClusterGroup.clearLayers();
-  
-  if (heatLayer) {
-    map.removeLayer(heatLayer);
-    heatLayer = null;
-  }
-  
-  if (kdeLayer) {
-    map.removeLayer(kdeLayer);
-    kdeLayer = null;
-  }
-
+  if (heatLayer) { map.removeLayer(heatLayer); heatLayer = null; }
+  if (kdeLayer) { map.removeLayer(kdeLayer); kdeLayer = null; }
   let displayRecords = filteredRecords;
-  
   if (showLatestOnly) {
-    // Group by Radio_ID and get latest
     const latestMap = {};
-    filteredRecords.forEach(r => {
-      if (!latestMap[r.Radio_ID] || r._dateObj > latestMap[r.Radio_ID]._dateObj) {
-        latestMap[r.Radio_ID] = r;
-      }
-    });
+    filteredRecords.forEach(r => { if (!latestMap[r.Radio_ID] || r._dateObj > latestMap[r.Radio_ID]._dateObj) latestMap[r.Radio_ID] = r; });
     displayRecords = Object.values(latestMap);
   }
-
   displayRecords.forEach(r => {
     const isLatest = showLatestOnly;
     const size = isLatest ? 34 : 26;
     const border = isLatest ? 2.5 : 2;
-    
     const categoryClass = getCategoryClass(r.Animal_Type);
     const radioLabel = r.Radio_ID.length > 5 ? r.Radio_ID.slice(-4) : r.Radio_ID;
-    
-    const icon = L.divIcon({
-      html: `<div class="mk ${categoryClass} ${isLatest ? 'is-latest' : ''}" style="width:${size}px;height:${size}px;border:${border}px solid;">${radioLabel}</div>`,
-      className: '',
-      iconSize: [size, size],
-      iconAnchor: [size/2, size/2]
-    });
-    
+    const icon = L.divIcon({ html: `<div class="mk ${categoryClass} ${isLatest ? 'is-latest' : ''}" style="width:${size}px;height:${size}px;border:${border}px solid;">${radioLabel}</div>`, className: '', iconSize: [size, size], iconAnchor: [size/2, size/2] });
     const marker = L.marker([r._lat, r._lon], { icon });
-    
-    marker.on('click', () => {
-      const popup = createPopup(r);
-      marker.bindPopup(popup, { maxWidth: 300 }).openPopup();
-    });
-    
+    marker.on('click', () => { const popup = createPopup(r); marker.bindPopup(popup, { maxWidth: 300 }).openPopup(); });
     markerClusterGroup.addLayer(marker);
   });
-
-  // Heatmap
   if (document.getElementById('heatmap-btn').classList.contains('active')) {
     const points = displayRecords.map(r => [r._lat, r._lon, 1]);
-    heatLayer = L.heatLayer(points, {
-      radius: 32,
-      blur: 26,
-      maxZoom: 17,
-      gradient: {0.0: '#1a7050', 0.5: '#62e0a8', 0.75: '#b07000', 1.0: '#c0275a'}
-    }).addTo(map);
+    heatLayer = L.heatLayer(points, { radius: 32, blur: 26, maxZoom: 17, gradient: {0.0: '#1a7050', 0.5: '#62e0a8', 0.75: '#b07000', 1.0: '#c0275a'} }).addTo(map);
   }
-
-  // KDE
   if (document.getElementById('kde-btn').classList.contains('active')) {
     const points = displayRecords.map(r => [r._lat, r._lon, 0.5]);
-    kdeLayer = L.heatLayer(points, {
-      radius: 55,
-      blur: 45,
-      maxZoom: 17,
-      gradient: {0.0: 'transparent', 0.3: '#1256a8', 0.6: '#107060', 1.0: '#b07000'}
-    }).addTo(map);
+    kdeLayer = L.heatLayer(points, { radius: 55, blur: 45, maxZoom: 17, gradient: {0.0: 'transparent', 0.3: '#1256a8', 0.6: '#107060', 1.0: '#b07000'} }).addTo(map);
   }
 }
 
 function createPopup(r) {
   const categoryClass = getCategoryClass(r.Animal_Type);
   const categoryColor = getCategoryColor(r.Animal_Type);
-  
   const solar = solarCalc(r._lat, r._lon, r._dateObj);
   const seasonal = getSeasonalContext(r._dateObj);
-  
-  return `
-    <div>
-      <div class="popup-header">
-        <span class="popup-radio" style="color: ${categoryColor};" onclick="openAnimalProfile('${r.Radio_ID}')">${r.Radio_ID}</span>
-        <span class="popup-badge ${categoryClass}">${r.Animal_Type}</span>
-      </div>
-      <div class="popup-body">
-        <div class="popup-row">
-          <span class="popup-label">Datetime</span>
-          <span class="popup-value mono">${formatDate(r._dateObj)}</span>
-        </div>
-        <div class="popup-row">
-          <span class="popup-label">Activity</span>
-          <span class="popup-value">${r.Activity}</span>
-        </div>
-        <div class="popup-row">
-          <span class="popup-label">Location</span>
-          <span class="popup-value">${r.Location}</span>
-        </div>
-        <div class="popup-row">
-          <span class="popup-label">Observer</span>
-          <span class="popup-value">${r.Observer}</span>
-        </div>
-        <div class="popup-row">
-          <span class="popup-label">Signal</span>
-          <span class="popup-value">${r.Signal_Strength}</span>
-        </div>
-        ${r.Notes ? `<div class="popup-row">
-          <span class="popup-label">Notes</span>
-          <span class="popup-value">${r.Notes}</span>
-        </div>` : ''}
-        
-        <div class="popup-section">
-          <div class="popup-section-title">Solar / Environmental</div>
-          <div class="popup-row">
-            <span class="popup-label">Sun Elevation</span>
-            <span class="popup-value">${solar.elevation}°</span>
-          </div>
-          <div class="popup-row">
-            <span class="popup-label">Azimuth</span>
-            <span class="popup-value">${solar.azimuth}°</span>
-          </div>
-          <div class="popup-row">
-            <span class="popup-label">Basking Quality</span>
-            <span class="popup-value">${solar.baskingQuality}</span>
-          </div>
-        </div>
-        
-        <div class="popup-section">
-          <div class="popup-section-title">Seasonal Context</div>
-          <div class="seasonal-context">
-            ${seasonal.icon} <strong>${seasonal.name}</strong> · ${seasonal.description}
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
+  return `<div><div class="popup-header"><span class="popup-radio" style="color: ${categoryColor};" onclick="openAnimalProfile('${r.Radio_ID}')">${r.Radio_ID}</span><span class="popup-badge ${categoryClass}">${r.Animal_Type}</span></div><div class="popup-body"><div class="popup-row"><span class="popup-label">Datetime</span><span class="popup-value mono">${formatDate(r._dateObj)}</span></div><div class="popup-row"><span class="popup-label">Activity</span><span class="popup-value">${r.Activity}</span></div><div class="popup-row"><span class="popup-label">Location</span><span class="popup-value">${r.Location}</span></div><div class="popup-row"><span class="popup-label">Observer</span><span class="popup-value">${r.Observer}</span></div><div class="popup-row"><span class="popup-label">Signal</span><span class="popup-value">${r.Signal_Strength}</span></div>${r.Notes ? `<div class="popup-row"><span class="popup-label">Notes</span><span class="popup-value">${r.Notes}</span></div>` : ''}<div class="popup-section"><div class="popup-section-title">Solar / Environmental</div><div class="popup-row"><span class="popup-label">Sun Elevation</span><span class="popup-value">${solar.elevation}°</span></div><div class="popup-row"><span class="popup-label">Azimuth</span><span class="popup-value">${solar.azimuth}°</span></div><div class="popup-row"><span class="popup-label">Basking Quality</span><span class="popup-value">${solar.baskingQuality}</span></div></div><div class="popup-section"><div class="popup-section-title">Seasonal Context</div><div class="seasonal-context">${seasonal.icon} <strong>${seasonal.name}</strong> · ${seasonal.description}</div></div></div></div>`;
 }
 
 function getSeasonalContext(date) {
-  const month = date.getMonth() + 1; // 1-12
-  
-  if (month >= 11 || month <= 2) {
-    return {
-      name: 'Winter',
-      icon: '❄️',
-      description: 'Clear, low flow (~50–200 cumecs), sandbanks fully exposed. Peak basking season.'
-    };
-  } else if (month >= 3 && month <= 5) {
-    return {
-      name: 'Pre-Monsoon / Breeding',
-      icon: '☀️',
-      description: 'Slowly rising, 200–500 cumecs. Breeding & nesting season.'
-    };
-  } else if (month >= 6 && month <= 9) {
-    return {
-      name: 'Monsoon',
-      icon: '🌧️',
-      description: 'High turbid flow 2000–15000 cumecs. Hatchlings emerge.'
-    };
-  } else {
-    return {
-      name: 'Post-Monsoon',
-      icon: '🍂',
-      description: 'Receding, clearing. Animals returning to territories.'
-    };
-  }
+  const month = date.getMonth() + 1;
+  if (month >= 11 || month <= 2) return { name: 'Winter', icon: '❄️', description: 'Clear, low flow (~50–200 cumecs), sandbanks fully exposed. Peak basking season.' };
+  else if (month >= 3 && month <= 5) return { name: 'Pre-Monsoon / Breeding', icon: '☀️', description: 'Slowly rising, 200–500 cumecs. Breeding & nesting season.' };
+  else if (month >= 6 && month <= 9) return { name: 'Monsoon', icon: '🌧️', description: 'High turbid flow 2000–15000 cumecs. Hatchlings emerge.' };
+  else return { name: 'Post-Monsoon', icon: '🍂', description: 'Receding, clearing. Animals returning to territories.' };
 }
 
-// === TABLE ===
 function updateTable() {
   const tbody = document.getElementById('table-body');
   tbody.innerHTML = '';
-
-  // Sort records
   const sorted = [...filteredRecords].sort((a, b) => {
-    let aVal = a[currentSort.field];
-    let bVal = b[currentSort.field];
-    
-    if (currentSort.field === 'Datetime') {
-      aVal = a._isoKey;
-      bVal = b._isoKey;
-    }
-    
-    if (typeof aVal === 'string') {
-      return currentSort.ascending ? 
-        aVal.localeCompare(bVal) : 
-        bVal.localeCompare(aVal);
-    }
-    
+    let aVal = a[currentSort.field], bVal = b[currentSort.field];
+    if (currentSort.field === 'Datetime') { aVal = a._isoKey; bVal = b._isoKey; }
+    if (typeof aVal === 'string') return currentSort.ascending ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
     return currentSort.ascending ? aVal - bVal : bVal - aVal;
   });
-
   sorted.forEach(r => {
     const tr = document.createElement('tr');
-    tr.onclick = () => {
-      map.panTo([r._lat, r._lon]);
-    };
-    
-    tr.innerHTML = `
-      <td><span class="clickable-id" onclick="event.stopPropagation(); openAnimalProfile('${r.Radio_ID}')">${r.Radio_ID}</span></td>
-      <td class="mono">${formatDate(r._dateObj)}</td>
-      <td>${r.Location}</td>
-      <td>${getActivityPill(r.Activity)}</td>
-      <td>${getSignalPill(r.Signal_Strength)}</td>
-      <td>${getCategoryPill(r.Animal_Type)}</td>
-      <td class="mono">${r._lat.toFixed(6)}</td>
-      <td class="mono">${r._lon.toFixed(6)}</td>
-      <td>${r.Observer}</td>
-      <td title="${r.Notes}">${truncate(r.Notes, 40)}</td>
-    `;
-    
+    tr.onclick = () => { map.panTo([r._lat, r._lon]); };
+    tr.innerHTML = `<td><span class="clickable-id" onclick="event.stopPropagation(); openAnimalProfile('${r.Radio_ID}')">${r.Radio_ID}</span></td><td class="mono">${formatDate(r._dateObj)}</td><td>${r.Location}</td><td>${getActivityPill(r.Activity)}</td><td>${getSignalPill(r.Signal_Strength)}</td><td>${getCategoryPill(r.Animal_Type)}</td><td class="mono">${r._lat.toFixed(6)}</td><td class="mono">${r._lon.toFixed(6)}</td><td>${r.Observer}</td><td title="${r.Notes}">${truncate(r.Notes, 40)}</td>`;
     tbody.appendChild(tr);
   });
-
   document.getElementById('table-rows').textContent = sorted.length;
   document.getElementById('drawer-count').textContent = sorted.length;
 }
 
 function sortTable(field) {
-  if (currentSort.field === field) {
-    currentSort.ascending = !currentSort.ascending;
-  } else {
-    currentSort.field = field;
-    currentSort.ascending = field !== 'Datetime';
-  }
-  
-  // Update header styling
+  if (currentSort.field === field) currentSort.ascending = !currentSort.ascending;
+  else { currentSort.field = field; currentSort.ascending = field !== 'Datetime'; }
   document.querySelectorAll('th').forEach(th => th.classList.remove('sorted'));
   event.target.classList.add('sorted');
-  
   updateTable();
 }
 
-function truncate(str, len) {
-  if (!str) return '—';
-  return str.length > len ? str.substring(0, len) + '...' : str;
-}
+function truncate(str, len) { if (!str) return '—'; return str.length > len ? str.substring(0, len) + '...' : str; }
+function getCategoryClass(type) { if (type.toLowerCase().includes('female')) return 'af'; if (type.toLowerCase().includes('male')) return 'am'; return 'sa'; }
+function getCategoryColor(type) { if (type.toLowerCase().includes('female')) return '#c0275a'; if (type.toLowerCase().includes('male')) return '#1256a8'; return '#107060'; }
+function getActivityPill(activity) { const actMap = { 'basking': 'activity-basking', 'swimming': 'activity-swimming', 'active in water': 'activity-active', 'breeding': 'activity-breeding', 'surface active': 'activity-surface' }; const className = actMap[activity.toLowerCase()] || 'activity-basking'; return `<span class="activity-pill ${className}">${activity}</span>`; }
+function getSignalPill(signal) { const sigMap = { 'strong': 'signal-strong', 'medium-strong': 'signal-mediumstrong', 'medium': 'signal-medium', 'medium-weak': 'signal-mediumweak', 'weak': 'signal-weak' }; const className = sigMap[signal.toLowerCase()] || 'signal-medium'; return `<span class="signal-pill ${className}">${signal}</span>`; }
+function getCategoryPill(type) { const catClass = getCategoryClass(type); return `<span class="category-pill ${catClass}">${type}</span>`; }
 
-// === HELPERS ===
-function getCategoryClass(type) {
-  if (type.toLowerCase().includes('female')) return 'af';
-  if (type.toLowerCase().includes('male')) return 'am';
-  return 'sa';
-}
-
-function getCategoryColor(type) {
-  if (type.toLowerCase().includes('female')) return '#c0275a';
-  if (type.toLowerCase().includes('male')) return '#1256a8';
-  return '#107060';
-}
-
-function getActivityPill(activity) {
-  const actMap = {
-    'basking': 'activity-basking',
-    'swimming': 'activity-swimming',
-    'active in water': 'activity-active',
-    'breeding': 'activity-breeding',
-    'surface active': 'activity-surface'
-  };
-  const className = actMap[activity.toLowerCase()] || 'activity-basking';
-  return `<span class="activity-pill ${className}">${activity}</span>`;
-}
-
-function getSignalPill(signal) {
-  const sigMap = {
-    'strong': 'signal-strong',
-    'medium-strong': 'signal-mediumstrong',
-    'medium': 'signal-medium',
-    'medium-weak': 'signal-mediumweak',
-    'weak': 'signal-weak'
-  };
-  const className = sigMap[signal.toLowerCase()] || 'signal-medium';
-  return `<span class="signal-pill ${className}">${signal}</span>`;
-}
-
-function getCategoryPill(type) {
-  const catClass = getCategoryClass(type);
-  return `<span class="category-pill ${catClass}">${type}</span>`;
-}
-
-// === HEADER PILLS ===
 function updateHeaderPills() {
   document.getElementById('total-obs').textContent = filteredRecords.length;
-  
   const uniqueAnimals = new Set(filteredRecords.map(r => r.Radio_ID));
   document.getElementById('total-animals').textContent = uniqueAnimals.size;
-  
   const afAnimals = new Set(filteredRecords.filter(r => r.Animal_Type.toLowerCase().includes('female')).map(r => r.Radio_ID));
   document.getElementById('af-count').textContent = afAnimals.size;
-  
   const amAnimals = new Set(filteredRecords.filter(r => r.Animal_Type.toLowerCase().includes('male') && !r.Animal_Type.toLowerCase().includes('sub')).map(r => r.Radio_ID));
   document.getElementById('am-count').textContent = amAnimals.size;
-  
   const saAnimals = new Set(filteredRecords.filter(r => r.Animal_Type.toLowerCase().includes('sub')).map(r => r.Radio_ID));
   document.getElementById('sa-count').textContent = saAnimals.size;
 }
 
 function updateLatestFixDisplay() {
-  if (filteredRecords.length === 0) {
-    document.getElementById('latest-fix-display').textContent = '—';
-    document.getElementById('drawer-latest').textContent = '—';
-    return;
-  }
-  
+  if (filteredRecords.length === 0) { document.getElementById('latest-fix-display').textContent = '—'; document.getElementById('drawer-latest').textContent = '—'; return; }
   const latest = filteredRecords.reduce((a, b) => a._dateObj > b._dateObj ? a : b);
   const formatted = formatDate(latest._dateObj);
-  
   document.getElementById('latest-fix-display').textContent = formatted;
   document.getElementById('drawer-latest').textContent = formatted;
 }
 
-// === TOGGLE FUNCTIONS ===
-function toggleLatestFix() {
-  showLatestOnly = !showLatestOnly;
-  const btn = document.getElementById('latest-fix-btn');
-  
-  if (showLatestOnly) {
-    btn.classList.add('active');
-  } else {
-    btn.classList.remove('active');
-  }
-  
-  updateMap();
-}
+function toggleLatestFix() { showLatestOnly = !showLatestOnly; const btn = document.getElementById('latest-fix-btn'); if (showLatestOnly) btn.classList.add('active'); else btn.classList.remove('active'); updateMap(); }
+function toggleHeatmap() { const btn = document.getElementById('heatmap-btn'); btn.classList.toggle('active'); updateMap(); }
+function toggleKDE() { const btn = document.getElementById('kde-btn'); btn.classList.toggle('active'); updateMap(); }
+function toggleDrawer() { isDrawerCollapsed = !isDrawerCollapsed; const drawer = document.getElementById('table-drawer'); const toggleText = document.getElementById('drawer-toggle-text'); if (isDrawerCollapsed) { drawer.classList.add('collapsed'); toggleText.textContent = 'Show ▼'; } else { drawer.classList.remove('collapsed'); toggleText.textContent = 'Hide ▲'; } }
 
-function toggleHeatmap() {
-  const btn = document.getElementById('heatmap-btn');
-  btn.classList.toggle('active');
-  updateMap();
-}
-
-function toggleKDE() {
-  const btn = document.getElementById('kde-btn');
-  btn.classList.toggle('active');
-  updateMap();
-}
-
-function toggleDrawer() {
-  isDrawerCollapsed = !isDrawerCollapsed;
-  const drawer = document.getElementById('table-drawer');
-  const toggleText = document.getElementById('drawer-toggle-text');
-  
-  if (isDrawerCollapsed) {
-    drawer.classList.add('collapsed');
-    toggleText.textContent = 'Show ▼';
-  } else {
-    drawer.classList.remove('collapsed');
-    toggleText.textContent = 'Hide ▲';
-  }
-}
-
-// === CSV EXPORT ===
 function exportCSV() {
   const headers = ['Log_ID', 'Observer', 'Animal_Type', 'Radio_ID', 'Signal_Strength', 'Activity', 'Location', 'Datetime', 'LatLong', 'Notes'];
-  
   let csv = headers.join(',') + '\n';
-  
   filteredRecords.forEach(r => {
-    const row = headers.map(h => {
-      let val = r[h] || '';
-      if (val.includes(',') || val.includes('"')) {
-        val = '"' + val.replace(/"/g, '""') + '"';
-      }
-      return val;
-    });
+    const row = headers.map(h => { let val = r[h] || ''; if (val.includes(',') || val.includes('"')) val = '"' + val.replace(/"/g, '""') + '"'; return val; });
     csv += row.join(',') + '\n';
   });
-  
   const blob = new Blob([csv], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  
   const today = new Date();
-  const filename = `chambal_gharial_${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}.csv`;
-  a.download = filename;
+  a.download = `chambal_gharial_${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}.csv`;
   a.click();
   URL.revokeObjectURL(url);
 }
 
-// === MODALS ===
 function openFieldDataModal() {
   const modal = document.getElementById('field-data-modal');
   const body = document.getElementById('field-modal-body');
-  
   body.innerHTML = generateFieldDataContent();
   modal.classList.add('active');
-  
-  // Render charts after modal is visible
-  setTimeout(() => {
-    renderFieldDataCharts();
-  }, 100);
+  setTimeout(() => { renderFieldDataCharts(); }, 100);
 }
 
 function openAnimalProfile(radioID) {
   const records = allRecords.filter(r => r.Radio_ID === radioID);
   if (records.length === 0) return;
-  
   records.sort((a, b) => a._isoKey.localeCompare(b._isoKey));
-  
   const latest = records[records.length - 1];
-  const category = latest.Animal_Type;
-  
   const modal = document.getElementById('animal-profile-modal');
   document.getElementById('profile-title').textContent = `Animal Profile — Radio ${radioID}`;
-  document.getElementById('profile-subtitle').textContent = `${category} · ${records.length} sightings · Last: ${formatDate(latest._dateObj)}`;
-  
+  document.getElementById('profile-subtitle').textContent = `${latest.Animal_Type} · ${records.length} sightings · Last: ${formatDate(latest._dateObj)}`;
   const body = document.getElementById('profile-modal-body');
   body.innerHTML = generateAnimalProfileContent(records, radioID);
-  
   modal.classList.add('active');
-  
-  setTimeout(() => {
-    renderAnimalProfileMap(records);
-  }, 100);
+  setTimeout(() => { renderAnimalProfileMap(records); }, 100);
 }
 
-function closeModal(id) {
-  document.getElementById(id).classList.remove('active');
-}
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
-// === FIELD DATA CONTENT ===
 function generateFieldDataContent() {
   const uniqueAnimals = new Set(filteredRecords.map(r => r.Radio_ID));
   const uniqueLocations = new Set(filteredRecords.map(r => r.Location));
   const uniqueDates = new Set(filteredRecords.map(r => r._dateObj.toDateString()));
-  
   const afCount = new Set(filteredRecords.filter(r => r.Animal_Type.toLowerCase().includes('female')).map(r => r.Radio_ID)).size;
   const amCount = new Set(filteredRecords.filter(r => r.Animal_Type.toLowerCase().includes('male') && !r.Animal_Type.toLowerCase().includes('sub')).map(r => r.Radio_ID)).size;
   const saCount = new Set(filteredRecords.filter(r => r.Animal_Type.toLowerCase().includes('sub')).map(r => r.Radio_ID)).size;
-  
   const avgPerDay = uniqueDates.size > 0 ? (filteredRecords.length / uniqueDates.size).toFixed(1) : 0;
-  
-  // Activity counts
-  const activityCounts = {};
-  filteredRecords.forEach(r => {
-    activityCounts[r.Activity] = (activityCounts[r.Activity] || 0) + 1;
-  });
-  
-  // Location counts
-  const locationCounts = {};
-  filteredRecords.forEach(r => {
-    locationCounts[r.Location] = (locationCounts[r.Location] || 0) + 1;
-  });
-  
+  const activityCounts = {}, locationCounts = {}, observerCounts = {}, monthlyCounts = {};
+  filteredRecords.forEach(r => { activityCounts[r.Activity] = (activityCounts[r.Activity] || 0) + 1; locationCounts[r.Location] = (locationCounts[r.Location] || 0) + 1; observerCounts[r.Observer] = (observerCounts[r.Observer] || 0) + 1; const key = `${r._dateObj.getFullYear()}-${String(r._dateObj.getMonth() + 1).padStart(2, '0')}`; monthlyCounts[key] = (monthlyCounts[key] || 0) + 1; });
   const topLocation = Object.entries(locationCounts).sort((a, b) => b[1] - a[1])[0];
   const topActivity = Object.entries(activityCounts).sort((a, b) => b[1] - a[1])[0];
-  
-  // Latest survey
+  const topObserver = Object.entries(observerCounts).sort((a, b) => b[1] - a[1])[0];
+  const peakMonth = Object.entries(monthlyCounts).sort((a, b) => b[1] - a[1])[0];
   const latestRecord = filteredRecords.reduce((a, b) => a._dateObj > b._dateObj ? a : b, filteredRecords[0]);
   const latestDate = latestRecord ? latestRecord._dateObj : new Date();
-  
   const solar = solarCalc(25.85, 76.56, latestDate);
-  const seasonal = getSeasonalContext(latestDate);
-  
-  // Monthly trend
-  const monthlyCounts = {};
-  filteredRecords.forEach(r => {
-    const key = `${r._dateObj.getFullYear()}-${String(r._dateObj.getMonth() + 1).padStart(2, '0')}`;
-    monthlyCounts[key] = (monthlyCounts[key] || 0) + 1;
-  });
-  
-  const peakMonth = Object.entries(monthlyCounts).sort((a, b) => b[1] - a[1])[0];
-  
-  // Top observer
-  const observerCounts = {};
-  filteredRecords.forEach(r => {
-    observerCounts[r.Observer] = (observerCounts[r.Observer] || 0) + 1;
-  });
-  const topObserver = Object.entries(observerCounts).sort((a, b) => b[1] - a[1])[0];
-  
-  return `
-    <div class="stat-grid">
-      <div class="stat-card">
-        <div class="stat-label">Total Records</div>
-        <div class="stat-value">${filteredRecords.length}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Total Animals</div>
-        <div class="stat-value">${uniqueAnimals.size}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Adult Female</div>
-        <div class="stat-value">${afCount}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Adult Male</div>
-        <div class="stat-value">${amCount}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Sub-adult</div>
-        <div class="stat-value">${saCount}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Survey Sites</div>
-        <div class="stat-value">${uniqueLocations.size}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Survey Days</div>
-        <div class="stat-value">${uniqueDates.size}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Avg Obs/Day</div>
-        <div class="stat-value">${avgPerDay}</div>
-      </div>
-    </div>
-    
-    <div class="section-title">📊 Observation Analytics</div>
-    <div class="chart-row">
-      <div class="chart-card">
-        <h3>Activity Distribution</h3>
-        <canvas id="activity-chart" class="chart-canvas"></canvas>
-      </div>
-      <div class="chart-card">
-        <h3>Life Stage Distribution</h3>
-        <canvas id="lifestage-chart" class="chart-canvas"></canvas>
-      </div>
-      <div class="chart-card">
-        <h3>Monthly Survey Trend</h3>
-        <canvas id="monthly-chart" class="chart-canvas"></canvas>
-      </div>
-    </div>
-    
-    <div class="section-title">📍 Site Observation Density</div>
-    <div class="chart-card" style="margin-bottom: 24px;">
-      <canvas id="location-chart" style="height: 240px;"></canvas>
-    </div>
-    
-    <div class="section-title">🌊 Seasonal River Conditions</div>
-    <div class="season-grid">
-      <div class="season-card">
-        <h4>❄️ Winter (Nov–Feb)</h4>
-        <p>Clear, low flow (~50–200 cumecs), sandbanks fully exposed. Peak basking season.</p>
-        <p><strong>Water:</strong> 15–25°C | <strong>Air:</strong> 10–28°C</p>
-        <p><strong>Behavior:</strong> Maximum basking, territorial displays, optimal survey conditions.</p>
-      </div>
-      <div class="season-card">
-        <h4>☀️ Pre-Monsoon / Breeding (Mar–May)</h4>
-        <p>Slowly rising, 200–500 cumecs. Breeding & nesting season.</p>
-        <p><strong>Water:</strong> 25–35°C | <strong>Air:</strong> 25–45°C</p>
-        <p><strong>Behavior:</strong> Courtship, mating, nest digging. High activity. Basking window 06:00–10:00.</p>
-      </div>
-      <div class="season-card">
-        <h4>🌧️ Monsoon (Jun–Sep)</h4>
-        <p>High turbid flow 2000–15000 cumecs. Hatchlings emerge.</p>
-        <p><strong>Water:</strong> 28–32°C | <strong>Air:</strong> 25–35°C</p>
-        <p><strong>Behavior:</strong> Reduced visibility. Hatchlings emerge July–Aug. Difficult survey conditions.</p>
-      </div>
-      <div class="season-card">
-        <h4>🍂 Post-Monsoon (Oct)</h4>
-        <p>Receding, clearing. Animals returning to territories.</p>
-        <p><strong>Water:</strong> 22–28°C | <strong>Air:</strong> 18–32°C</p>
-        <p><strong>Behavior:</strong> Territory re-establishment, increased basking as water clears.</p>
-      </div>
-    </div>
-    
-    <div class="section-title">☀️ Solar / Environmental Data</div>
-    <div class="stat-grid">
-      <div class="stat-card">
-        <div class="stat-label">Latest Survey</div>
-        <div class="stat-value" style="font-size: 16px;">${formatDate(latestDate)}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Sun Elevation</div>
-        <div class="stat-value">${solar.elevation}°</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Sun Azimuth</div>
-        <div class="stat-value">${solar.azimuth}°</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">UV Index</div>
-        <div class="stat-value">${solar.uvIndex}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Basking Quality</div>
-        <div class="stat-value" style="font-size: 18px;">${solar.baskingQuality}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Solar Declination</div>
-        <div class="stat-value">${solar.declination}°</div>
-      </div>
-    </div>
-    
-    <div class="section-title">🔍 Ecological Insights</div>
-    <div class="insight-grid">
-      <div class="insight-card">
-        <div class="label">Most Active Site</div>
-        <div class="value">${topLocation ? topLocation[0] : '—'}</div>
-      </div>
-      <div class="insight-card">
-        <div class="label">Top Activity</div>
-        <div class="value">${topActivity ? `${topActivity[0]} (${((topActivity[1]/filteredRecords.length)*100).toFixed(1)}%)` : '—'}</div>
-      </div>
-      <div class="insight-card">
-        <div class="label">Peak Survey Month</div>
-        <div class="value">${peakMonth ? peakMonth[0] : '—'}</div>
-      </div>
-      <div class="insight-card">
-        <div class="label">Top Observer</div>
-        <div class="value">${topObserver ? topObserver[0] : '—'}</div>
-      </div>
-      <div class="insight-card">
-        <div class="label">Latest Survey</div>
-        <div class="value" style="font-size: 12px;">${formatDate(latestDate).split(' ')[0]}</div>
-      </div>
-      <div class="insight-card">
-        <div class="label">Avg Obs per Day</div>
-        <div class="value">${avgPerDay}</div>
-      </div>
-    </div>
-  `;
+  return `<div class="stat-grid"><div class="stat-card"><div class="stat-label">Total Records</div><div class="stat-value">${filteredRecords.length}</div></div><div class="stat-card"><div class="stat-label">Total Animals</div><div class="stat-value">${uniqueAnimals.size}</div></div><div class="stat-card"><div class="stat-label">Adult Female</div><div class="stat-value">${afCount}</div></div><div class="stat-card"><div class="stat-label">Adult Male</div><div class="stat-value">${amCount}</div></div><div class="stat-card"><div class="stat-label">Sub-adult</div><div class="stat-value">${saCount}</div></div><div class="stat-card"><div class="stat-label">Survey Sites</div><div class="stat-value">${uniqueLocations.size}</div></div><div class="stat-card"><div class="stat-label">Survey Days</div><div class="stat-value">${uniqueDates.size}</div></div><div class="stat-card"><div class="stat-label">Avg Obs/Day</div><div class="stat-value">${avgPerDay}</div></div></div><div class="section-title">📊 Observation Analytics</div><div class="chart-row"><div class="chart-card"><h3>Activity Distribution</h3><canvas id="activity-chart" class="chart-canvas"></canvas></div><div class="chart-card"><h3>Life Stage Distribution</h3><canvas id="lifestage-chart" class="chart-canvas"></canvas></div><div class="chart-card"><h3>Monthly Survey Trend</h3><canvas id="monthly-chart" class="chart-canvas"></canvas></div></div><div class="section-title">📍 Site Observation Density</div><div class="chart-card" style="margin-bottom: 24px;"><canvas id="location-chart" style="height: 240px;"></canvas></div><div class="section-title">🌊 Seasonal River Conditions</div><div class="season-grid"><div class="season-card"><h4>❄️ Winter (Nov–Feb)</h4><p>Clear, low flow (~50–200 cumecs), sandbanks fully exposed. Peak basking season.</p><p><strong>Water:</strong> 15–25°C | <strong>Air:</strong> 10–28°C</p><p><strong>Behavior:</strong> Maximum basking, territorial displays, optimal survey conditions.</p></div><div class="season-card"><h4>☀️ Pre-Monsoon / Breeding (Mar–May)</h4><p>Slowly rising, 200–500 cumecs. Breeding & nesting season.</p><p><strong>Water:</strong> 25–35°C | <strong>Air:</strong> 25–45°C</p><p><strong>Behavior:</strong> Courtship, mating, nest digging. High activity. Basking window 06:00–10:00.</p></div><div class="season-card"><h4>🌧️ Monsoon (Jun–Sep)</h4><p>High turbid flow 2000–15000 cumecs. Hatchlings emerge.</p><p><strong>Water:</strong> 28–32°C | <strong>Air:</strong> 25–35°C</p><p><strong>Behavior:</strong> Reduced visibility. Hatchlings emerge July–Aug. Difficult survey conditions.</p></div><div class="season-card"><h4>🍂 Post-Monsoon (Oct)</h4><p>Receding, clearing. Animals returning to territories.</p><p><strong>Water:</strong> 22–28°C | <strong>Air:</strong> 18–32°C</p><p><strong>Behavior:</strong> Territory re-establishment, increased basking as water clears.</p></div></div><div class="section-title">☀️ Solar / Environmental Data</div><div class="stat-grid"><div class="stat-card"><div class="stat-label">Latest Survey</div><div class="stat-value" style="font-size: 16px;">${formatDate(latestDate)}</div></div><div class="stat-card"><div class="stat-label">Sun Elevation</div><div class="stat-value">${solar.elevation}°</div></div><div class="stat-card"><div class="stat-label">Sun Azimuth</div><div class="stat-value">${solar.azimuth}°</div></div><div class="stat-card"><div class="stat-label">UV Index</div><div class="stat-value">${solar.uvIndex}</div></div><div class="stat-card"><div class="stat-label">Basking Quality</div><div class="stat-value" style="font-size: 18px;">${solar.baskingQuality}</div></div><div class="stat-card"><div class="stat-label">Solar Declination</div><div class="stat-value">${solar.declination}°</div></div></div><div class="section-title">🔍 Ecological Insights</div><div class="insight-grid"><div class="insight-card"><div class="label">Most Active Site</div><div class="value">${topLocation ? topLocation[0] : '—'}</div></div><div class="insight-card"><div class="label">Top Activity</div><div class="value">${topActivity ? `${topActivity[0]} (${((topActivity[1]/filteredRecords.length)*100).toFixed(1)}%)` : '—'}</div></div><div class="insight-card"><div class="label">Peak Survey Month</div><div class="value">${peakMonth ? peakMonth[0] : '—'}</div></div><div class="insight-card"><div class="label">Top Observer</div><div class="value">${topObserver ? topObserver[0] : '—'}</div></div><div class="insight-card"><div class="label">Latest Survey</div><div class="value" style="font-size: 12px;">${formatDate(latestDate).split(' ')[0]}</div></div><div class="insight-card"><div class="label">Avg Obs per Day</div><div class="value">${avgPerDay}</div></div></div>`;
 }
 
 function renderFieldDataCharts() {
-  // Activity Chart
   const activityCounts = {};
-  filteredRecords.forEach(r => {
-    activityCounts[r.Activity] = (activityCounts[r.Activity] || 0) + 1;
-  });
-  
-  new Chart(document.getElementById('activity-chart'), {
-    type: 'doughnut',
-    data: {
-      labels: Object.keys(activityCounts),
-      datasets: [{
-        data: Object.values(activityCounts),
-        backgroundColor: ['#b07000', '#1a7050', '#1256a8', '#9b2060', '#0a6868']
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false }
-      }
-    }
-  });
-  
-  // Life Stage Chart
+  filteredRecords.forEach(r => { activityCounts[r.Activity] = (activityCounts[r.Activity] || 0) + 1; });
+  new Chart(document.getElementById('activity-chart'), { type: 'doughnut', data: { labels: Object.keys(activityCounts), datasets: [{ data: Object.values(activityCounts), backgroundColor: ['#b07000', '#1a7050', '#1256a8', '#9b2060', '#0a6868'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
   const afCount = filteredRecords.filter(r => r.Animal_Type.toLowerCase().includes('female')).length;
   const amCount = filteredRecords.filter(r => r.Animal_Type.toLowerCase().includes('male') && !r.Animal_Type.toLowerCase().includes('sub')).length;
   const saCount = filteredRecords.filter(r => r.Animal_Type.toLowerCase().includes('sub')).length;
-  
-  new Chart(document.getElementById('lifestage-chart'), {
-    type: 'doughnut',
-    data: {
-      labels: ['Adult Female', 'Adult Male', 'Sub-adult'],
-      datasets: [{
-        data: [afCount, amCount, saCount],
-        backgroundColor: ['#c0275a', '#1256a8', '#107060']
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false }
-      }
-    }
-  });
-  
-  // Monthly Trend
+  new Chart(document.getElementById('lifestage-chart'), { type: 'doughnut', data: { labels: ['Adult Female', 'Adult Male', 'Sub-adult'], datasets: [{ data: [afCount, amCount, saCount], backgroundColor: ['#c0275a', '#1256a8', '#107060'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
   const monthlyCounts = {};
-  filteredRecords.forEach(r => {
-    const key = `${r._dateObj.getFullYear()}-${String(r._dateObj.getMonth() + 1).padStart(2, '0')}`;
-    monthlyCounts[key] = (monthlyCounts[key] || 0) + 1;
-  });
-  
+  filteredRecords.forEach(r => { const key = `${r._dateObj.getFullYear()}-${String(r._dateObj.getMonth() + 1).padStart(2, '0')}`; monthlyCounts[key] = (monthlyCounts[key] || 0) + 1; });
   const sortedMonths = Object.keys(monthlyCounts).sort();
-  
-  new Chart(document.getElementById('monthly-chart'), {
-    type: 'line',
-    data: {
-      labels: sortedMonths,
-      datasets: [{
-        data: sortedMonths.map(m => monthlyCounts[m]),
-        borderColor: '#107060',
-        backgroundColor: 'rgba(16, 112, 96, 0.2)',
-        tension: 0.4
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false }
-      },
-      scales: {
-        y: { beginAtZero: true }
-      }
-    }
-  });
-  
-  // Location Chart
+  new Chart(document.getElementById('monthly-chart'), { type: 'line', data: { labels: sortedMonths, datasets: [{ data: sortedMonths.map(m => monthlyCounts[m]), borderColor: '#107060', backgroundColor: 'rgba(16, 112, 96, 0.2)', tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } } });
   const locationCounts = {};
-  filteredRecords.forEach(r => {
-    locationCounts[r.Location] = (locationCounts[r.Location] || 0) + 1;
-  });
-  
-  const sortedLocations = Object.entries(locationCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 10);
-  
-  new Chart(document.getElementById('location-chart'), {
-    type: 'bar',
-    data: {
-      labels: sortedLocations.map(l => l[0]),
-      datasets: [{
-        data: sortedLocations.map(l => l[1]),
-        backgroundColor: '#107060'
-      }]
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      plugins: {
-        legend: { display: false }
-      },
-      scales: {
-        x: { beginAtZero: true }
-      }
-    }
-  });
+  filteredRecords.forEach(r => { locationCounts[r.Location] = (locationCounts[r.Location] || 0) + 1; });
+  const sortedLocations = Object.entries(locationCounts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+  new Chart(document.getElementById('location-chart'), { type: 'bar', data: { labels: sortedLocations.map(l => l[0]), datasets: [{ data: sortedLocations.map(l => l[1]), backgroundColor: '#107060' }] }, options: { indexAxis: 'y', responsive: true, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true } } } });
 }
 
-// === ANIMAL PROFILE CONTENT ===
 function generateAnimalProfileContent(records, radioID) {
   const latest = records[records.length - 1];
   const uniqueLocations = new Set(records.map(r => r.Location));
-  
   const activityCounts = {};
-  records.forEach(r => {
-    activityCounts[r.Activity] = (activityCounts[r.Activity] || 0) + 1;
-  });
+  records.forEach(r => { activityCounts[r.Activity] = (activityCounts[r.Activity] || 0) + 1; });
   const topActivity = Object.entries(activityCounts).sort((a, b) => b[1] - a[1])[0];
-  
-  return `
-    <div class="profile-stats">
-      <div class="stat-card">
-        <div class="stat-label">Total Sightings</div>
-        <div class="stat-value">${records.length}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Sites Visited</div>
-        <div class="stat-value">${uniqueLocations.size}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Top Activity</div>
-        <div class="stat-value" style="font-size: 18px;">${topActivity ? topActivity[0] : '—'}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Category</div>
-        <div class="stat-value" style="font-size: 16px;">${getCategoryPill(latest.Animal_Type)}</div>
-      </div>
-    </div>
-    
-    <div class="profile-mini-map" id="profile-mini-map"></div>
-    
-    <div class="sighting-table">
-      <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px;">Sighting History</h3>
-      <table style="font-size: 11px;">
-        <thead>
-          <tr>
-            <th>Datetime</th>
-            <th>Activity</th>
-            <th>Location</th>
-            <th>Signal</th>
-            <th>Observer</th>
-            <th>Notes</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${records.map(r => `
-            <tr>
-              <td class="mono">${formatDate(r._dateObj)}</td>
-              <td>${r.Activity}</td>
-              <td>${r.Location}</td>
-              <td>${r.Signal_Strength}</td>
-              <td>${r.Observer}</td>
-              <td title="${r.Notes}">${truncate(r.Notes, 30)}</td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    </div>
-  `;
+  return `<div class="profile-stats"><div class="stat-card"><div class="stat-label">Total Sightings</div><div class="stat-value">${records.length}</div></div><div class="stat-card"><div class="stat-label">Sites Visited</div><div class="stat-value">${uniqueLocations.size}</div></div><div class="stat-card"><div class="stat-label">Top Activity</div><div class="stat-value" style="font-size: 18px;">${topActivity ? topActivity[0] : '—'}</div></div><div class="stat-card"><div class="stat-label">Category</div><div class="stat-value" style="font-size: 16px;">${getCategoryPill(latest.Animal_Type)}</div></div></div><div class="profile-mini-map" id="profile-mini-map"></div><div class="sighting-table"><h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px;">Sighting History</h3><table style="font-size: 11px;"><thead><tr><th>Datetime</th><th>Activity</th><th>Location</th><th>Signal</th><th>Observer</th><th>Notes</th></tr></thead><tbody>${records.map(r => `<tr><td class="mono">${formatDate(r._dateObj)}</td><td>${r.Activity}</td><td>${r.Location}</td><td>${r.Signal_Strength}</td><td>${r.Observer}</td><td title="${r.Notes}">${truncate(r.Notes, 30)}</td></tr>`).join('')}</tbody></table></div>`;
 }
 
 function renderAnimalProfileMap(records) {
-  const miniMap = L.map('profile-mini-map', {
-    zoomControl: false,
-    attributionControl: false
-  });
-  
-  L.tileLayer('https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
-    subdomains: ['0', '1', '2', '3']
-  }).addTo(miniMap);
-  
-  const category = records[0].Animal_Type;
-  const color = getCategoryColor(category);
-  
-  // Plot all sightings
-  records.forEach((r, idx) => {
-    const isLatest = idx === records.length - 1;
-    const radius = isLatest ? 9 : 6;
-    
-    L.circleMarker([r._lat, r._lon], {
-      radius: radius,
-      fillColor: color,
-      color: isLatest ? 'white' : color,
-      weight: isLatest ? 2 : 1,
-      fillOpacity: 0.8
-    }).addTo(miniMap);
-  });
-  
-  // Draw polyline
+  const miniMap = L.map('profile-mini-map', { zoomControl: false, attributionControl: false });
+  L.tileLayer('https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { subdomains: ['0', '1', '2', '3'] }).addTo(miniMap);
+  const color = getCategoryColor(records[0].Animal_Type);
+  records.forEach((r, idx) => { const isLatest = idx === records.length - 1; L.circleMarker([r._lat, r._lon], { radius: isLatest ? 9 : 6, fillColor: color, color: isLatest ? 'white' : color, weight: isLatest ? 2 : 1, fillOpacity: 0.8 }).addTo(miniMap); });
   const coords = records.map(r => [r._lat, r._lon]);
-  L.polyline(coords, {
-    color: color,
-    weight: 2,
-    opacity: 0.6,
-    dashArray: '5, 5'
-  }).addTo(miniMap);
-  
+  L.polyline(coords, { color: color, weight: 2, opacity: 0.6, dashArray: '5, 5' }).addTo(miniMap);
   const bounds = L.latLngBounds(coords);
   miniMap.fitBounds(bounds, { padding: [20, 20] });
 }
 
-// === DATA REFRESH ===
 async function refreshData() {
   try {
     const newRecords = await fetchData();
-    
-    // Check for new data
     const newCount = newRecords.length;
-    if (newCount > previousRecordCount && previousRecordCount > 0) {
-      const diff = newCount - previousRecordCount;
-      showNewDataBanner(diff);
-    }
-    
+    if (newCount > previousRecordCount && previousRecordCount > 0) showNewDataBanner(newCount - previousRecordCount);
     previousRecordCount = newCount;
     allRecords = newRecords;
-    
     populateFilters();
     applyFilters();
-  } catch (err) {
-    console.error('Refresh failed:', err);
-  }
+  } catch (err) { console.error('Refresh failed:', err); }
 }
 
 function showNewDataBanner(count) {
   const banner = document.getElementById('new-data-banner');
   const text = document.getElementById('banner-text');
   text.textContent = `${count} new observations loaded · tap to zoom`;
-  
   banner.classList.add('show');
-  
-  banner.onclick = () => {
-    const newRecords = allRecords.slice(-count);
-    const bounds = L.latLngBounds(newRecords.map(r => [r._lat, r._lon]));
-    map.fitBounds(bounds);
-    banner.classList.remove('show');
-  };
-  
-  setTimeout(() => {
-    banner.classList.remove('show');
-  }, 9000);
+  banner.onclick = () => { const newRecords = allRecords.slice(-count); const bounds = L.latLngBounds(newRecords.map(r => [r._lat, r._lon])); map.fitBounds(bounds); banner.classList.remove('show'); };
+  setTimeout(() => { banner.classList.remove('show'); }, 9000);
 }
 
-function startAutoRefresh() {
-  autoRefreshInterval = setInterval(async () => {
-    await refreshData();
-  }, 90000); // 90 seconds
-}
+function startAutoRefresh() { autoRefreshInterval = setInterval(async () => { await refreshData(); }, 90000); }
 
-// === POPULATE FILTERS ===
 function populateFilters() {
   const typeFilter = document.getElementById('type-filter');
   const currentValue = typeFilter.value;
-  
   typeFilter.innerHTML = '<option value="">All Types</option>';
-  
   const uniqueTypes = [...new Set(allRecords.map(r => r.Animal_Type))].sort();
-  uniqueTypes.forEach(type => {
-    const option = document.createElement('option');
-    option.value = type;
-    option.textContent = type;
-    typeFilter.appendChild(option);
-  });
-  
+  uniqueTypes.forEach(type => { const option = document.createElement('option'); option.value = type; option.textContent = type; typeFilter.appendChild(option); });
   typeFilter.value = currentValue;
 }
 
-// === INITIALIZATION ===
 async function init() {
   try {
     const records = await fetchData();
     allRecords = records;
     previousRecordCount = records.length;
-    
     document.getElementById('loader').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
-    
     initMap();
     populateFilters();
     applyFilters();
     startAutoRefresh();
-    
-    // Event listeners
     document.getElementById('type-filter').addEventListener('change', applyFilters);
     document.getElementById('radio-id-filter').addEventListener('input', applyFilters);
     document.getElementById('date-from').addEventListener('change', applyFilters);
     document.getElementById('date-to').addEventListener('change', applyFilters);
-    
-  } catch (err) {
-    console.error('Initialization failed:', err);
-    document.getElementById('error-message').textContent = err.message;
-    document.getElementById('loader-error').style.display = 'block';
-  }
+  } catch (err) { console.error('Initialization failed:', err); document.getElementById('error-message').textContent = err.message; document.getElementById('loader-error').style.display = 'block'; }
 }
 
-function retryLoad() {
-  document.getElementById('loader-error').style.display = 'none';
-  init();
-}
-
-// Start app
+function retryLoad() { document.getElementById('loader-error').style.display = 'none'; init(); }
 init();
 </script>
 </body>
