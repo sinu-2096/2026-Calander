@@ -1,279 +1,956 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🐊 Chambal Gharial – Field Observation Platform</title>
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
-<title>🐊 Chambal Gharial Dashboard</title>
+  <style>
+    :root {
+      --hdr:        #0f2318;
+      --hdr-b:      #1e3d2a;
+      --hdr-accent: #3dcc8a;
+      --bg:         #edf2ee;
+      --sur:        #ffffff;
+      --sur2:       #f4f8f5;
+      --brd:        #d6e6db;
+      --brd2:       #b8d0c0;
+      --af:         #c0185a;   /* Adult Female – magenta */
+      --am:         #1448a8;   /* Adult Male – blue     */
+      --sa:         #0e6e50;   /* Sub-adult – green     */
+      --t1:         #0b1a10;
+      --t2:         #345640;
+      --t3:         #7a9888;
+      --t4:         #c4d8c8;
+      --radius:     6px;
+    }
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    html, body {
+      height: 100%;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--t1);
+      overflow: hidden;
+    }
 
-<style>
+    .mono { font-family: 'JetBrains Mono', monospace; }
 
-body{
-margin:0;
-font-family:Inter;
-background:#eef2ef;
-}
+    /* ── LOADER ─────────────────────────────────────────── */
+    #loader {
+      position: fixed; inset: 0;
+      background: var(--hdr);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 9999; color: #fff; gap: 16px;
+    }
 
-#header{
-height:50px;
-background:#1b3d2a;
-color:white;
-display:flex;
-align-items:center;
-padding:0 20px;
-font-weight:600;
-font-size:14px;
-}
+    #loader .croc-icon {
+      font-size: 52px; line-height: 1;
+      animation: pulse 2s ease-in-out infinite;
+    }
 
-#map{
-height:calc(100vh - 240px);
-width:100%;
-}
+    @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
 
-/* marker */
+    .spinner {
+      width: 44px; height: 44px;
+      border: 3px solid rgba(61,204,138,.18);
+      border-top-color: var(--hdr-accent);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-.mk{
-width:32px;
-height:32px;
-border-radius:50%;
-display:flex;
-align-items:center;
-justify-content:center;
-color:white;
-font-size:12px;
-font-weight:700;
-font-family:"JetBrains Mono";
-border:2px solid white;
-box-shadow:0 2px 6px rgba(0,0,0,0.4);
-}
+    #loader h2 {
+      font-size: 15px; font-weight: 600;
+      letter-spacing: .6px; text-transform: uppercase;
+    }
+    #loader p { font-size: 13px; color: rgba(255,255,255,.6); }
 
-.mk.af{background:#c0275a;}
-.mk.am{background:#1256a8;}
-.mk.sa{background:#107060;}
+    #loader-error {
+      display: none; max-width: 420px; text-align: center;
+      background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15);
+      border-radius: var(--radius); padding: 20px;
+    }
+    #loader-error p { margin-bottom: 14px; font-size: 13px; color: rgba(255,255,255,.75); }
+    #loader-error button {
+      padding: 9px 22px; background: var(--hdr-accent);
+      border: none; border-radius: var(--radius); font-weight: 600;
+      font-size: 13px; color: var(--hdr); cursor: pointer;
+    }
 
-#table{
-height:190px;
-overflow:auto;
-background:white;
-}
+    /* ── APP SHELL ───────────────────────────────────────── */
+    #app {
+      display: none; flex-direction: column;
+      height: 100vh; width: 100vw;
+    }
 
-table{
-width:100%;
-border-collapse:collapse;
-font-size:12px;
-}
+    /* ── HEADER ──────────────────────────────────────────── */
+    #header {
+      flex-shrink: 0; height: 52px;
+      background: var(--hdr);
+      border-bottom: 2px solid var(--hdr-b);
+      display: flex; align-items: center;
+      padding: 0 18px; gap: 16px;
+      user-select: none;
+    }
 
-th,td{
-padding:8px;
-border-bottom:1px solid #ddd;
-}
+    .hdr-brand {
+      display: flex; align-items: center; gap: 10px; color: #fff;
+    }
+    .hdr-brand .croc { font-size: 26px; }
+    .hdr-brand h1 {
+      font-size: 15px; font-weight: 700; letter-spacing: .3px;
+      white-space: nowrap;
+    }
+    .hdr-brand span {
+      font-size: 11px; color: rgba(255,255,255,.55);
+      font-weight: 400; display: block; margin-top: -2px;
+    }
 
-th{
-background:#f0f0f0;
-font-weight:600;
-}
+    .hdr-divider {
+      width: 1px; height: 28px;
+      background: rgba(255,255,255,.15); flex-shrink: 0;
+    }
 
-.clickable{
-color:#107060;
-font-weight:600;
-cursor:pointer;
-}
+    /* category pills */
+    .cat-pills {
+      display: flex; gap: 8px; align-items: center; flex: 1;
+    }
+    .cat-pill {
+      display: flex; align-items: center; gap: 5px;
+      padding: 4px 11px; border-radius: 20px;
+      font-size: 11px; font-weight: 600; color: #fff;
+      letter-spacing: .2px;
+    }
+    .cat-pill .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: rgba(255,255,255,.7);
+    }
+    .cat-pill.af { background: var(--af); }
+    .cat-pill.am { background: var(--am); }
+    .cat-pill.sa { background: var(--sa); }
 
-</style>
+    /* live badge */
+    .live-badge {
+      display: flex; align-items: center; gap: 6px;
+      padding: 4px 12px; border-radius: 20px;
+      background: rgba(61,204,138,.12);
+      border: 1px solid rgba(61,204,138,.3);
+      color: var(--hdr-accent); font-size: 11px; font-weight: 600;
+      letter-spacing: .3px; white-space: nowrap;
+    }
+    .live-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--hdr-accent);
+      animation: blink 2s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
 
+    /* stats in header */
+    .hdr-stats {
+      display: flex; gap: 16px; align-items: center;
+      color: rgba(255,255,255,.75); font-size: 12px;
+    }
+    .hdr-stat { display: flex; flex-direction: column; align-items: center; }
+    .hdr-stat .val {
+      font-size: 16px; font-weight: 700; color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .hdr-stat .lbl { font-size: 10px; text-transform: uppercase; letter-spacing: .4px; opacity: .6; }
+
+    /* refresh btn */
+    #refresh-btn {
+      padding: 7px 14px; background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.2); border-radius: var(--radius);
+      color: #fff; font-size: 12px; font-weight: 500; cursor: pointer;
+      transition: background .2s; white-space: nowrap;
+      display: flex; align-items: center; gap: 6px;
+    }
+    #refresh-btn:hover { background: rgba(255,255,255,.2); }
+    #refresh-btn.spinning svg { animation: spin .8s linear infinite; }
+
+    /* ── FILTER BAR ──────────────────────────────────────── */
+    #filter-bar {
+      flex-shrink: 0; height: 42px;
+      background: var(--sur);
+      border-bottom: 1px solid var(--brd);
+      display: flex; align-items: center;
+      padding: 0 16px; gap: 10px;
+    }
+
+    .filter-label {
+      font-size: 11px; font-weight: 600; color: var(--t3);
+      text-transform: uppercase; letter-spacing: .4px; white-space: nowrap;
+    }
+
+    #filter-bar select,
+    #filter-bar input[type="text"] {
+      height: 28px; padding: 0 10px;
+      border: 1px solid var(--brd2); border-radius: var(--radius);
+      font-size: 12px; font-family: 'Inter', sans-serif;
+      background: var(--sur2); color: var(--t1);
+      outline: none; transition: border .2s;
+    }
+    #filter-bar select:focus,
+    #filter-bar input[type="text"]:focus { border-color: var(--sa); }
+    #filter-bar select { min-width: 160px; }
+    #filter-bar input[type="text"] { width: 150px; font-family: 'JetBrains Mono', monospace; }
+
+    .filter-clear {
+      padding: 0 12px; height: 28px;
+      background: var(--sur2); border: 1px solid var(--brd2);
+      border-radius: var(--radius); font-size: 12px; font-weight: 500;
+      color: var(--t2); cursor: pointer; transition: all .2s;
+    }
+    .filter-clear:hover { background: var(--brd); }
+
+    .filter-sep { flex: 1; }
+
+    .obs-count {
+      font-size: 12px; color: var(--t3); font-weight: 500;
+    }
+    .obs-count strong { color: var(--sa); font-family: 'JetBrains Mono', monospace; }
+
+    /* ── MAP AREA ────────────────────────────────────────── */
+    #map-wrap {
+      flex: 1; position: relative; overflow: hidden;
+    }
+
+    #map { width: 100%; height: 100%; }
+
+    /* ── CUSTOM MARKERS ──────────────────────────────────── */
+    .gh-marker {
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700; font-size: 9px;
+      line-height: 1;
+      border: 2.5px solid #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,.45), 0 0 0 1px rgba(0,0,0,.15);
+      cursor: pointer; transition: transform .15s, box-shadow .15s;
+      text-align: center; word-break: break-all;
+      padding: 2px;
+    }
+    .gh-marker:hover {
+      transform: scale(1.15);
+      box-shadow: 0 4px 14px rgba(0,0,0,.5), 0 0 0 3px rgba(255,255,255,.4);
+    }
+    .gh-marker.af { background: var(--af); }
+    .gh-marker.am { background: var(--am); }
+    .gh-marker.sa { background: var(--sa); }
+
+    /* ── POPUP ───────────────────────────────────────────── */
+    .leaflet-popup-content-wrapper {
+      background: rgba(8,18,12,.94) !important;
+      border: 1.5px solid rgba(61,204,138,.3);
+      border-radius: 10px !important;
+      box-shadow: 0 6px 24px rgba(0,0,0,.5) !important;
+      padding: 0 !important; overflow: hidden;
+    }
+    .leaflet-popup-content { margin: 0 !important; min-width: 260px; max-width: 300px; }
+    .leaflet-popup-tip-container { margin-top: -1px; }
+    .leaflet-popup-tip { background: rgba(8,18,12,.94) !important; }
+    .leaflet-popup-close-button { color: rgba(255,255,255,.5) !important; top: 8px !important; right: 10px !important; font-size: 16px !important; }
+    .leaflet-popup-close-button:hover { color: #fff !important; }
+
+    .pop-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 14px 10px;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+    }
+    .pop-id-badge {
+      display: flex; align-items: center; justify-content: center;
+      width: 40px; height: 40px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,.8);
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700; font-size: 9px; color: #fff;
+      text-align: center; line-height: 1.2; padding: 2px;
+      flex-shrink: 0; word-break: break-all;
+    }
+    .pop-id-badge.af { background: var(--af); }
+    .pop-id-badge.am { background: var(--am); }
+    .pop-id-badge.sa { background: var(--sa); }
+    .pop-title { flex: 1; }
+    .pop-animal-id {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px; font-weight: 700; color: #fff;
+    }
+    .pop-cat-tag {
+      display: inline-block; margin-top: 3px;
+      padding: 2px 8px; border-radius: 10px;
+      font-size: 10px; font-weight: 600; color: #fff;
+    }
+    .pop-cat-tag.af { background: var(--af); }
+    .pop-cat-tag.am { background: var(--am); }
+    .pop-cat-tag.sa { background: var(--sa); }
+
+    .pop-body { padding: 10px 14px 12px; }
+
+    .pop-row {
+      display: flex; align-items: flex-start;
+      padding: 5px 0; font-size: 12px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .pop-row:last-child { border-bottom: none; }
+    .pop-lbl {
+      width: 90px; color: rgba(255,255,255,.5);
+      font-weight: 500; flex-shrink: 0; padding-top: 1px;
+    }
+    .pop-val { color: rgba(255,255,255,.9); font-weight: 500; flex: 1; }
+    .pop-val.coord {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--hdr-accent); font-size: 11px;
+    }
+    .pop-val.signal-strong { color: #4ade80; }
+    .pop-val.signal-weak   { color: #f87171; }
+    .pop-val.signal-mod    { color: #fbbf24; }
+
+    /* ── TABLE DRAWER ────────────────────────────────────── */
+    #table-drawer {
+      flex-shrink: 0;
+      background: var(--sur);
+      border-top: 2px solid var(--brd2);
+      display: flex; flex-direction: column;
+      transition: height .3s ease;
+      height: 220px; min-height: 34px; max-height: 360px;
+      position: relative; z-index: 500;
+      overflow: hidden;
+    }
+    #table-drawer.collapsed { height: 34px; }
+
+    .drawer-handle {
+      flex-shrink: 0; height: 34px;
+      background: var(--sur2);
+      border-bottom: 1px solid var(--brd);
+      display: flex; align-items: center;
+      padding: 0 14px; cursor: pointer;
+      gap: 8px; user-select: none;
+    }
+    .drawer-handle:hover { background: var(--brd); }
+
+    .handle-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--sa); flex-shrink: 0;
+    }
+    .handle-title {
+      font-size: 12px; font-weight: 600; color: var(--t2);
+    }
+    .handle-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; color: var(--sa); font-weight: 600;
+    }
+    .handle-spacer { flex: 1; }
+    .handle-toggle {
+      font-size: 10px; color: var(--t3); font-weight: 500;
+      text-transform: uppercase; letter-spacing: .4px;
+    }
+
+    .table-scroll { flex: 1; overflow: auto; }
+
+    table {
+      width: 100%; border-collapse: collapse;
+      font-size: 12px;
+    }
+    thead {
+      position: sticky; top: 0;
+      background: var(--sur2); z-index: 10;
+    }
+    th {
+      padding: 8px 12px; text-align: left;
+      font-weight: 600; color: var(--t2);
+      border-bottom: 1px solid var(--brd);
+      white-space: nowrap; font-size: 11px;
+      text-transform: uppercase; letter-spacing: .4px;
+    }
+    td {
+      padding: 7px 12px;
+      border-bottom: 1px solid var(--brd);
+      color: var(--t1); vertical-align: middle;
+    }
+    tbody tr:hover { background: #f0f7f3; cursor: pointer; }
+    tbody tr:last-child td { border-bottom: none; }
+
+    .td-id {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700; font-size: 11px;
+    }
+    .td-id.af { color: var(--af); }
+    .td-id.am { color: var(--am); }
+    .td-id.sa { color: var(--sa); }
+
+    .td-ts {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; color: var(--t2);
+    }
+    .td-cat {
+      display: inline-block; padding: 2px 8px;
+      border-radius: 10px; font-size: 10px; font-weight: 600; color: #fff;
+    }
+    .td-cat.af { background: var(--af); }
+    .td-cat.am { background: var(--am); }
+    .td-cat.sa { background: var(--sa); }
+
+    .td-sig.strong { color: #16a34a; font-weight: 600; }
+    .td-sig.weak   { color: #dc2626; font-weight: 600; }
+    .td-sig.mod    { color: #ca8a04; font-weight: 600; }
+
+    .td-coord {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; color: var(--t3);
+    }
+
+    /* ── NEW DATA BANNER ─────────────────────────────────── */
+    #new-data-banner {
+      position: absolute; top: 14px; left: 50%; transform: translateX(-50%) translateY(-80px);
+      background: rgba(8,18,12,.9); border: 1px solid var(--hdr-accent);
+      color: var(--hdr-accent); padding: 10px 20px; border-radius: 30px;
+      font-size: 13px; font-weight: 600; cursor: pointer; z-index: 2000;
+      transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+      white-space: nowrap; box-shadow: 0 4px 16px rgba(0,0,0,.4);
+    }
+    #new-data-banner.show { transform: translateX(-50%) translateY(0); }
+
+    /* scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--sur2); }
+    ::-webkit-scrollbar-thumb { background: var(--brd2); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--t3); }
+  </style>
 </head>
-
 <body>
 
-<div id="header">
-🐊 Chambal Gharial – Field Observation Platform
+<!-- LOADER -->
+<div id="loader">
+  <div class="croc-icon">🐊</div>
+  <div class="spinner"></div>
+  <h2>Chambal Gharial Platform</h2>
+  <p>Loading telemetry data…</p>
+  <div id="loader-error">
+    <p id="error-msg">Unable to load data from Google Sheet.</p>
+    <button onclick="retryLoad()">Retry</button>
+  </div>
 </div>
 
-<div id="map"></div>
+<!-- APP -->
+<div id="app">
 
-<div id="table">
+  <!-- HEADER -->
+  <div id="header">
+    <div class="hdr-brand">
+      <span class="croc">🐊</span>
+      <div>
+        <h1>Chambal Gharial — Field Observation Platform</h1>
+        <span>National Chambal Sanctuary · Radio Telemetry Monitoring</span>
+      </div>
+    </div>
 
-<table id="dataTable">
+    <div class="hdr-divider"></div>
 
-<thead>
-<tr>
+    <div class="cat-pills">
+      <div class="cat-pill af"><div class="dot"></div>Adult Female</div>
+      <div class="cat-pill am"><div class="dot"></div>Adult Male</div>
+      <div class="cat-pill sa"><div class="dot"></div>Sub-adult</div>
+    </div>
 
-<th>Animal ID</th>
-<th>Timestamp</th>
-<th>Place</th>
-<th>Activity</th>
-<th>Signal</th>
-<th>Category</th>
-<th>Latitude</th>
-<th>Longitude</th>
-<th>Observer</th>
+    <div class="hdr-divider"></div>
 
-</tr>
-</thead>
+    <div class="hdr-stats">
+      <div class="hdr-stat">
+        <span class="val" id="stat-animals">—</span>
+        <span class="lbl">Tagged</span>
+      </div>
+      <div class="hdr-stat">
+        <span class="val" id="stat-records">—</span>
+        <span class="lbl">Records</span>
+      </div>
+      <div class="hdr-stat">
+        <span class="val" id="stat-sites">—</span>
+        <span class="lbl">Sites</span>
+      </div>
+    </div>
 
-<tbody></tbody>
+    <div class="hdr-divider"></div>
 
-</table>
+    <div class="live-badge">
+      <div class="live-dot"></div>
+      LIVE FEED
+    </div>
 
-</div>
+    <button id="refresh-btn" onclick="triggerRefresh()" title="Refresh data">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+      </svg>
+      Refresh
+    </button>
+  </div>
 
+  <!-- FILTER BAR -->
+  <div id="filter-bar">
+    <span class="filter-label">Filter</span>
+
+    <select id="cat-filter" onchange="applyFilters()">
+      <option value="">All Categories</option>
+      <option value="Adult Female">Adult Female</option>
+      <option value="Adult Male">Adult Male</option>
+      <option value="Sub-adult">Sub-adult</option>
+    </select>
+
+    <select id="activity-filter" onchange="applyFilters()">
+      <option value="">All Activities</option>
+    </select>
+
+    <input type="text" id="id-filter" placeholder="Animal ID…" oninput="applyFilters()">
+
+    <button class="filter-clear" onclick="clearFilters()">✕ Clear</button>
+
+    <div class="filter-sep"></div>
+
+    <span class="obs-count">
+      Showing <strong id="map-count">—</strong> latest fixes
+    </span>
+  </div>
+
+  <!-- MAP -->
+  <div id="map-wrap">
+    <div id="map"></div>
+    <div id="new-data-banner">↑ New observations loaded</div>
+  </div>
+
+  <!-- TABLE DRAWER -->
+  <div id="table-drawer">
+    <div class="drawer-handle" onclick="toggleDrawer()">
+      <div class="handle-dot"></div>
+      <span class="handle-title">Latest Fixes — Observation Log</span>
+      <span class="handle-count" id="tbl-count"></span>
+      <div class="handle-spacer"></div>
+      <span class="handle-toggle" id="drawer-toggle-lbl">▲ Collapse</span>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Animal ID</th>
+            <th>Timestamp</th>
+            <th>Place</th>
+            <th>Activity</th>
+            <th>Signal</th>
+            <th>Category</th>
+            <th>Latitude</th>
+            <th>Longitude</th>
+            <th>Observer</th>
+          </tr>
+        </thead>
+        <tbody id="tbl-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- end #app -->
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <script>
+'use strict';
 
-/* GOOGLE SHEET CSV */
+/* ── CONFIG ─────────────────────────────────────────────── */
+const CSV_URL   = 'https://docs.google.com/spreadsheets/d/1-qg3MnjhJn2SCwPYnyCPgI2ujy235X-chN_EHlJDK3g/export?format=csv&gid=0';
+const MAP_CENTER = [25.85, 76.55];
+const MAP_ZOOM   = 11;
+const REFRESH_MS = 90_000;
 
-const sheetURL =
-"https://docs.google.com/spreadsheets/d/1-qg3MnjhJn2SCwPYnyCPgI2ujy235X-chN_EHlJDK3g/export?format=csv&gid=0";
+/* ── STATE ───────────────────────────────────────────────── */
+let map, allRecords = [], latestFixMap = new Map();
+let activeMarkers = [], previousCount = 0, refreshTimer = null;
+let drawerOpen = true;
 
+/* ── UTILS ───────────────────────────────────────────────── */
+const catClass = cat => {
+  const c = (cat || '').toLowerCase();
+  if (c.includes('female'))                               return 'af';
+  if (c.includes('male') && !c.includes('sub'))           return 'am';
+  if (c.includes('sub'))                                  return 'sa';
+  return 'sa';
+};
 
-/* MAP */
+const catLabel = cat => {
+  const c = (cat || '').toLowerCase();
+  if (c.includes('female'))                               return 'Adult Female';
+  if (c.includes('male') && !c.includes('sub'))           return 'Adult Male';
+  if (c.includes('sub'))                                  return 'Sub-adult';
+  return cat || 'Unknown';
+};
 
-const map = L.map("map").setView([25.85,76.55],11);
+const sigClass = sig => {
+  const s = (sig || '').toLowerCase();
+  if (s.includes('strong') || s.includes('good') || s === 'high')   return 'strong';
+  if (s.includes('weak') || s.includes('poor') || s === 'low')      return 'weak';
+  return 'mod';
+};
 
-L.tileLayer(
-"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-{maxZoom:18}
-).addTo(map);
+const parseDate = str => {
+  if (!str) return null;
+  // try ISO, then DD/MM/YYYY HH:MM, DD-MM-YYYY HH:MM, etc.
+  let d = new Date(str);
+  if (!isNaN(d)) return d;
+  const m = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})\s*(\d{1,2}):?(\d{2})?/);
+  if (m) {
+    const yr = m[3].length === 2 ? '20' + m[3] : m[3];
+    d = new Date(`${yr}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}T${(m[4]||'00').padStart(2,'0')}:${(m[5]||'00').padStart(2,'0')}:00`);
+    if (!isNaN(d)) return d;
+  }
+  return null;
+};
 
-const markerLayer = L.layerGroup().addTo(map);
+const fmtDate = d => {
+  if (!d) return '—';
+  return d.toLocaleString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', hour12: false });
+};
 
+const truncate = (s, n) => (s && s.length > n) ? s.slice(0, n) + '…' : (s || '—');
 
-/* GET LATEST FIX PER ANIMAL */
+/* ── CSV PARSE ───────────────────────────────────────────── */
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  if (lines.length < 2) return [];
+  const header = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g,'').toLowerCase().replace(/\s+/g,'_'));
+  const records = [];
 
-function getLatestFixes(data){
+  for (let i = 1; i < lines.length; i++) {
+    const cells = splitCSVRow(lines[i]);
+    if (cells.length < 8) continue;
+    const row = {};
+    header.forEach((h, idx) => { row[h] = (cells[idx] || '').trim().replace(/^"|"$/g,''); });
 
-const latest = {};
+    // flexible column mapping
+    const animalId  = row['animal_id']  || row['animal id']  || row['radio_id'] || row['id'] || '';
+    const timestamp = row['timestamp']  || row['date']       || row['datetime'] || '';
+    const place     = row['place']      || row['location']   || row['site']     || '';
+    const activity  = row['activity']   || row['behaviour']  || row['behavior'] || '';
+    const signal    = row['signal']     || row['signal_strength'] || row['signal strength'] || '';
+    const category  = row['category']   || row['animal_type']|| row['type']     || '';
+    const lat       = parseFloat(row['latitude']  || row['lat'] || '');
+    const lon       = parseFloat(row['longitude'] || row['lon'] || row['lng'] || '');
+    const observer  = row['observer']   || row['surveyor']   || '';
+    const remarks   = row['remarks']    || row['notes']      || row['comment']  || '';
 
-data.forEach(row => {
+    if (!animalId || isNaN(lat) || isNaN(lon)) continue;
+    const dateObj = parseDate(timestamp);
 
-const id = row["Animal ID"];
-const time = new Date(row["Timestamp"]);
-
-if(!latest[id] || time > new Date(latest[id]["Timestamp"])){
-
-latest[id] = row;
-
+    records.push({ animalId, timestamp, dateObj, place, activity, signal, category, lat, lon, observer, remarks });
+  }
+  return records;
 }
 
-});
-
-return Object.values(latest);
-
+function splitCSVRow(row) {
+  const result = []; let cur = ''; let inQ = false;
+  for (let i = 0; i < row.length; i++) {
+    const ch = row[i];
+    if (ch === '"') { inQ = !inQ; }
+    else if (ch === ',' && !inQ) { result.push(cur); cur = ''; }
+    else { cur += ch; }
+  }
+  result.push(cur);
+  return result;
 }
 
-
-/* CREATE MARKER */
-
-function createMarker(row){
-
-const lat = parseFloat(row["Latitude"]);
-const lon = parseFloat(row["Longitude"]);
-const id = row["Animal ID"];
-const category = row["Category"];
-
-let cls = "sa";
-
-if(category.includes("Female")) cls="af";
-if(category.includes("Male")) cls="am";
-
-const icon = L.divIcon({
-
-className:"mk "+cls,
-html:id,
-iconSize:[32,32]
-
-});
-
-const marker = L.marker([lat,lon],{icon});
-
-marker.bindPopup(
-
-"<b>"+id+"</b><br>"+
-row["Place"]+"<br>"+
-row["Activity"]+"<br>"+
-row["Timestamp"]
-
-);
-
-markerLayer.addLayer(marker);
-
+/* ── FETCH ───────────────────────────────────────────────── */
+async function fetchData() {
+  const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(CSV_URL)}`;
+  let res;
+  try { res = await fetch(proxyUrl, { cache: 'no-store' }); }
+  catch (e) {
+    // fallback: direct
+    res = await fetch(CSV_URL, { cache: 'no-store' });
+  }
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const text = await res.text();
+  return parseCSV(text);
 }
 
-
-/* RENDER TABLE */
-
-function renderTable(data){
-
-const tbody = document.querySelector("#dataTable tbody");
-
-tbody.innerHTML = "";
-
-data.forEach(row => {
-
-const tr = document.createElement("tr");
-
-tr.innerHTML = `
-
-<td class="clickable">${row["Animal ID"]}</td>
-<td>${row["Timestamp"]}</td>
-<td>${row["Place"]}</td>
-<td>${row["Activity"]}</td>
-<td>${row["Signal"]}</td>
-<td>${row["Category"]}</td>
-<td>${row["Latitude"]}</td>
-<td>${row["Longitude"]}</td>
-<td>${row["Observer"]}</td>
-
-`;
-
-tbody.appendChild(tr);
-
-});
-
+/* ── LATEST FIX LOGIC ────────────────────────────────────── */
+function computeLatestFixes(records) {
+  const byId = new Map();
+  records.forEach(r => {
+    if (!byId.has(r.animalId)) { byId.set(r.animalId, r); return; }
+    const existing = byId.get(r.animalId);
+    // compare by dateObj if available, else keep existing
+    if (r.dateObj && existing.dateObj && r.dateObj > existing.dateObj) {
+      byId.set(r.animalId, r);
+    } else if (r.dateObj && !existing.dateObj) {
+      byId.set(r.animalId, r);
+    }
+  });
+  return byId; // Map<animalId, latestRecord>
 }
 
+/* ── MAP INIT ────────────────────────────────────────────── */
+function initMap() {
+  map = L.map('map', { zoomControl: true, attributionControl: true })
+          .setView(MAP_CENTER, MAP_ZOOM);
 
-/* LOAD DATA */
+  // Satellite layer (Google hybrid)
+  const satellite = L.tileLayer(
+    'https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+    { subdomains: ['0','1','2','3'], maxZoom: 20,
+      attribution: '© Google' }
+  );
 
-fetch(sheetURL)
+  // OpenStreetMap fallback
+  const osm = L.tileLayer(
+    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    { maxZoom: 19, attribution: '© OpenStreetMap contributors' }
+  );
 
-.then(r => r.text())
+  satellite.addTo(map);
 
-.then(csv => {
+  L.control.layers({ 'Satellite': satellite, 'OpenStreetMap': osm },
+    {}, { position: 'topright', collapsed: true }).addTo(map);
+}
 
-const rows = csv.split("\n").map(r => r.split(","));
+/* ── MARKER CREATION ─────────────────────────────────────── */
+function makeMarkerIcon(record) {
+  const cls  = catClass(record.category);
+  // Dynamically size circle to fit ID text
+  const id   = record.animalId;
+  const chars = id.length;
+  const size = chars <= 4 ? 36 : chars <= 6 ? 42 : chars <= 9 ? 50 : 58;
+  const fs   = chars <= 4 ? 10 : chars <= 6 ? 9 : chars <= 9 ? 8 : 7;
 
-const headers = rows.shift();
+  const html = `<div class="gh-marker ${cls}" style="width:${size}px;height:${size}px;font-size:${fs}px;">${escHtml(id)}</div>`;
+  return L.divIcon({
+    html,
+    className: '',
+    iconSize:   [size, size],
+    iconAnchor: [size/2, size/2],
+    popupAnchor:[0, -(size/2 + 6)]
+  });
+}
 
-const data = rows.map(r => {
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
 
-let obj = {};
+function buildPopup(r) {
+  const cls  = catClass(r.category);
+  const sc   = sigClass(r.signal);
+  const scl  = sc === 'strong' ? 'signal-strong' : sc === 'weak' ? 'signal-weak' : 'signal-mod';
+  const coord= `${r.lat.toFixed(5)}, ${r.lon.toFixed(5)}`;
+  const date = fmtDate(r.dateObj) || r.timestamp || '—';
 
-headers.forEach((h,i)=>obj[h.trim()] = r[i]);
+  return `
+    <div class="pop-header">
+      <div class="pop-id-badge ${cls}">${escHtml(r.animalId)}</div>
+      <div class="pop-title">
+        <div class="pop-animal-id">${escHtml(r.animalId)}</div>
+        <span class="pop-cat-tag ${cls}">${escHtml(catLabel(r.category))}</span>
+      </div>
+    </div>
+    <div class="pop-body">
+      <div class="pop-row">
+        <span class="pop-lbl">Timestamp</span>
+        <span class="pop-val">${escHtml(date)}</span>
+      </div>
+      <div class="pop-row">
+        <span class="pop-lbl">Place</span>
+        <span class="pop-val">${escHtml(r.place || '—')}</span>
+      </div>
+      <div class="pop-row">
+        <span class="pop-lbl">Activity</span>
+        <span class="pop-val">${escHtml(r.activity || '—')}</span>
+      </div>
+      <div class="pop-row">
+        <span class="pop-lbl">Signal</span>
+        <span class="pop-val ${scl}">${escHtml(r.signal || '—')}</span>
+      </div>
+      <div class="pop-row">
+        <span class="pop-lbl">Coordinates</span>
+        <span class="pop-val coord">${coord}</span>
+      </div>
+      ${r.observer ? `<div class="pop-row"><span class="pop-lbl">Observer</span><span class="pop-val">${escHtml(r.observer)}</span></div>` : ''}
+      ${r.remarks  ? `<div class="pop-row"><span class="pop-lbl">Remarks</span><span class="pop-val" style="font-size:11px;color:rgba(255,255,255,.7)">${escHtml(truncate(r.remarks,80))}</span></div>` : ''}
+    </div>`;
+}
 
-return obj;
+/* ── RENDER MARKERS ──────────────────────────────────────── */
+function clearMarkers() {
+  activeMarkers.forEach(m => map.removeLayer(m));
+  activeMarkers = [];
+}
 
-});
+function renderMarkers(fixMap) {
+  clearMarkers();
+  fixMap.forEach((r) => {
+    const icon   = makeMarkerIcon(r);
+    const marker = L.marker([r.lat, r.lon], { icon })
+                    .addTo(map)
+                    .bindPopup(buildPopup(r), { maxWidth: 320, minWidth: 260 });
+    marker._record = r;
+    activeMarkers.push(marker);
+  });
+  document.getElementById('map-count').textContent = fixMap.size;
+}
 
+/* ── RENDER TABLE ────────────────────────────────────────── */
+function renderTable(fixMap) {
+  const body  = document.getElementById('tbl-body');
+  const rows  = [...fixMap.values()].sort((a,b) => {
+    if (a.dateObj && b.dateObj) return b.dateObj - a.dateObj;
+    return a.animalId.localeCompare(b.animalId);
+  });
 
-const latest = getLatestFixes(data);
+  body.innerHTML = rows.map(r => {
+    const cls = catClass(r.category);
+    const sc  = sigClass(r.signal);
+    return `<tr onclick="zoomToAnimal('${escAttr(r.animalId)}')">
+      <td><span class="td-id ${cls}">${escHtml(r.animalId)}</span></td>
+      <td><span class="td-ts">${escHtml(fmtDate(r.dateObj) || r.timestamp || '—')}</span></td>
+      <td>${escHtml(r.place || '—')}</td>
+      <td>${escHtml(r.activity || '—')}</td>
+      <td><span class="td-sig ${sc}">${escHtml(r.signal || '—')}</span></td>
+      <td><span class="td-cat ${cls}">${escHtml(catLabel(r.category))}</span></td>
+      <td><span class="td-coord">${r.lat.toFixed(5)}</span></td>
+      <td><span class="td-coord">${r.lon.toFixed(5)}</span></td>
+      <td>${escHtml(r.observer || '—')}</td>
+    </tr>`;
+  }).join('');
 
+  document.getElementById('tbl-count').textContent = `(${rows.length})`;
+}
 
-latest.forEach(createMarker);
+function escAttr(s) { return String(s).replace(/'/g,"\\'"); }
 
-renderTable(latest);
+function zoomToAnimal(id) {
+  const marker = activeMarkers.find(m => m._record && m._record.animalId === id);
+  if (marker) {
+    map.setView(marker.getLatLng(), Math.max(map.getZoom(), 14));
+    marker.openPopup();
+  }
+}
 
-});
+/* ── FILTERS ─────────────────────────────────────────────── */
+function applyFilters() {
+  const catF = document.getElementById('cat-filter').value.toLowerCase();
+  const actF = document.getElementById('activity-filter').value.toLowerCase();
+  const idF  = document.getElementById('id-filter').value.toLowerCase().trim();
 
+  // filter records
+  const filtered = allRecords.filter(r => {
+    if (catF && catLabel(r.category).toLowerCase() !== catF)          return false;
+    if (actF && (r.activity || '').toLowerCase() !== actF)            return false;
+    if (idF  && !r.animalId.toLowerCase().includes(idF))             return false;
+    return true;
+  });
+
+  const fixMap = computeLatestFixes(filtered);
+  renderMarkers(fixMap);
+  renderTable(fixMap);
+}
+
+function clearFilters() {
+  document.getElementById('cat-filter').value      = '';
+  document.getElementById('activity-filter').value = '';
+  document.getElementById('id-filter').value       = '';
+  applyFilters();
+}
+
+function populateActivityFilter(records) {
+  const acts = [...new Set(records.map(r => r.activity).filter(Boolean))].sort();
+  const sel  = document.getElementById('activity-filter');
+  const curr = sel.value;
+  sel.innerHTML = '<option value="">All Activities</option>' +
+    acts.map(a => `<option value="${escAttr(a.toLowerCase())}">${escHtml(a)}</option>`).join('');
+  sel.value = curr;
+}
+
+/* ── HEADER STATS ────────────────────────────────────────── */
+function updateStats(records, fixMap) {
+  document.getElementById('stat-animals').textContent = fixMap.size;
+  document.getElementById('stat-records').textContent = records.length;
+  const sites = new Set(records.map(r => r.place).filter(Boolean));
+  document.getElementById('stat-sites').textContent   = sites.size;
+}
+
+/* ── DRAWER ──────────────────────────────────────────────── */
+function toggleDrawer() {
+  drawerOpen = !drawerOpen;
+  const drawer = document.getElementById('table-drawer');
+  drawer.classList.toggle('collapsed', !drawerOpen);
+  document.getElementById('drawer-toggle-lbl').textContent = drawerOpen ? '▲ Collapse' : '▼ Expand';
+}
+
+/* ── REFRESH ─────────────────────────────────────────────── */
+async function triggerRefresh() {
+  const btn = document.getElementById('refresh-btn');
+  btn.classList.add('spinning');
+  try {
+    const fresh = await fetchData();
+    if (fresh.length > previousCount && previousCount > 0) {
+      showNewDataBanner(fresh.length - previousCount);
+    }
+    previousCount = fresh.length;
+    allRecords = fresh;
+    populateActivityFilter(fresh);
+    const fixMap = computeLatestFixes(fresh);
+    updateStats(fresh, fixMap);
+    applyFilters();
+  } catch(e) {
+    console.warn('Refresh error:', e);
+  } finally {
+    btn.classList.remove('spinning');
+  }
+}
+
+function showNewDataBanner(count) {
+  const b = document.getElementById('new-data-banner');
+  b.textContent = `↑ ${count} new observation${count > 1 ? 's' : ''} loaded`;
+  b.classList.add('show');
+  setTimeout(() => b.classList.remove('show'), 7000);
+}
+
+/* ── INIT ────────────────────────────────────────────────── */
+async function init() {
+  try {
+    const records = await fetchData();
+    allRecords = records;
+    previousCount = records.length;
+
+    document.getElementById('loader').style.display  = 'none';
+    document.getElementById('app').style.display     = 'flex';
+
+    initMap();
+    populateActivityFilter(records);
+
+    const fixMap = computeLatestFixes(records);
+    updateStats(records, fixMap);
+    renderMarkers(fixMap);
+    renderTable(fixMap);
+
+    // auto-refresh
+    refreshTimer = setInterval(triggerRefresh, REFRESH_MS);
+
+  } catch(err) {
+    console.error('Init error:', err);
+    document.getElementById('error-msg').textContent = `Error: ${err.message}`;
+    document.getElementById('loader-error').style.display = 'block';
+    // hide spinner
+    document.querySelector('#loader .spinner').style.display = 'none';
+    document.querySelector('#loader p').style.display        = 'none';
+  }
+}
+
+function retryLoad() {
+  document.getElementById('loader-error').style.display = 'none';
+  document.querySelector('#loader .spinner').style.display = 'block';
+  document.querySelector('#loader p').style.display        = 'block';
+  init();
+}
+
+init();
 </script>
-
 </body>
 </html>
