@@ -1,404 +1,1135 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chambal Gharial Field Observation Platform</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chambal Gharial Field Observation Platform</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── DESIGN SYSTEM ── */
+:root{
+  --bg:#f0f4f2;
+  --surface:#ffffff;
+  --surface2:#f7faf8;
+  --border:#dde8e3;
+  --border2:#c8dbd3;
+  --accent:#1a7a52;
+  --accent-l:rgba(26,122,82,.1);
+  --accent-m:rgba(26,122,82,.18);
+  --amber:#c47b0c;
+  --amber-l:rgba(196,123,12,.1);
+  --blue:#1a5fa0;
+  --blue-l:rgba(26,95,160,.1);
+  --rose:#b0385e;
+  --rose-l:rgba(176,56,94,.1);
+  --teal:#0f7a7a;
+  --teal-l:rgba(15,122,122,.1);
+  --t1:#1a2e24;
+  --t2:#4a6b58;
+  --t3:#8aaa96;
+  --t4:#c2d8cc;
+  --shadow:0 1px 4px rgba(0,40,20,.06),0 4px 16px rgba(0,40,20,.05);
+  --shadow-md:0 2px 8px rgba(0,40,20,.08),0 8px 32px rgba(0,40,20,.06);
+  --r:8px;
+  --ff:'Inter',sans-serif;
+  --fm:'JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--t1);font-family:var(--ff);display:flex;flex-direction:column;font-size:13px}
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+/* ── LOADER ── */
+#loader{
+  position:fixed;inset:0;background:#f0f4f2;z-index:99999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+}
+.ld-ring{
+  width:48px;height:48px;border:3px solid var(--border);
+  border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ld-txt{color:var(--t2);font-size:12px;letter-spacing:1px;text-transform:uppercase}
+.ld-err{color:var(--rose);font-size:12px;text-align:center;max-width:380px;line-height:1.6;display:none}
+.ld-retry{
+  margin-top:8px;padding:8px 18px;background:var(--accent);color:#fff;border:none;
+  border-radius:var(--r);cursor:pointer;font-size:12px;font-family:var(--ff);display:none;
+}
 
-    <style>
-        :root {
-            --bg-base: #0f111a;
-            --bg-panel: #161925;
-            --bg-hover: #232738;
-            --text-main: #e0e6ed;
-            --text-muted: #8b95a5;
-            --accent: #00d2ff;
-            --accent-glow: rgba(0, 210, 255, 0.3);
-            --border: #2d3142;
-        }
+/* ── HEADER ── */
+#hdr{
+  height:52px;background:var(--surface);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 18px;gap:14px;flex-shrink:0;
+  box-shadow:0 1px 0 var(--border);
+}
+.hdr-brand{display:flex;align-items:center;gap:10px}
+.hdr-brand svg{flex-shrink:0}
+.hdr-brand h1{font-size:15px;font-weight:700;color:var(--t1);letter-spacing:-.2px;white-space:nowrap}
+.hdr-brand h1 small{display:block;font-size:9px;font-weight:500;color:var(--t3);letter-spacing:.8px;text-transform:uppercase;margin-top:1px}
+.hdr-chips{display:flex;align-items:center;gap:0;margin-left:auto}
+.hchip{padding:0 18px;display:flex;flex-direction:column;align-items:center;border-left:1px solid var(--border)}
+.hchip .v{font-family:var(--fm);font-size:17px;font-weight:600;color:var(--accent);line-height:1.1}
+.hchip .l{font-size:8px;font-weight:600;color:var(--t3);letter-spacing:1.2px;text-transform:uppercase;margin-top:1px}
+.hdr-status{
+  display:flex;align-items:center;gap:6px;font-size:10px;font-weight:600;letter-spacing:.8px;
+  text-transform:uppercase;color:var(--accent);padding:4px 10px;
+  background:var(--accent-l);border-radius:20px;border:1px solid rgba(26,122,82,.2);white-space:nowrap;
+}
+.hdr-status .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', 'Segoe UI', sans-serif; }
-        body { background-color: var(--bg-base); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+/* ── LAYOUT ── */
+#app{flex:1;display:flex;overflow:hidden}
 
-        /* Sidebar */
-        #sidebar { width: 320px; background-color: var(--bg-panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
-        .sidebar-header { padding: 25px 20px; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, #1c2030, var(--bg-panel)); }
-        .sidebar-header h2 { font-size: 1.1rem; color: var(--accent); text-transform: uppercase; letter-spacing: 1.5px; }
-        .filter-section { padding: 20px; border-bottom: 1px solid var(--border); }
-        .filter-section h3 { font-size: 0.8rem; margin-bottom: 15px; color: var(--text-muted); text-transform: uppercase; }
-        
-        label { font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 5px; }
-        select, input { width: 100%; padding: 10px; background: var(--bg-base); border: 1px solid var(--border); color: #fff; border-radius: 6px; margin-bottom: 15px; outline: none; transition: 0.2s; }
-        select:focus { border-color: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
+/* ── SIDEBAR ── */
+#sb{
+  width:228px;background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;
+}
+#sb::-webkit-scrollbar{width:4px}
+#sb::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.sb-sec{padding:14px;border-bottom:1px solid var(--border)}
+.sb-ttl{
+  font-size:9px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;
+  color:var(--t3);margin-bottom:10px
+}
+.fitem{margin-bottom:8px}
+.flbl{font-size:9px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--t3);margin-bottom:4px}
+.fsel{
+  width:100%;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);
+  color:var(--t1);border-radius:6px;font-size:11px;font-family:var(--ff);
+  appearance:none;-webkit-appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238aaa96' fill='none' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:calc(100% - 8px) center;padding-right:26px;
+}
+.fsel:focus{outline:none;border-color:var(--accent)}
+.finp{
+  width:100%;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);
+  color:var(--t1);border-radius:6px;font-size:11px;font-family:var(--fm);
+}
+.finp:focus{outline:none;border-color:var(--accent)}
+.finp::placeholder{color:var(--t3);font-size:10px}
+.fdate{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.reset-btn{
+  width:100%;padding:7px;background:transparent;border:1px solid var(--border);
+  color:var(--t3);font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;
+  cursor:pointer;border-radius:6px;transition:.15s;margin-top:6px;font-family:var(--ff);
+}
+.reset-btn:hover{border-color:var(--rose);color:var(--rose)}
 
-        /* Main Area */
-        #main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; position: relative; }
-        
-        #top-header { padding: 15px 25px; background: var(--bg-panel); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .status-pill { padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; background: rgba(0,210,255,0.1); color: var(--accent); border: 1px solid var(--accent); }
+/* layer toggles */
+.ltog{
+  display:flex;align-items:center;gap:8px;width:100%;padding:6px 8px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:6px;
+  cursor:pointer;font-size:11px;color:var(--t2);margin-bottom:5px;transition:.15s;
+}
+.ltog .dot{width:8px;height:8px;border-radius:50%;background:var(--border2);flex-shrink:0;transition:.15s}
+.ltog.on{border-color:var(--accent);color:var(--t1);background:var(--accent-l)}
+.ltog.on .dot{background:var(--accent)}
+.ltog.heat.on{border-color:var(--amber);color:var(--t1);background:var(--amber-l)}
+.ltog.heat.on .dot{background:var(--amber)}
+.ltog.latest.on{border-color:var(--blue);color:var(--t1);background:var(--blue-l)}
+.ltog.latest.on .dot{background:var(--blue)}
 
-        /* Dashboard Components */
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; padding: 20px; }
-        .stat-card { background: var(--bg-panel); padding: 20px; border-radius: 12px; border: 1px solid var(--border); text-align: center; }
-        .stat-card i { font-size: 1.5rem; color: var(--accent); margin-bottom: 10px; display: block; }
-        .stat-card span { font-size: 1.6rem; font-weight: 700; display: block; }
-        .stat-card label { margin-bottom: 0; text-transform: uppercase; font-weight: 600; }
+/* ── STAT CARDS ── */
+#stat-strip{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:10px;
+  padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);
+}
+.scard{
+  background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);
+  padding:10px 12px;display:flex;flex-direction:column;
+}
+.scard .v{font-family:var(--fm);font-size:20px;font-weight:700;color:var(--accent);line-height:1.1}
+.scard .l{font-size:8px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--t3);margin-top:2px}
+.scard.amber .v{color:var(--amber)}
+.scard.blue .v{color:var(--blue)}
+.scard.rose .v{color:var(--rose)}
+.scard.teal .v{color:var(--teal)}
 
-        .dashboard-grid { display: grid; grid-template-columns: 1.8fr 1.2fr; gap: 20px; padding: 0 20px 20px; }
-        .panel { background: var(--bg-panel); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; display: flex; flex-direction: column; }
-        .panel-header { padding: 12px 18px; background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; font-weight: 600; }
+/* ── MAIN ── */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
 
-        #map { height: 500px; width: 100%; z-index: 1; }
-        .chart-container { padding: 20px; height: 250px; }
+/* ── MAP ── */
+#mc{position:relative;flex:0 0 54%;min-height:0;overflow:hidden}
+#map{width:100%;height:100%}
+.map-badge{
+  position:absolute;top:10px;right:10px;z-index:900;
+  background:rgba(255,255,255,.92);border:1px solid var(--border);
+  padding:4px 10px;border-radius:4px;font-family:var(--fm);font-size:10px;
+  color:var(--t2);backdrop-filter:blur(4px);box-shadow:var(--shadow);
+}
 
-        /* Table */
-        .table-area { padding: 0 20px 20px; }
-        .table-wrapper { max-height: 400px; overflow-y: auto; background: var(--bg-panel); border-radius: 12px; border: 1px solid var(--border); }
-        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        th { text-align: left; padding: 15px; background: rgba(0,0,0,0.2); position: sticky; top: 0; color: var(--text-muted); text-transform: uppercase; font-size: 0.7rem; }
-        td { padding: 12px 15px; border-bottom: 1px solid var(--border); }
-        tr:hover { background: var(--bg-hover); cursor: pointer; }
+/* ── BOTTOM ── */
+#bot{flex:1;display:flex;overflow:hidden;border-top:1px solid var(--border);min-height:0}
 
-        /* Loader */
-        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-base); z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+/* ── ANALYTICS ── */
+#ap{width:370px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;background:var(--surface)}
+.ptabs{display:flex;background:var(--surface2);border-bottom:1px solid var(--border);flex-shrink:0}
+.ptab{
+  padding:9px 14px;font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;
+  color:var(--t3);cursor:pointer;border-bottom:2px solid transparent;transition:.15s;
+}
+.ptab.on{color:var(--accent);border-bottom-color:var(--accent)}
+.pcontent{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+.pcontent::-webkit-scrollbar{width:4px}
+.pcontent::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.ppane{display:none}
+.ppane.on{display:contents}
 
-        /* Modal */
-        #modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); z-index: 10001; justify-content: center; align-items: center; }
-        .modal-card { background: var(--bg-panel); width: 600px; border-radius: 15px; border: 1px solid var(--accent); overflow: hidden; animation: slideUp 0.3s ease-out; }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        
-        .btn { padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-hover); color: #fff; cursor: pointer; font-size: 0.8rem; text-decoration: none; }
-        .btn:hover { background: var(--accent); color: #000; }
-    </style>
+.cpanel{
+  background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:12px;
+}
+.ctitle{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);margin-bottom:10px}
+.cwrap{position:relative;height:160px}
+
+/* insight cards */
+.ig{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.icard{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px}
+.icard.full{grid-column:1/-1}
+.ilbl{font-size:8px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--t3);margin-bottom:4px}
+.ival{font-family:var(--fm);font-size:17px;font-weight:700;color:var(--accent);line-height:1.1}
+.isub{font-size:10px;color:var(--t2);margin-top:2px}
+.obs-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.obs-bar-name{font-size:10px;color:var(--t2);width:68px;flex-shrink:0}
+.obs-bar-track{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.obs-bar-fill{height:100%;background:var(--accent);border-radius:3px;transition:.4s}
+.obs-bar-val{font-family:var(--fm);font-size:9px;color:var(--t2);min-width:22px;text-align:right}
+
+/* ── TABLE ── */
+#tp{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:var(--surface)}
+.tbar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface2);border-bottom:1px solid var(--border);flex-shrink:0}
+.sinp{
+  flex:1;padding:6px 10px;background:var(--surface);border:1px solid var(--border);
+  color:var(--t1);border-radius:6px;font-size:11px;font-family:var(--ff);min-width:0;
+}
+.sinp:focus{outline:none;border-color:var(--accent)}
+.tcnt{font-family:var(--fm);font-size:10px;color:var(--t3);white-space:nowrap;flex-shrink:0}
+.tbtn{
+  padding:6px 12px;background:transparent;border:1px solid var(--border);color:var(--t2);
+  font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;
+  cursor:pointer;border-radius:6px;transition:.15s;white-space:nowrap;flex-shrink:0;font-family:var(--ff);
+}
+.tbtn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-l)}
+.tbtn.exp{border-color:var(--amber);color:var(--amber)}
+.tbtn.exp:hover{background:var(--amber-l)}
+.twrap{flex:1;overflow:auto}
+.twrap::-webkit-scrollbar{width:5px;height:5px}
+.twrap::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+table{width:100%;border-collapse:collapse}
+thead{position:sticky;top:0;z-index:10;background:var(--surface2)}
+th{
+  padding:8px 10px;text-align:left;font-size:8px;font-weight:700;letter-spacing:1.2px;
+  text-transform:uppercase;color:var(--t3);border-bottom:1px solid var(--border);
+  cursor:pointer;white-space:nowrap;user-select:none;
+}
+th:hover{color:var(--t2)}
+th.srt{color:var(--accent)}
+td{padding:6px 10px;border-bottom:1px solid rgba(221,232,227,.6);color:var(--t2);white-space:nowrap;font-size:11px;font-family:var(--fm)}
+tr:hover td{background:var(--accent-l)}
+.td-rid{color:var(--accent);cursor:pointer;font-weight:600}
+.td-rid:hover{text-decoration:underline}
+/* activity colors */
+.bask{color:var(--amber)}
+.swim{color:var(--accent)}
+.actw{color:var(--blue)}
+.bred{color:var(--rose)}
+.surf{color:var(--teal)}
+/* type colors */
+.af{color:var(--rose)}
+.am{color:var(--blue)}
+.sa{color:var(--teal)}
+.hh{color:var(--amber)}
+/* signal */
+.ss{color:#1a7a52}.sms{color:#3a8f6a}.sm{color:var(--amber)}.smw{color:#c0621a}.sw{color:var(--rose)}
+
+/* ── POPUP ── */
+.lp-wrap{padding:12px 14px;min-width:220px;font-family:'Inter',sans-serif}
+.lp-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #dde8e3}
+.lp-rid{font-size:14px;font-weight:700;color:var(--accent);cursor:pointer;font-family:'JetBrains Mono',monospace}
+.lp-rid:hover{text-decoration:underline}
+.lp-type{font-size:10px;color:#4a6b58;background:#f0faf5;padding:2px 7px;border-radius:12px;border:1px solid #c2d8cc}
+.lp-row{display:flex;gap:6px;margin-bottom:4px;align-items:flex-start}
+.lp-k{font-size:9px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:#8aaa96;min-width:68px;flex-shrink:0;padding-top:1px}
+.lp-v{font-size:11px;color:#2d4a38;font-family:'JetBrains Mono',monospace;flex:1;word-break:break-word}
+.lp-v.hi{color:var(--accent);font-weight:500}
+.leaflet-popup-content-wrapper{background:#fff!important;border:1px solid #dde8e3!important;border-radius:10px!important;box-shadow:0 4px 20px rgba(0,40,20,.12)!important;color:#1a2e24!important}
+.leaflet-popup-tip{background:#fff!important}
+.leaflet-popup-content{margin:0!important}
+
+/* ── MODAL ── */
+#mov{
+  position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;
+  display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);
+}
+#mov.open{display:flex}
+#mod{
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  width:700px;max-width:95vw;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:var(--shadow-md);
+}
+.mhdr{
+  display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);gap:14px;
+  background:var(--surface2);
+}
+.mrid{font-family:var(--fm);font-size:20px;font-weight:700;color:var(--accent)}
+.mtitle{font-size:14px;font-weight:700;color:var(--t1)}
+.mtype{font-size:11px;color:var(--t2);margin-top:2px}
+.mcls{
+  margin-left:auto;background:transparent;border:1px solid var(--border);
+  color:var(--t3);width:28px;height:28px;border-radius:6px;cursor:pointer;
+  font-size:14px;display:flex;align-items:center;justify-content:center;transition:.15s;
+}
+.mcls:hover{border-color:var(--rose);color:var(--rose)}
+.mbody{flex:1;overflow-y:auto;padding:18px 20px}
+.mbody::-webkit-scrollbar{width:4px}
+.mbody::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.mstats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.mstat{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px}
+.mstat .v{font-family:var(--fm);font-size:18px;font-weight:700;color:var(--accent);line-height:1.1}
+.mstat .l{font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--t3);margin-top:2px}
+.mmap{height:180px;border-radius:var(--r);border:1px solid var(--border);margin-bottom:14px;overflow:hidden}
+.mt-wrap{max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r)}
+.mt-wrap::-webkit-scrollbar{width:3px}
+.mt-wrap::-webkit-scrollbar-thumb{background:var(--border2)}
+.mt-wrap table th{background:var(--surface2)}
+
+/* cluster override */
+.marker-cluster-small div,.marker-cluster-medium div,.marker-cluster-large div{
+  background:rgba(26,122,82,.4)!important;color:#1a7a52!important;
+  font-family:'JetBrains Mono',monospace!important;font-size:11px!important;font-weight:600!important;border:none!important;
+}
+.marker-cluster-small,.marker-cluster-medium,.marker-cluster-large{
+  background:rgba(26,122,82,.15)!important;
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  #ap{width:300px}
+  #stat-strip{grid-template-columns:repeat(2,1fr)}
+}
+</style>
 </head>
 <body>
 
-    <div id="loader">
-        <div class="spinner"></div>
-        <p>Syncing with Chambal Field Logs...</p>
+<!-- LOADER -->
+<div id="loader">
+  <div class="ld-ring"></div>
+  <div class="ld-txt">Syncing Chambal Field Logs…</div>
+  <div class="ld-err" id="ld-err"></div>
+  <button class="ld-retry" id="ld-retry" onclick="fetchData()">Retry</button>
+</div>
+
+<!-- HEADER -->
+<div id="hdr">
+  <div class="hdr-brand">
+    <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+      <circle cx="17" cy="17" r="16" fill="#f0faf5" stroke="#c2d8cc" stroke-width="1.5"/>
+      <path d="M6 20 Q8 16 12 17 Q14 14 17 15 Q20 14 22 16 Q26 15 28 19 Q29 21 27 22 Q25 23 22 22 Q18 24 14 22 Q10 23 7 22Z" fill="#1a7a52" opacity=".8"/>
+      <path d="M5 19 Q7 17 9 18" stroke="#1a7a52" stroke-width="1.5" stroke-linecap="round" opacity=".5"/>
+      <path d="M28 19 Q30 18 31 17" stroke="#1a7a52" stroke-width="1" stroke-linecap="round" opacity=".4"/>
+      <circle cx="10" cy="18" r="1.2" fill="#c47b0c"/>
+      <path d="M8 24 Q13 22 17 24 Q21 26 26 24" stroke="#1a7a52" stroke-width=".8" opacity=".3" fill="none"/>
+    </svg>
+    <h1>Chambal Gharial <small>Field Observation Platform v2</small></h1>
+  </div>
+  <div class="hdr-chips">
+    <div class="hchip"><span class="v" id="hs-obs">—</span><span class="l">Records</span></div>
+    <div class="hchip"><span class="v" id="hs-ani">—</span><span class="l">Animals</span></div>
+    <div class="hchip"><span class="v" id="hs-site">—</span><span class="l">Sites</span></div>
+    <div class="hchip"><span class="v" id="hs-obsr">—</span><span class="l">Observers</span></div>
+    <div style="padding-left:14px;border-left:1px solid var(--border)">
+      <div class="hdr-status"><span class="dot"></span>Live from Google Sheets</div>
+    </div>
+  </div>
+</div>
+
+<!-- STAT STRIP -->
+<div id="stat-strip">
+  <div class="scard rose"><span class="v" id="sc-af">—</span><span class="l">Adult Females</span></div>
+  <div class="scard blue"><span class="v" id="sc-am">—</span><span class="l">Adult Males</span></div>
+  <div class="scard teal"><span class="v" id="sc-sa">—</span><span class="l">Sub-adults</span></div>
+  <div class="scard amber"><span class="v" id="sc-hh">—</span><span class="l">Hatchlings</span></div>
+</div>
+
+<!-- APP -->
+<div id="app">
+<!-- SIDEBAR -->
+<div id="sb">
+  <div class="sb-sec">
+    <div class="sb-ttl">Map Layers</div>
+    <button class="ltog markers on" onclick="toggleLayer(this,'markers')">
+      <span class="dot"></span>All Observations
+    </button>
+    <button class="ltog latest on" onclick="toggleLayer(this,'latest')">
+      <span class="dot"></span>Latest Positions Only
+    </button>
+    <button class="ltog heat" onclick="toggleLayer(this,'heat')">
+      <span class="dot"></span>Activity Heatmap
+    </button>
+  </div>
+
+  <div class="sb-sec">
+    <div class="sb-ttl">Radio ID</div>
+    <div class="fitem">
+      <input class="finp" id="f-rid" placeholder="e.g. 05-06, 78, 84…" oninput="applyFilters()">
+    </div>
+  </div>
+
+  <div class="sb-sec">
+    <div class="sb-ttl">Animal Type</div>
+    <div class="fitem">
+      <select class="fsel" id="f-type" onchange="applyFilters()">
+        <option value="">All Types</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="sb-sec">
+    <div class="sb-ttl">Activity</div>
+    <div class="fitem">
+      <select class="fsel" id="f-act" onchange="applyFilters()">
+        <option value="">All Activities</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="sb-sec">
+    <div class="sb-ttl">Location</div>
+    <div class="fitem">
+      <select class="fsel" id="f-loc" onchange="applyFilters()">
+        <option value="">All Locations</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="sb-sec">
+    <div class="sb-ttl">Date Range</div>
+    <div class="fdate">
+      <div>
+        <div class="flbl">From</div>
+        <input type="date" class="finp" id="f-d1" onchange="applyFilters()">
+      </div>
+      <div>
+        <div class="flbl">To</div>
+        <input type="date" class="finp" id="f-d2" onchange="applyFilters()">
+      </div>
+    </div>
+    <button class="reset-btn" onclick="resetFilters()">↺ Reset Filters</button>
+  </div>
+</div><!-- /sb -->
+
+<!-- MAIN -->
+<div id="main">
+  <div id="mc">
+    <div id="map"></div>
+    <div class="map-badge" id="map-badge">—</div>
+  </div>
+
+  <div id="bot">
+    <!-- ANALYTICS -->
+    <div id="ap">
+      <div class="ptabs">
+        <div class="ptab on" data-tab="charts" onclick="switchTab(this)">Charts</div>
+        <div class="ptab" data-tab="insights" onclick="switchTab(this)">Insights</div>
+      </div>
+      <div class="pcontent">
+        <div class="ppane on" id="pane-charts">
+          <div class="cpanel">
+            <div class="ctitle">Activity Distribution</div>
+            <div class="cwrap"><canvas id="ch-act"></canvas></div>
+          </div>
+          <div class="cpanel">
+            <div class="ctitle">Life Stage Distribution</div>
+            <div class="cwrap"><canvas id="ch-stage"></canvas></div>
+          </div>
+          <div class="cpanel">
+            <div class="ctitle">Observations by Site</div>
+            <div class="cwrap"><canvas id="ch-loc"></canvas></div>
+          </div>
+          <div class="cpanel">
+            <div class="ctitle">Monthly Survey Trend</div>
+            <div class="cwrap"><canvas id="ch-trend"></canvas></div>
+          </div>
+        </div>
+        <div class="ppane" id="pane-insights">
+          <div class="ig" id="insights-grid"></div>
+        </div>
+      </div>
     </div>
 
-    <div id="sidebar">
-        <div class="sidebar-header">
-            <h2><i class="fa-solid fa-water"></i> Chambal Gharial</h2>
-            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 5px;">Observation Dashboard v2.0</p>
-        </div>
-        
-        <div class="filter-section">
-            <h3>Filter Data</h3>
-            <label>Animal Type</label>
-            <select id="filter-type" onchange="applyFilters()"><option value="All">All Types</option></select>
-
-            <label>Activity</label>
-            <select id="filter-activity" onchange="applyFilters()"><option value="All">All Activities</option></select>
-
-            <label>Location</label>
-            <select id="filter-location" onchange="applyFilters()"><option value="All">All Locations</option></select>
-
-            <label>Observer</label>
-            <select id="filter-observer" onchange="applyFilters()"><option value="All">All Observers</option></select>
-            
-            <button class="btn" style="width:100%" onclick="resetFilters()">Clear All Filters</button>
-        </div>
+    <!-- TABLE -->
+    <div id="tp">
+      <div class="tbar">
+        <input class="sinp" id="srch" placeholder="Search logs…" oninput="renderTable()">
+        <span class="tcnt" id="tcnt">—</span>
+        <button class="tbtn exp" onclick="exportCSV()">⬇ Export CSV</button>
+      </div>
+      <div class="twrap">
+        <table>
+          <thead>
+            <tr>
+              <th onclick="sortBy('Datetime')" id="th-Datetime">Datetime</th>
+              <th onclick="sortBy('Radio_ID')" id="th-Radio_ID">Radio ID</th>
+              <th onclick="sortBy('Animal_Type')" id="th-Animal_Type">Type</th>
+              <th onclick="sortBy('Activity')" id="th-Activity">Activity</th>
+              <th onclick="sortBy('Location')" id="th-Location">Location</th>
+              <th onclick="sortBy('Observer')" id="th-Observer">Observer</th>
+              <th onclick="sortBy('Signal_Strength')" id="th-Signal_Strength">Signal</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
     </div>
+  </div><!-- /bot -->
+</div><!-- /main -->
+</div><!-- /app -->
 
-    <div id="main-content">
-        <header id="top-header">
-            <h3>Field Observation Stream</h3>
-            <div class="status-pill"><i class="fa-solid fa-circle-dot"></i> LIVE FROM GOOGLE SHEETS</div>
-        </header>
-
-        <div class="stats-grid">
-            <div class="stat-card"><i class="fa-solid fa-eye"></i><label>Observations</label><span id="stat-obs">0</span></div>
-            <div class="stat-card"><i class="fa-solid fa-broadcast-tower"></i><label>Radio IDs</label><span id="stat-radio">0</span></div>
-            <div class="stat-card"><i class="fa-solid fa-location-dot"></i><label>Key Sites</label><span id="stat-sites">0</span></div>
-            <div class="stat-card"><i class="fa-solid fa-user-check"></i><label>Observers</label><span id="stat-obs-count">0</span></div>
-        </div>
-
-        <div class="dashboard-grid">
-            <div class="panel">
-                <div class="panel-header">Spatial Mapping</div>
-                <div id="map"></div>
-            </div>
-            <div class="panel">
-                <div class="panel-header">Activity Distribution</div>
-                <div class="chart-container"><canvas id="activityChart"></canvas></div>
-                <div class="panel-header" style="border-top: 1px solid var(--border)">Population Stages</div>
-                <div class="chart-container"><canvas id="stageChart"></canvas></div>
-            </div>
-        </div>
-
-        <div class="table-area">
-            <div class="panel">
-                <div class="panel-header">
-                    Detailed Observation Logs
-                    <button class="btn" onclick="exportCSV()"><i class="fa-solid fa-download"></i> Export CSV</button>
-                </div>
-                <div class="table-wrapper">
-                    <table id="log-table">
-                        <thead>
-                            <tr>
-                                <th>Date/Time</th>
-                                <th>Radio ID</th>
-                                <th>Animal Type</th>
-                                <th>Activity</th>
-                                <th>Location</th>
-                                <th>Notes</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-body"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+<!-- MODAL -->
+<div id="mov" onclick="if(event.target===this)closeModal()">
+  <div id="mod">
+    <div class="mhdr">
+      <div>
+        <div class="mrid" id="m-rid">—</div>
+        <div class="mtitle" id="m-title">Animal Profile</div>
+        <div class="mtype" id="m-type"></div>
+      </div>
+      <button class="mcls" onclick="closeModal()">✕</button>
     </div>
-
-    <div id="modal" onclick="closeModal()">
-        <div class="modal-card" onclick="event.stopPropagation()">
-            <div class="panel-header" id="modal-title">Animal Profile</div>
-            <div style="padding: 25px;" id="modal-content"></div>
-            <div style="padding: 15px; text-align: right; border-top: 1px solid var(--border);">
-                <button class="btn" onclick="closeModal()">Close Profile</button>
-            </div>
-        </div>
+    <div class="mbody">
+      <div class="mstats" id="m-stats"></div>
+      <div class="mmap" id="m-map"></div>
+      <div class="ctitle" style="margin-bottom:8px">Sighting History (Chronological)</div>
+      <div class="mt-wrap">
+        <table>
+          <thead><tr>
+            <th>Datetime</th><th>Activity</th><th>Location</th>
+            <th>Signal</th><th>Observer</th><th>Notes</th>
+          </tr></thead>
+          <tbody id="m-tbody"></tbody>
+        </table>
+      </div>
     </div>
+  </div>
+</div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- SCRIPTS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<script>
+// ─────────────────────────────────────────────
+//  CONFIGURATION
+// ─────────────────────────────────────────────
+const SHEET_ID  = '1-qg3MnjhJn2SCwPYnyCPgI2ujy235X-chN_EHlJDK3g';
+const SHEET_GID = '0';
+// Primary export endpoint
+const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
+// Fallback (published CSV)
+const SHEET_URL2 = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
 
-    <script>
-        // --- CONFIGURATION ---
-        // Replace this URL with your "Publish to Web" CSV link from Google Sheets
-        const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS1jHj0eW0R_G_nS1YwT8l5XqA6Y9Y5_5ZzZ_5ZzZ_5ZzZ_5ZzZ_5ZzZ/pub?gid=0&single=true&output=csv';
+// ─────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────
+let DATA = [];
+let filtered = [];
+let sortField = 'Datetime';
+let sortAsc = false;
+let layerAll = true;
+let layerLatest = true;
+let layerHeat = false;
+let modalMap = null;
+let charts = {};
 
-        let masterData = [];
-        let filteredData = [];
-        let map, markers, activityChart, stageChart;
+const ACT_COLOR = {
+  'Basking':'#c47b0c',
+  'Swimming':'#1a7a52',
+  'Active in Water':'#1a5fa0',
+  'Breeding':'#b0385e',
+  'Surface Active':'#0f7a7a'
+};
+const TYPE_COLOR = {
+  'Adult Female':'#b0385e',
+  'Adult Male':'#1a5fa0',
+  'Sub-adult':'#0f7a7a',
+  'Hatchling':'#c47b0c'
+};
+const SIG_CLASS = {'Strong':'ss','Medium-Strong':'sms','Medium':'sm','Medium-Weak':'smw','Weak':'sw'};
+const ACT_CLASS = {'Basking':'bask','Swimming':'swim','Active in Water':'actw','Breeding':'bred','Surface Active':'surf'};
+const TYPE_CLASS = {'Adult Female':'af','Adult Male':'am','Sub-adult':'sa','Hatchling':'hh'};
 
-        // --- DATA FETCHING ---
-        async function fetchData() {
-            try {
-                const response = await fetch(SHEET_CSV_URL);
-                const csvText = await response.text();
-                masterData = parseCSV(csvText);
-                initApp();
-            } catch (error) {
-                console.error("Fetch error:", error);
-                alert("Could not load data from Google Sheets. Ensure you have published the sheet as CSV.");
-            }
-        }
+// ─────────────────────────────────────────────
+//  LEAFLET MAP
+// ─────────────────────────────────────────────
+const map = L.map('map', {zoomControl: true, preferCanvas: true}).setView([25.85, 76.56], 12);
 
-        function parseCSV(text) {
-            const lines = text.split(/\r?\n/);
-            const headers = lines[0].split(',').map(h => h.trim());
-            const data = [];
+// Satellite hybrid basemap
+L.tileLayer('https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+  subdomains: ['0','1','2','3'],
+  maxZoom: 20,
+  attribution: '© Google Maps'
+}).addTo(map);
 
-            for (let i = 1; i < lines.length; i++) {
-                if (!lines[i]) continue;
-                
-                // Advanced split to handle commas inside quotes
-                const values = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || [];
-                const row = {};
-                
-                headers.forEach((h, idx) => {
-                    let val = values[idx] ? values[idx].replace(/^"|"$/g, '').trim() : "";
-                    row[h] = val;
-                });
+const clusterAll    = L.markerClusterGroup({maxClusterRadius:50, showCoverageOnHover:false, iconCreateFunction: mkCluster('#1a7a52')});
+const clusterLatest = L.markerClusterGroup({maxClusterRadius:50, showCoverageOnHover:false, iconCreateFunction: mkCluster('#1a5fa0')});
+let heatLayer = null;
 
-                if (row.LatLong && row.LatLong.includes(',')) {
-                    const [lat, lon] = row.LatLong.split(',').map(Number);
-                    row.lat = lat;
-                    row.lon = lon;
-                    data.push(row);
-                }
-            }
-            return data;
-        }
+function mkCluster(color){
+  return c => {
+    const n = c.getChildCount();
+    return L.divIcon({
+      html:`<div style="background:${color}22;border:2px solid ${color};border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:${color};">${n}</div>`,
+      className:'', iconSize:[36,36]
+    });
+  };
+}
 
-        // --- INITIALIZATION ---
-        function initApp() {
-            document.getElementById('loader').style.display = 'none';
-            filteredData = [...masterData];
-            
-            initMap();
-            initCharts();
-            populateFilters();
-            updateUI();
-        }
+map.addLayer(clusterLatest); // default: latest positions
 
-        function initMap() {
-            map = L.map('map').setView([25.85, 76.56], 12);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
-            markers = L.markerClusterGroup();
-            map.addLayer(markers);
-        }
+// ─────────────────────────────────────────────
+//  CSV PARSER  (robust, handles quoted commas)
+// ─────────────────────────────────────────────
+function parseCSV(text) {
+  const lines = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+  if (lines.length < 2) return [];
 
-        function initCharts() {
-            const chartOptions = {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom', labels: { color: '#8b95a5', font: { size: 10 } } } }
-            };
+  // find header line (skip BOM / blank lines)
+  let hi = 0;
+  while (hi < lines.length && !lines[hi].trim()) hi++;
+  const rawHdr = lines[hi];
 
-            activityChart = new Chart(document.getElementById('activityChart'), {
-                type: 'doughnut',
-                data: { labels: [], datasets: [{ backgroundColor: ['#00d2ff', '#3a86ff', '#8338ec', '#ff006e', '#fb5607'], borderWidth: 0, data: [] }] },
-                options: chartOptions
-            });
+  const parseRow = line => {
+    const vals = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQ && line[i+1] === '"') { cur += '"'; i++; }
+        else inQ = !inQ;
+      } else if (ch === ',' && !inQ) { vals.push(cur.trim()); cur = ''; }
+      else cur += ch;
+    }
+    vals.push(cur.trim());
+    return vals;
+  };
 
-            stageChart = new Chart(document.getElementById('stageChart'), {
-                type: 'bar',
-                data: { labels: [], datasets: [{ backgroundColor: '#00d2ff', data: [] }] },
-                options: { ...chartOptions, plugins: { legend: { display: false } } }
-            });
-        }
+  const headers = parseRow(rawHdr).map(h => h.replace(/^"|"$/g,'').trim());
 
-        function populateFilters() {
-            const sets = {
-                'filter-type': new Set(),
-                'filter-activity': new Set(),
-                'filter-location': new Set(),
-                'filter-observer': new Set()
-            };
+  // Build field map (flexible column name matching)
+  const colMap = {};
+  const fieldAliases = {
+    Log_ID:          ['log_id','logid','log id'],
+    Observer:        ['observer'],
+    Animal_Type:     ['animal_type','animal type','animaltype','type'],
+    Radio_ID:        ['radio_id','radioid','radio id','radio','tag_id','tagid'],
+    Signal_Strength: ['signal_strength','signal strength','signalstrength','signal'],
+    Activity:        ['activity'],
+    Location:        ['location','site'],
+    Datetime:        ['datetime','date_time','date time','date'],
+    LatLong:         ['latlong','lat_long','lat/long','latlng','coordinates','coord'],
+    Signal_Angle:    ['signal_angle','signal angle','angle'],
+    Notes:           ['notes','note','remark','remarks']
+  };
+  headers.forEach((h, i) => {
+    const hl = h.toLowerCase().replace(/\s+/g,'_');
+    Object.entries(fieldAliases).forEach(([field, aliases]) => {
+      if (!colMap[field] && aliases.some(a => hl.includes(a.replace(/\s+/g,'_')))) {
+        colMap[field] = i;
+      }
+    });
+  });
 
-            masterData.forEach(d => {
-                if(d['Animal Type']) sets['filter-type'].add(d['Animal Type']);
-                if(d.Activity) sets['filter-activity'].add(d.Activity);
-                if(d.Location) sets['filter-location'].add(d.Location);
-                if(d.Observer) sets['filter-observer'].add(d.Observer);
-            });
+  const rows = [];
+  for (let i = hi + 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    const vals = parseRow(line);
+    const r = {};
+    Object.entries(colMap).forEach(([field, idx]) => {
+      r[field] = (vals[idx] || '').replace(/^"|"$/g,'').trim();
+    });
 
-            Object.keys(sets).forEach(id => {
-                const select = document.getElementById(id);
-                [...sets[id]].sort().forEach(val => {
-                    const opt = document.createElement('option');
-                    opt.value = val; opt.textContent = val;
-                    select.appendChild(opt);
-                });
-            });
-        }
+    // Validate required fields
+    if (!r.Radio_ID || !r.Datetime || !r.LatLong) continue;
+    if (!r.LatLong.includes(',')) continue;
 
-        // --- UPDATES ---
-        function applyFilters() {
-            const filters = {
-                type: document.getElementById('filter-type').value,
-                activity: document.getElementById('filter-activity').value,
-                location: document.getElementById('filter-location').value,
-                observer: document.getElementById('filter-observer').value
-            };
+    // Parse coordinates
+    const parts = r.LatLong.split(',');
+    const lat = parseFloat(parts[0]);
+    const lon = parseFloat(parts[1]);
+    if (isNaN(lat) || isNaN(lon)) continue;
+    r._lat = lat;
+    r._lon = lon;
+    if (!r.Log_ID) r.Log_ID = `R-${i}`;
+    rows.push(r);
+  }
+  return rows;
+}
 
-            filteredData = masterData.filter(d => {
-                return (filters.type === 'All' || d['Animal Type'] === filters.type) &&
-                       (filters.activity === 'All' || d.Activity === filters.activity) &&
-                       (filters.location === 'All' || d.Location === filters.location) &&
-                       (filters.observer === 'All' || d.Observer === filters.observer);
-            });
+// ─────────────────────────────────────────────
+//  DATA FETCH
+// ─────────────────────────────────────────────
+async function fetchData() {
+  const ldErr    = document.getElementById('ld-err');
+  const ldRetry  = document.getElementById('ld-retry');
+  const ldTxt    = document.querySelector('.ld-txt');
+  ldErr.style.display = 'none';
+  ldRetry.style.display = 'none';
+  ldTxt.textContent = 'Syncing Chambal Field Logs…';
 
-            updateUI();
-        }
+  const urls = [SHEET_URL, SHEET_URL2];
+  let lastErr = '';
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, {cache:'no-store'});
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const csv = await res.text();
+      DATA = parseCSV(csv);
+      if (DATA.length === 0) throw new Error('No valid rows found in sheet. Check LatLong, Radio_ID, Datetime columns.');
+      initApp();
+      return;
+    } catch(e) {
+      lastErr = e.message;
+    }
+  }
+  // All failed
+  ldTxt.textContent = 'Connection Failed';
+  ldErr.style.display = 'block';
+  ldErr.innerHTML = `Could not load Google Sheet data.<br><small style="opacity:.7">${lastErr}</small><br><br>Make sure the sheet is shared publicly (Anyone with link → Viewer).`;
+  ldRetry.style.display = 'inline-block';
+}
 
-        function resetFilters() {
-            ['filter-type', 'filter-activity', 'filter-location', 'filter-observer'].forEach(id => {
-                document.getElementById(id).value = 'All';
-            });
-            applyFilters();
-        }
+// ─────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────
+function initApp() {
+  document.getElementById('loader').style.display = 'none';
+  filtered = [...DATA];
 
-        function updateUI() {
-            // Stats
-            document.getElementById('stat-obs').textContent = filteredData.length;
-            document.getElementById('stat-radio').textContent = new Set(filteredData.map(d => d.Radio_ID)).size;
-            document.getElementById('stat-sites').textContent = new Set(filteredData.map(d => d.Location)).size;
-            document.getElementById('stat-obs-count').textContent = new Set(filteredData.map(d => d.Observer)).size;
+  // Populate filters dynamically from data
+  const types   = [...new Set(DATA.map(r=>r.Animal_Type).filter(Boolean))].sort();
+  const acts    = [...new Set(DATA.map(r=>r.Activity).filter(Boolean))].sort();
+  const locs    = [...new Set(DATA.map(r=>r.Location).filter(Boolean))].sort();
 
-            // Map
-            markers.clearLayers();
-            filteredData.forEach(d => {
-                const m = L.circleMarker([d.lat, d.lon], {
-                    radius: 8,
-                    fillColor: d['Animal Type'].includes('Male') ? '#3a86ff' : '#ff006e',
-                    color: '#fff', weight: 1, fillOpacity: 0.8
-                }).bindPopup(`<b>ID: ${d.Radio_ID}</b><br>${d.Activity}<br>${d.Location}`);
-                m.on('click', () => showAnimalProfile(d.Radio_ID));
-                markers.addLayer(m);
-            });
-            if(filteredData.length) map.fitBounds(markers.getBounds(), {padding: [50,50]});
+  const populate = (id, vals) => {
+    const sel = document.getElementById(id);
+    vals.forEach(v => {
+      const o = document.createElement('option');
+      o.value = v; o.textContent = v; sel.appendChild(o);
+    });
+  };
+  populate('f-type', types);
+  populate('f-act', acts);
+  populate('f-loc', locs);
 
-            // Charts
-            const actCounts = {}, stageCounts = {};
-            filteredData.forEach(d => {
-                actCounts[d.Activity] = (actCounts[d.Activity] || 0) + 1;
-                stageCounts[d['Animal Type']] = (stageCounts[d['Animal Type']] || 0) + 1;
-            });
+  // Date range from data
+  const dates = DATA.map(r=>r.Datetime).filter(Boolean).sort();
+  if (dates.length) {
+    const d1 = dates[0].slice(0,10);
+    const d2 = dates[dates.length-1].slice(0,10);
+    document.getElementById('f-d1').value = d1;
+    document.getElementById('f-d2').value = d2;
+  }
 
-            activityChart.data.labels = Object.keys(actCounts);
-            activityChart.data.datasets[0].data = Object.values(actCounts);
-            activityChart.update();
+  initCharts();
+  applyFilters();
+}
 
-            stageChart.data.labels = Object.keys(stageCounts);
-            stageChart.data.datasets[0].data = Object.values(stageCounts);
-            stageChart.update();
+// ─────────────────────────────────────────────
+//  FILTERS
+// ─────────────────────────────────────────────
+function applyFilters() {
+  const rid  = document.getElementById('f-rid').value.trim().toLowerCase();
+  const type = document.getElementById('f-type').value;
+  const act  = document.getElementById('f-act').value;
+  const loc  = document.getElementById('f-loc').value;
+  const d1   = document.getElementById('f-d1').value;
+  const d2   = document.getElementById('f-d2').value;
 
-            // Table
-            const tbody = document.getElementById('table-body');
-            tbody.innerHTML = filteredData.slice(0, 100).map(d => `
-                <tr onclick="showAnimalProfile('${d.Radio_ID}')">
-                    <td>${d.Datetime}</td>
-                    <td style="color:var(--accent)">${d.Radio_ID}</td>
-                    <td>${d['Animal Type']}</td>
-                    <td>${d.Activity}</td>
-                    <td>${d.Location}</td>
-                    <td style="font-size: 0.75rem; color: var(--text-muted)">${d.Notes || '-'}</td>
-                </tr>
-            `).join('');
-        }
+  filtered = DATA.filter(r => {
+    if (rid && !r.Radio_ID.toLowerCase().includes(rid)) return false;
+    if (type && r.Animal_Type !== type) return false;
+    if (act && r.Activity !== act) return false;
+    if (loc && r.Location !== loc) return false;
+    if (d1 && r.Datetime < d1) return false;
+    if (d2 && r.Datetime > d2 + ' 23:59:59') return false;
+    return true;
+  });
 
-        function showAnimalProfile(id) {
-            const sightings = masterData.filter(d => d.Radio_ID === id);
-            const latest = sightings[0];
-            
-            document.getElementById('modal-title').textContent = `Profile: ${id}`;
-            document.getElementById('modal-content').innerHTML = `
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                    <div>
-                        <p><label>Animal Type</label><b>${latest['Animal Type']}</b></p>
-                        <p><label>Total Sightings</label><b>${sightings.length}</b></p>
-                    </div>
-                    <div>
-                        <p><label>Last Seen</label><b>${latest.Location}</b></p>
-                        <p><label>Last Activity</label><b>${latest.Activity}</b></p>
-                    </div>
-                </div>
-                <h4 style="margin-top:20px; font-size: 0.8rem; color: var(--text-muted);">SIGHTING HISTORY</h4>
-                <div style="max-height: 200px; overflow-y: auto; margin-top: 10px; border: 1px solid var(--border); border-radius: 8px;">
-                    <table style="font-size: 0.75rem;">
-                        ${sightings.map(s => `<tr><td style="border:none">${s.Datetime}</td><td style="border:none">${s.Location}</td></tr>`).join('')}
-                    </table>
-                </div>
-            `;
-            document.getElementById('modal').style.display = 'flex';
-        }
+  updateStats(filtered);
+  updateMap(filtered);
+  updateCharts(filtered);
+  updateInsights(filtered);
+  renderTable();
+}
 
-        function closeModal() { document.getElementById('modal').style.display = 'none'; }
+function resetFilters() {
+  document.getElementById('f-rid').value = '';
+  document.getElementById('f-type').value = '';
+  document.getElementById('f-act').value = '';
+  document.getElementById('f-loc').value = '';
+  const dates = DATA.map(r=>r.Datetime).filter(Boolean).sort();
+  if (dates.length) {
+    document.getElementById('f-d1').value = dates[0].slice(0,10);
+    document.getElementById('f-d2').value = dates[dates.length-1].slice(0,10);
+  }
+  applyFilters();
+}
 
-        function exportCSV() {
-            const headers = Object.keys(filteredData[0]).join(',');
-            const rows = filteredData.map(row => Object.values(row).map(v => `"${v}"`).join(','));
-            const blob = new Blob([[headers, ...rows].join('\n')], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = 'gharial_observations.csv'; a.click();
-        }
+// ─────────────────────────────────────────────
+//  STATS
+// ─────────────────────────────────────────────
+function updateStats(data) {
+  document.getElementById('hs-obs').textContent  = data.length;
+  document.getElementById('hs-ani').textContent  = new Set(data.map(r=>r.Radio_ID)).size;
+  document.getElementById('hs-site').textContent = new Set(data.map(r=>r.Location)).size;
+  document.getElementById('hs-obsr').textContent = new Set(data.map(r=>r.Observer)).size;
 
-        window.onload = fetchData;
-    </script>
+  // Life stage cards
+  const cnt = (type) => new Set(data.filter(r=>r.Animal_Type===type).map(r=>r.Radio_ID)).size;
+  document.getElementById('sc-af').textContent = cnt('Adult Female');
+  document.getElementById('sc-am').textContent = cnt('Adult Male');
+  document.getElementById('sc-sa').textContent = cnt('Sub-adult');
+  document.getElementById('sc-hh').textContent = cnt('Hatchling');
+}
+
+// ─────────────────────────────────────────────
+//  MAP
+// ─────────────────────────────────────────────
+function getLatestPerAnimal(data) {
+  const map = {};
+  data.forEach(r => {
+    const existing = map[r.Radio_ID];
+    if (!existing || r.Datetime > existing.Datetime) map[r.Radio_ID] = r;
+  });
+  return Object.values(map);
+}
+
+function makeMarker(r, latest=false) {
+  const col = ACT_COLOR[r.Activity] || '#666';
+  const size = latest ? 13 : 9;
+  const border = latest ? 2.5 : 1.5;
+  const icon = L.divIcon({
+    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${col};border:${border}px solid rgba(255,255,255,0.9);box-shadow:0 1px 4px rgba(0,0,0,.25);"></div>`,
+    className:'', iconSize:[size,size], iconAnchor:[size/2,size/2]
+  });
+  const m = L.marker([r._lat, r._lon], {icon});
+  m.bindPopup(() => popupHTML(r), {maxWidth:300});
+  return m;
+}
+
+function popupHTML(r) {
+  return `<div class="lp-wrap">
+    <div class="lp-hdr">
+      <span class="lp-rid" onclick="openProfile('${r.Radio_ID}');map.closePopup()">Radio ${r.Radio_ID}</span>
+      <span class="lp-type">${r.Animal_Type||'—'}</span>
+    </div>
+    <div class="lp-row"><span class="lp-k">Activity</span><span class="lp-v hi">${r.Activity||'—'}</span></div>
+    <div class="lp-row"><span class="lp-k">Location</span><span class="lp-v">${r.Location||'—'}</span></div>
+    <div class="lp-row"><span class="lp-k">Observer</span><span class="lp-v">${r.Observer||'—'}</span></div>
+    <div class="lp-row"><span class="lp-k">Datetime</span><span class="lp-v">${r.Datetime||'—'}</span></div>
+    <div class="lp-row"><span class="lp-k">Signal</span><span class="lp-v">${r.Signal_Strength||'—'}</span></div>
+    ${r.Notes ? `<div class="lp-row"><span class="lp-k">Notes</span><span class="lp-v">${r.Notes}</span></div>` : ''}
+  </div>`;
+}
+
+function updateMap(data) {
+  clusterAll.clearLayers();
+  clusterLatest.clearLayers();
+  if (heatLayer) { map.removeLayer(heatLayer); heatLayer = null; }
+
+  // All observations layer
+  if (layerAll) {
+    data.forEach(r => {
+      try { clusterAll.addLayer(makeMarker(r, false)); } catch(e){}
+    });
+  }
+
+  // Latest positions layer
+  if (layerLatest) {
+    getLatestPerAnimal(data).forEach(r => {
+      try { clusterLatest.addLayer(makeMarker(r, true)); } catch(e){}
+    });
+  }
+
+  if (!map.hasLayer(clusterAll) && layerAll) map.addLayer(clusterAll);
+  if (!map.hasLayer(clusterLatest) && layerLatest) map.addLayer(clusterLatest);
+  if (!layerAll) map.removeLayer(clusterAll);
+  if (!layerLatest) map.removeLayer(clusterLatest);
+
+  // Heatmap
+  if (layerHeat && data.length) {
+    const pts = data.map(r => [r._lat, r._lon, 0.6]);
+    heatLayer = L.heatLayer(pts, {
+      radius: 30, blur: 22, maxZoom: 14,
+      gradient: {0.1:'#e8f5e9', 0.3:'#66bb6a', 0.6:'#f0a530', 1.0:'#e53935'}
+    });
+    map.addLayer(heatLayer);
+  }
+
+  document.getElementById('map-badge').textContent = `${data.length} record${data.length!==1?'s':''} · ${new Set(data.map(r=>r.Radio_ID)).size} animals`;
+}
+
+function toggleLayer(btn, layer) {
+  btn.classList.toggle('on');
+  const on = btn.classList.contains('on');
+  if (layer === 'markers') layerAll = on;
+  if (layer === 'latest')  layerLatest = on;
+  if (layer === 'heat')    layerHeat = on;
+  updateMap(filtered);
+}
+
+// ─────────────────────────────────────────────
+//  CHARTS
+// ─────────────────────────────────────────────
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.font.size = 10;
+Chart.defaults.color = '#8aaa96';
+Chart.defaults.borderColor = 'rgba(221,232,227,.5)';
+
+function mkChart(id, cfg) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(ctx, cfg);
+}
+
+function initCharts() {
+  // placeholders
+  mkChart('ch-act',   {type:'doughnut', data:{labels:[],datasets:[{data:[],borderWidth:1.5}]}, options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'right',labels:{font:{size:9},padding:6,boxWidth:10}}}}});
+  mkChart('ch-stage', {type:'doughnut', data:{labels:[],datasets:[{data:[],borderWidth:1.5}]}, options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'right',labels:{font:{size:9},padding:6,boxWidth:10}}}}});
+  mkChart('ch-loc',   {type:'bar',      data:{labels:[],datasets:[{data:[],borderRadius:3,borderWidth:1}]}, options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(221,232,227,.5)'},ticks:{color:'#8aaa96'}},y:{grid:{display:false},ticks:{color:'#4a6b58',font:{size:9}}}}}});
+  mkChart('ch-trend', {type:'line',     data:{labels:[],datasets:[{borderWidth:2,pointRadius:4,fill:true,tension:0.3}]}, options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(221,232,227,.5)'},ticks:{color:'#8aaa96',maxRotation:0}},y:{grid:{color:'rgba(221,232,227,.5)'},ticks:{color:'#8aaa96'},beginAtZero:true}}}});
+}
+
+function updateCharts(data) {
+  if (!data.length) return;
+
+  // Activity
+  const actMap = {};
+  data.forEach(r => { actMap[r.Activity] = (actMap[r.Activity]||0)+1; });
+  const actKeys = Object.keys(actMap);
+  charts['ch-act'].data.labels = actKeys;
+  charts['ch-act'].data.datasets[0].data = actKeys.map(k=>actMap[k]);
+  charts['ch-act'].data.datasets[0].backgroundColor = actKeys.map(k=>(ACT_COLOR[k]||'#999')+'cc');
+  charts['ch-act'].data.datasets[0].borderColor = actKeys.map(k=>ACT_COLOR[k]||'#999');
+  charts['ch-act'].update();
+
+  // Life stage
+  const stageMap = {};
+  data.forEach(r => { stageMap[r.Animal_Type] = (stageMap[r.Animal_Type]||0)+1; });
+  const stageKeys = Object.keys(stageMap);
+  charts['ch-stage'].data.labels = stageKeys;
+  charts['ch-stage'].data.datasets[0].data = stageKeys.map(k=>stageMap[k]);
+  charts['ch-stage'].data.datasets[0].backgroundColor = stageKeys.map(k=>(TYPE_COLOR[k]||'#999')+'cc');
+  charts['ch-stage'].data.datasets[0].borderColor = stageKeys.map(k=>TYPE_COLOR[k]||'#999');
+  charts['ch-stage'].update();
+
+  // Location bar
+  const locMap = {};
+  data.forEach(r => { locMap[r.Location] = (locMap[r.Location]||0)+1; });
+  const locSorted = Object.entries(locMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  charts['ch-loc'].data.labels = locSorted.map(([l])=>l.length>16?l.slice(0,15)+'…':l);
+  charts['ch-loc'].data.datasets[0].data = locSorted.map(([,v])=>v);
+  charts['ch-loc'].data.datasets[0].backgroundColor = locSorted.map((_,i)=>`hsla(${147+i*14},55%,${42+i*2}%,0.7)`);
+  charts['ch-loc'].data.datasets[0].borderColor = locSorted.map((_,i)=>`hsla(${147+i*14},55%,${42+i*2}%,1)`);
+  charts['ch-loc'].update();
+
+  // Monthly trend
+  const months = {};
+  data.forEach(r => {
+    const d = new Date(r.Datetime);
+    if (isNaN(d)) return;
+    const k = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    months[k] = (months[k]||0)+1;
+  });
+  const mKeys = Object.keys(months).sort();
+  const mLabels = mKeys.map(k => {
+    const [y,m] = k.split('-');
+    return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(m)-1]+" '"+y.slice(2);
+  });
+  charts['ch-trend'].data.labels = mLabels;
+  charts['ch-trend'].data.datasets[0].data = mKeys.map(k=>months[k]);
+  charts['ch-trend'].data.datasets[0].borderColor = '#1a7a52';
+  charts['ch-trend'].data.datasets[0].backgroundColor = 'rgba(26,122,82,.08)';
+  charts['ch-trend'].data.datasets[0].pointBackgroundColor = '#1a7a52';
+  charts['ch-trend'].data.datasets[0].pointBorderColor = '#fff';
+  charts['ch-trend'].data.datasets[0].pointBorderWidth = 2;
+  charts['ch-trend'].update();
+}
+
+// ─────────────────────────────────────────────
+//  INSIGHTS
+// ─────────────────────────────────────────────
+function updateInsights(data) {
+  const el = document.getElementById('insights-grid');
+  if (!data.length) { el.innerHTML='<div style="color:var(--t3);padding:14px;font-size:12px">No data.</div>'; return; }
+
+  const locFreq={}, actFreq={}, obsFreq={};
+  data.forEach(r=>{
+    locFreq[r.Location]=(locFreq[r.Location]||0)+1;
+    actFreq[r.Activity]=(actFreq[r.Activity]||0)+1;
+    obsFreq[r.Observer]=(obsFreq[r.Observer]||0)+1;
+  });
+  const topLoc  = Object.entries(locFreq).sort((a,b)=>b[1]-a[1])[0];
+  const topAct  = Object.entries(actFreq).sort((a,b)=>b[1]-a[1])[0];
+  const obsList = Object.entries(obsFreq).sort((a,b)=>b[1]-a[1]);
+  const latest  = data.map(r=>r.Datetime).filter(Boolean).sort().pop()||'—';
+  const animals = new Set(data.map(r=>r.Radio_ID)).size;
+  const dates   = new Set(data.map(r=>r.Datetime.slice(0,10))).size;
+  const avg     = (data.length/Math.max(1,dates)).toFixed(1);
+
+  const months={};
+  data.forEach(r=>{const d=new Date(r.Datetime);if(!isNaN(d)){const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;months[k]=(months[k]||0)+1;}});
+  const peakM = Object.entries(months).sort((a,b)=>b[1]-a[1])[0];
+  const peakLabel = peakM ? (()=>{const[y,m]=peakM[0].split('-');return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(m)-1]+" '"+y.slice(2);})() : '—';
+
+  el.innerHTML=`
+  <div class="icard"><div class="ilbl">Most Active Site</div><div class="ival">${topLoc[0]}</div><div class="isub">${topLoc[1]} sightings</div></div>
+  <div class="icard"><div class="ilbl">Top Activity</div><div class="ival" style="color:var(--amber)">${topAct[0]}</div><div class="isub">${((topAct[1]/data.length)*100).toFixed(0)}% of records</div></div>
+  <div class="icard"><div class="ilbl">Peak Month</div><div class="ival" style="color:var(--blue)">${peakLabel}</div><div class="isub">${peakM?peakM[1]:0} records</div></div>
+  <div class="icard"><div class="ilbl">Active Animals</div><div class="ival" style="color:var(--rose)">${animals}</div><div class="isub">tracked</div></div>
+  <div class="icard"><div class="ilbl">Latest Survey</div><div class="ival" style="font-size:12px;color:var(--teal)">${latest.slice(0,10)}</div><div class="isub">most recent record</div></div>
+  <div class="icard"><div class="ilbl">Avg / Survey Day</div><div class="ival">${avg}</div><div class="isub">observations</div></div>
+  <div class="icard full">
+    <div class="ilbl" style="margin-bottom:10px">Observer Effort</div>
+    ${obsList.map(([o,c])=>`
+    <div class="obs-bar-row">
+      <div class="obs-bar-name">${o||'Unknown'}</div>
+      <div class="obs-bar-track"><div class="obs-bar-fill" style="width:${(c/obsList[0][1]*100).toFixed(0)}%"></div></div>
+      <div class="obs-bar-val">${c}</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+// ─────────────────────────────────────────────
+//  TABLE
+// ─────────────────────────────────────────────
+function renderTable() {
+  const q = document.getElementById('srch').value.toLowerCase();
+  let rows = filtered.filter(r => !q || Object.values(r).join(' ').toLowerCase().includes(q));
+  rows.sort((a,b) => {
+    const va=a[sortField]||'', vb=b[sortField]||'';
+    return sortAsc ? (va>vb?1:-1) : (va<vb?1:-1);
+  });
+  document.getElementById('tcnt').textContent = `${rows.length} row${rows.length!==1?'s':''}`;
+  document.getElementById('tbody').innerHTML = rows.map(r=>`
+    <tr>
+      <td>${r.Datetime||'—'}</td>
+      <td class="td-rid" onclick="openProfile('${r.Radio_ID}')">${r.Radio_ID}</td>
+      <td class="${TYPE_CLASS[r.Animal_Type]||''}">${r.Animal_Type||'—'}</td>
+      <td class="${ACT_CLASS[r.Activity]||''}">${r.Activity||'—'}</td>
+      <td>${r.Location||'—'}</td>
+      <td style="color:var(--t2)">${r.Observer||'—'}</td>
+      <td class="${SIG_CLASS[r.Signal_Strength]||''}">${r.Signal_Strength||'—'}</td>
+      <td style="color:var(--t3);max-width:160px;overflow:hidden;text-overflow:ellipsis" title="${r.Notes||''}">${r.Notes||'—'}</td>
+    </tr>`).join('');
+}
+
+function sortBy(field) {
+  sortAsc = sortField===field ? !sortAsc : true;
+  sortField = field;
+  document.querySelectorAll('th').forEach(t=>t.classList.remove('srt'));
+  const th = document.getElementById('th-'+field);
+  if (th) th.classList.add('srt');
+  renderTable();
+}
+
+// ─────────────────────────────────────────────
+//  TABS
+// ─────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.ptab').forEach(t=>t.classList.remove('on'));
+  tab.classList.add('on');
+  const charts_on = tab.dataset.tab === 'charts';
+  document.getElementById('pane-charts').classList.toggle('on', charts_on);
+  document.getElementById('pane-insights').classList.toggle('on', !charts_on);
+  if (charts_on) setTimeout(()=>updateCharts(filtered), 50);
+  else updateInsights(filtered);
+}
+
+// ─────────────────────────────────────────────
+//  ANIMAL PROFILE MODAL
+// ─────────────────────────────────────────────
+function openProfile(rid) {
+  const recs = DATA.filter(r=>r.Radio_ID===rid).sort((a,b)=>a.Datetime<b.Datetime?-1:1);
+  if (!recs.length) return;
+  const first = recs[0];
+  const last  = recs[recs.length-1];
+
+  document.getElementById('m-rid').textContent  = `Radio ${rid}`;
+  document.getElementById('m-title').textContent = 'Animal Profile';
+  document.getElementById('m-type').textContent  = first.Animal_Type;
+
+  const sites  = [...new Set(recs.map(r=>r.Location))].length;
+  const actMap = {};
+  recs.forEach(r=>{actMap[r.Activity]=(actMap[r.Activity]||0)+1;});
+  const topAct = Object.entries(actMap).sort((a,b)=>b[1]-a[1])[0][0];
+
+  document.getElementById('m-stats').innerHTML=`
+    <div class="mstat"><div class="v">${recs.length}</div><div class="l">Sightings</div></div>
+    <div class="mstat"><div class="v">${sites}</div><div class="l">Sites</div></div>
+    <div class="mstat"><div class="v" style="font-size:12px;color:var(--amber)">${topAct}</div><div class="l">Top Activity</div></div>
+    <div class="mstat"><div class="v" style="font-size:11px;color:var(--blue)">${last.Datetime.slice(0,10)}</div><div class="l">Last Seen</div></div>`;
+
+  document.getElementById('m-tbody').innerHTML = recs.map(r=>`<tr>
+    <td>${r.Datetime}</td>
+    <td class="${ACT_CLASS[r.Activity]||''}">${r.Activity||'—'}</td>
+    <td>${r.Location||'—'}</td>
+    <td class="${SIG_CLASS[r.Signal_Strength]||''}">${r.Signal_Strength||'—'}</td>
+    <td style="color:var(--t2)">${r.Observer||'—'}</td>
+    <td style="color:var(--t3);max-width:140px;overflow:hidden;text-overflow:ellipsis">${r.Notes||'—'}</td>
+  </tr>`).join('');
+
+  document.getElementById('mov').classList.add('open');
+
+  setTimeout(()=>{
+    if (modalMap) { modalMap.remove(); modalMap=null; }
+    const center = [recs[recs.length-1]._lat, recs[recs.length-1]._lon];
+    modalMap = L.map('m-map',{zoomControl:false,attributionControl:false}).setView(center, 12);
+    L.tileLayer('https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',{subdomains:['0','1','2','3'],maxZoom:20}).addTo(modalMap);
+    recs.forEach(r=>{
+      const col=ACT_COLOR[r.Activity]||'#666';
+      L.circleMarker([r._lat,r._lon],{radius:7,color:'#fff',fillColor:col,fillOpacity:.85,weight:2})
+       .bindPopup(`<div style="font-size:11px;font-family:monospace">${r.Activity}<br>${r.Location}<br>${r.Datetime.slice(0,10)}</div>`)
+       .addTo(modalMap);
+    });
+    if (recs.length>1) {
+      modalMap.fitBounds(L.latLngBounds(recs.map(r=>[r._lat,r._lon])),{padding:[20,20]});
+    }
+    modalMap.invalidateSize();
+  }, 100);
+}
+
+function closeModal() {
+  document.getElementById('mov').classList.remove('open');
+  if (modalMap) { modalMap.remove(); modalMap=null; }
+}
+
+// ─────────────────────────────────────────────
+//  CSV EXPORT
+// ─────────────────────────────────────────────
+function exportCSV() {
+  const q = document.getElementById('srch').value.toLowerCase();
+  const rows = filtered.filter(r=>!q||Object.values(r).join(' ').toLowerCase().includes(q));
+  const keys = ['Log_ID','Observer','Animal_Type','Radio_ID','Signal_Strength','Activity','Location','Datetime','LatLong','Signal_Angle','Notes'];
+  const csv = [
+    keys.join(','),
+    ...rows.map(r=>keys.map(k=>`"${(r[k]||'').toString().replace(/"/g,'""')}"`).join(','))
+  ].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download = `chambal_gharial_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+// ─────────────────────────────────────────────
+//  START
+// ─────────────────────────────────────────────
+window.onload = fetchData;
+</script>
 </body>
 </html>
