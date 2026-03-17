@@ -12,813 +12,393 @@
 
     <style>
         :root {
-            --bg-base: #12141c;
-            --bg-panel: #1e212f;
-            --bg-hover: #2a2e40;
+            --bg-base: #0f111a;
+            --bg-panel: #161925;
+            --bg-hover: #232738;
             --text-main: #e0e6ed;
             --text-muted: #8b95a5;
             --accent: #00d2ff;
             --accent-glow: rgba(0, 210, 255, 0.3);
             --border: #2d3142;
-            --chart-colors: #00d2ff, #3a86ff, #8338ec, #ff006e, #fb5607;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', 'Segoe UI', sans-serif; }
+        body { background-color: var(--bg-base); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
 
-        body {
-            background-color: var(--bg-base);
-            color: var(--text-main);
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        /* Layout */
-        #sidebar {
-            width: 300px;
-            background-color: var(--bg-panel);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-        }
-
-        #main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-        }
-
-        /* Sidebar & Filters */
-        .sidebar-header {
-            padding: 20px;
-            border-bottom: 1px solid var(--border);
-            background: linear-gradient(135deg, var(--bg-panel) 0%, var(--bg-hover) 100%);
-        }
-        .sidebar-header h2 {
-            font-size: 1.2rem;
-            color: var(--accent);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+        /* Sidebar */
+        #sidebar { width: 320px; background-color: var(--bg-panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
+        .sidebar-header { padding: 25px 20px; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, #1c2030, var(--bg-panel)); }
+        .sidebar-header h2 { font-size: 1.1rem; color: var(--accent); text-transform: uppercase; letter-spacing: 1.5px; }
+        .filter-section { padding: 20px; border-bottom: 1px solid var(--border); }
+        .filter-section h3 { font-size: 0.8rem; margin-bottom: 15px; color: var(--text-muted); text-transform: uppercase; }
         
-        .filter-section {
-            padding: 20px;
-            border-bottom: 1px solid var(--border);
-        }
-        .filter-section h3 {
-            font-size: 0.9rem;
-            margin-bottom: 10px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-        select, input[type="text"] {
-            width: 100%;
-            padding: 8px 12px;
-            background-color: var(--bg-base);
-            border: 1px solid var(--border);
-            color: var(--text-main);
-            border-radius: 4px;
-            outline: none;
-            margin-bottom: 10px;
-        }
-        select:focus, input[type="text"]:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 5px var(--accent-glow);
-        }
+        label { font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 5px; }
+        select, input { width: 100%; padding: 10px; background: var(--bg-base); border: 1px solid var(--border); color: #fff; border-radius: 6px; margin-bottom: 15px; outline: none; transition: 0.2s; }
+        select:focus { border-color: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
 
-        /* Top Header */
-        #top-header {
-            padding: 15px 20px;
-            background-color: var(--bg-panel);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        /* Main Area */
+        #main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; position: relative; }
+        
+        #top-header { padding: 15px 25px; background: var(--bg-panel); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .status-pill { padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; background: rgba(0,210,255,0.1); color: var(--accent); border: 1px solid var(--accent); }
 
-        /* Stats Row */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            padding: 20px;
-        }
-        .stat-card {
-            background-color: var(--bg-panel);
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .stat-icon {
-            font-size: 2rem;
-            color: var(--accent);
-            margin-right: 15px;
-        }
-        .stat-info h4 {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-        .stat-info span {
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
+        /* Dashboard Components */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; padding: 20px; }
+        .stat-card { background: var(--bg-panel); padding: 20px; border-radius: 12px; border: 1px solid var(--border); text-align: center; }
+        .stat-card i { font-size: 1.5rem; color: var(--accent); margin-bottom: 10px; display: block; }
+        .stat-card span { font-size: 1.6rem; font-weight: 700; display: block; }
+        .stat-card label { margin-bottom: 0; text-transform: uppercase; font-weight: 600; }
 
-        /* Content Grid (Map + Charts) */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
-            padding: 0 20px 20px 20px;
-            flex: 1;
-        }
+        .dashboard-grid { display: grid; grid-template-columns: 1.8fr 1.2fr; gap: 20px; padding: 0 20px 20px; }
+        .panel { background: var(--bg-panel); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; display: flex; flex-direction: column; }
+        .panel-header { padding: 12px 18px; background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; font-weight: 600; }
 
-        .panel {
-            background-color: var(--bg-panel);
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        .panel-header {
-            padding: 10px 15px;
-            border-bottom: 1px solid var(--border);
-            background-color: rgba(0,0,0,0.2);
-            font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        #map {
-            height: 500px;
-            width: 100%;
-            background-color: #0b0c10;
-        }
-
-        /* Charts Area */
-        .charts-container {
-            display: grid;
-            grid-template-rows: 1fr 1fr;
-            gap: 20px;
-        }
-        .chart-wrapper {
-            padding: 15px;
-            position: relative;
-            height: 230px;
-        }
-
-        /* Insights & Table */
-        .bottom-grid {
-            display: grid;
-            grid-template-columns: 1fr 3fr;
-            gap: 20px;
-            padding: 0 20px 20px 20px;
-        }
-
-        .insights-list li {
-            list-style: none;
-            padding: 10px 15px;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.9rem;
-        }
-        .insights-list li:last-child {
-            border-bottom: none;
-        }
-        .insights-list span {
-            color: var(--accent);
-            font-weight: bold;
-            display: block;
-            margin-top: 5px;
-            font-size: 1.1rem;
-        }
+        #map { height: 500px; width: 100%; z-index: 1; }
+        .chart-container { padding: 20px; height: 250px; }
 
         /* Table */
-        .table-controls {
-            padding: 10px 15px;
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border);
-        }
-        .btn {
-            background-color: var(--bg-hover);
-            color: var(--text-main);
-            border: 1px solid var(--border);
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn:hover {
-            background-color: var(--accent);
-            color: #000;
-        }
-        .table-wrapper {
-            overflow-x: auto;
-            max-height: 300px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-        }
-        th, td {
-            padding: 10px 15px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-            white-space: nowrap;
-        }
-        th {
-            background-color: rgba(0,0,0,0.2);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        tbody tr:hover {
-            background-color: rgba(255,255,255,0.05);
-            cursor: pointer;
-        }
+        .table-area { padding: 0 20px 20px; }
+        .table-wrapper { max-height: 400px; overflow-y: auto; background: var(--bg-panel); border-radius: 12px; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th { text-align: left; padding: 15px; background: rgba(0,0,0,0.2); position: sticky; top: 0; color: var(--text-muted); text-transform: uppercase; font-size: 0.7rem; }
+        td { padding: 12px 15px; border-bottom: 1px solid var(--border); }
+        tr:hover { background: var(--bg-hover); cursor: pointer; }
+
+        /* Loader */
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-base); z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         /* Modal */
-        #animal-modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background: var(--bg-panel);
-            width: 600px;
-            max-width: 90%;
-            border-radius: 8px;
-            border: 1px solid var(--accent);
-            overflow: hidden;
-            box-shadow: 0 0 20px var(--accent-glow);
-        }
-        .modal-header {
-            padding: 15px;
-            background: rgba(0,0,0,0.2);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .close-btn {
-            cursor: pointer;
-            font-size: 1.2rem;
-            color: var(--text-muted);
-        }
-        .close-btn:hover { color: #fff; }
-        .modal-body {
-            padding: 20px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-base); }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
-
-        /* Leaflet popups dark theme override */
-        .leaflet-popup-content-wrapper, .leaflet-popup-tip {
-            background: var(--bg-panel);
-            color: var(--text-main);
-            border: 1px solid var(--border);
-        }
-        .leaflet-popup-content a.radio-link {
-            color: var(--accent);
-            text-decoration: underline;
-            cursor: pointer;
-            font-weight: bold;
-        }
+        #modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); z-index: 10001; justify-content: center; align-items: center; }
+        .modal-card { background: var(--bg-panel); width: 600px; border-radius: 15px; border: 1px solid var(--accent); overflow: hidden; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .btn { padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-hover); color: #fff; cursor: pointer; font-size: 0.8rem; text-decoration: none; }
+        .btn:hover { background: var(--accent); color: #000; }
     </style>
 </head>
 <body>
 
+    <div id="loader">
+        <div class="spinner"></div>
+        <p>Syncing with Chambal Field Logs...</p>
+    </div>
+
     <div id="sidebar">
         <div class="sidebar-header">
-            <h2><i class="fa-solid fa-satellite-dish"></i> CGP Telemetry</h2>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">Field Observation Engine</p>
+            <h2><i class="fa-solid fa-water"></i> Chambal Gharial</h2>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 5px;">Observation Dashboard v2.0</p>
         </div>
         
         <div class="filter-section">
-            <h3><i class="fa-solid fa-filter"></i> Filters</h3>
+            <h3>Filter Data</h3>
             <label>Animal Type</label>
-            <select id="filter-type" class="filter-input">
-                <option value="All">All Types</option>
-            </select>
+            <select id="filter-type" onchange="applyFilters()"><option value="All">All Types</option></select>
 
             <label>Activity</label>
-            <select id="filter-activity" class="filter-input">
-                <option value="All">All Activities</option>
-            </select>
+            <select id="filter-activity" onchange="applyFilters()"><option value="All">All Activities</option></select>
 
             <label>Location</label>
-            <select id="filter-location" class="filter-input">
-                <option value="All">All Locations</option>
-            </select>
+            <select id="filter-location" onchange="applyFilters()"><option value="All">All Locations</option></select>
 
             <label>Observer</label>
-            <select id="filter-observer" class="filter-input">
-                <option value="All">All Observers</option>
-            </select>
-
-            <button class="btn" style="width: 100%; margin-top: 10px;" onclick="resetFilters()">Reset Filters</button>
+            <select id="filter-observer" onchange="applyFilters()"><option value="All">All Observers</option></select>
+            
+            <button class="btn" style="width:100%" onclick="resetFilters()">Clear All Filters</button>
         </div>
     </div>
 
     <div id="main-content">
-        <div id="top-header">
-            <h3>Chambal Gharial Project Dashboard</h3>
-            <span style="font-size: 0.85rem; color: var(--text-muted);">Status: Offline / Local Data Mode</span>
-        </div>
+        <header id="top-header">
+            <h3>Field Observation Stream</h3>
+            <div class="status-pill"><i class="fa-solid fa-circle-dot"></i> LIVE FROM GOOGLE SHEETS</div>
+        </header>
 
         <div class="stats-grid">
-            <div class="stat-card">
-                <i class="fa-solid fa-binoculars stat-icon"></i>
-                <div class="stat-info">
-                    <h4>Total Observations</h4>
-                    <span id="stat-obs">0</span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <i class="fa-solid fa-tag stat-icon"></i>
-                <div class="stat-info">
-                    <h4>Unique Animals (Radio ID)</h4>
-                    <span id="stat-animals">0</span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <i class="fa-solid fa-map-location-dot stat-icon"></i>
-                <div class="stat-info">
-                    <h4>Active Sites</h4>
-                    <span id="stat-sites">0</span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <i class="fa-solid fa-users stat-icon"></i>
-                <div class="stat-info">
-                    <h4>Observers</h4>
-                    <span id="stat-observers">0</span>
-                </div>
-            </div>
+            <div class="stat-card"><i class="fa-solid fa-eye"></i><label>Observations</label><span id="stat-obs">0</span></div>
+            <div class="stat-card"><i class="fa-solid fa-broadcast-tower"></i><label>Radio IDs</label><span id="stat-radio">0</span></div>
+            <div class="stat-card"><i class="fa-solid fa-location-dot"></i><label>Key Sites</label><span id="stat-sites">0</span></div>
+            <div class="stat-card"><i class="fa-solid fa-user-check"></i><label>Observers</label><span id="stat-obs-count">0</span></div>
         </div>
 
         <div class="dashboard-grid">
             <div class="panel">
-                <div class="panel-header">
-                    <span><i class="fa-solid fa-map"></i> Spatial Distribution</span>
-                </div>
+                <div class="panel-header">Spatial Mapping</div>
                 <div id="map"></div>
             </div>
-            
-            <div class="charts-container">
-                <div class="panel">
-                    <div class="panel-header"><span><i class="fa-solid fa-chart-pie"></i> Activity Breakdown</span></div>
-                    <div class="chart-wrapper"><canvas id="activityChart"></canvas></div>
-                </div>
-                <div class="panel">
-                    <div class="panel-header"><span><i class="fa-solid fa-chart-bar"></i> Sightings by Type</span></div>
-                    <div class="chart-wrapper"><canvas id="typeChart"></canvas></div>
-                </div>
+            <div class="panel">
+                <div class="panel-header">Activity Distribution</div>
+                <div class="chart-container"><canvas id="activityChart"></canvas></div>
+                <div class="panel-header" style="border-top: 1px solid var(--border)">Population Stages</div>
+                <div class="chart-container"><canvas id="stageChart"></canvas></div>
             </div>
         </div>
 
-        <div class="bottom-grid">
-            <div class="panel">
-                <div class="panel-header"><span><i class="fa-solid fa-lightbulb"></i> Ecology Insights</span></div>
-                <ul class="insights-list">
-                    <li>Most Active Site: <span id="insight-site">-</span></li>
-                    <li>Primary Activity: <span id="insight-activity">-</span></li>
-                    <li>Top Observer: <span id="insight-observer">-</span></li>
-                    <li>Latest Observation: <span id="insight-latest">-</span></li>
-                </ul>
-            </div>
-
+        <div class="table-area">
             <div class="panel">
                 <div class="panel-header">
-                    <span><i class="fa-solid fa-table"></i> Observation Logs</span>
-                    <button class="btn" onclick="exportCSV()"><i class="fa-solid fa-download"></i> CSV</button>
+                    Detailed Observation Logs
+                    <button class="btn" onclick="exportCSV()"><i class="fa-solid fa-download"></i> Export CSV</button>
                 </div>
                 <div class="table-wrapper">
-                    <table id="data-table">
+                    <table id="log-table">
                         <thead>
                             <tr>
-                                <th>Datetime</th>
+                                <th>Date/Time</th>
                                 <th>Radio ID</th>
-                                <th>Type</th>
+                                <th>Animal Type</th>
                                 <th>Activity</th>
                                 <th>Location</th>
-                                <th>Observer</th>
                                 <th>Notes</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            </tbody>
+                        <tbody id="table-body"></tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="animal-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fa-solid fa-paw"></i> Animal Profile: <span id="modal-radio-id" style="color:var(--accent)"></span></h3>
-                <i class="fa-solid fa-xmark close-btn" onclick="closeModal()"></i>
-            </div>
-            <div class="modal-body">
-                <p><strong>Type:</strong> <span id="modal-type"></span></p>
-                <p><strong>Total Sightings:</strong> <span id="modal-sightings"></span></p>
-                <h4 style="margin: 15px 0 10px 0; border-bottom: 1px solid var(--border); padding-bottom: 5px;">Sighting History</h4>
-                <table style="width: 100%; border: none;">
-                    <thead>
-                        <tr><th>Date</th><th>Location</th><th>Activity</th></tr>
-                    </thead>
-                    <tbody id="modal-history"></tbody>
-                </table>
+    <div id="modal" onclick="closeModal()">
+        <div class="modal-card" onclick="event.stopPropagation()">
+            <div class="panel-header" id="modal-title">Animal Profile</div>
+            <div style="padding: 25px;" id="modal-content"></div>
+            <div style="padding: 15px; text-align: right; border-top: 1px solid var(--border);">
+                <button class="btn" onclick="closeModal()">Close Profile</button>
             </div>
         </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
-        // --- 1. DATA INGESTION (Cleaned from user prompt) ---
-        const csvData = `Log_ID,Observer,Animal Type,Radio_ID,Signal_Strength,Activity,Location,Datetime,LatLong,Signal_Angle,Notes
-GEP--19-02-2026-5f8f,Yash,Adult Female,05-06,Medium-Weak,Swimming,Pali MP Side,2026-02-19 16:30:59,"25.842334, 76.563334",100,Seen near main breeder male on mp side near grassy bank
-GEP--19-02-2026-c9e0,Yash,Adult Female,06-76,Weak,Active in Water,Pali Chambal RJ Side,2026-02-19 16:31:35,"25.845641, 76.556727",90,
-GEP--19-02-2026-193e,Yash,Adult Female,28-58,Medium-Weak,Swimming,Pali MP Side,2026-02-19 16:44:06,"25.835166, 76.557803",15,
-GEP--19-02-2026-6003,Yash,Adult Female,82,Strong,Breeding,Pali MP Side,2026-02-19 16:47:47,"25.841808, 76.563108",75,Seen near main breeder male
-GEP--19-02-2026-cae9,Yash,Adult Female,12-13,Strong,Breeding,Pali MP Side,2026-02-19 16:53:40,"25.841629, 76.562793",45,"Seen near the breeder male on mp side along 82, 05-06"
-GEP--20-02-2026-0b11,Mahendra,Adult Female,24-54,Strong,Swimming,Bagdiya Nesting Side,2026-02-20 14:00:11,"25.940385, 76.751029",45,Abhi disturbance h esliye swimming me h
-GEP--20-02-2026-6465,Mahendra,Adult Female,11-12,Medium,Swimming,Bagdiya Nesting Side,2026-02-20 14:06:08,"25.937962, 76.748984",45,
-GEP--20-02-2026-e8a7,Mahendra,Adult Female,19-59,Strong,Basking,Bagdiya Upside,2026-02-20 14:09:35,"25.933971, 76.748050",120,
-GEP--20-02-2026-0086,Mahendra,Adult Female,51/61,Medium,Swimming,Bagdiya Nesting Side,2026-02-20 14:11:23,"25.928283, 76.750627",45,
-GEP--21-02-2026-b497,Yash,Adult Female,05-06,Strong,Basking,Pada,2026-02-21 16:17:33,"25.834217, 76.556457",,
-GEP--21-02-2026-bbb6,Yash,Adult Female,07-08,Weak,Swimming,Pada,2026-02-21 16:18:28,"25.834687, 76.556856",30,
-GEP--21-02-2026-73cf,Yash,Adult Female,10-11,Medium-Strong,Basking,Pada,2026-02-21 16:19:29,"25.834879, 76.557319",,
-GEP--21-02-2026-066b,Yash,Adult Female,12-13,Strong,Basking,Pali Nesting Side,2026-02-21 16:21:12,"25.845213, 76.562805",120,
-GEP--21-02-2026-5ee0,Yash,Adult Female,22-23,Medium-Strong,Basking,Pada,2026-02-21 16:21:48,"25.834489, 76.557041",,
-GEP--21-02-2026-ce75,Yash,Adult Female,28-58,Strong,Basking,Pali Nesting Side,2026-02-21 16:22:23,"25.841990, 76.560497",75,
-GEP--21-02-2026-4454,Yash,Adult Female,08-78,Medium-Strong,Basking,Pada,2026-02-21 16:25:47,"25.834677, 76.557256",,
-GEP--21-02-2026-5037,Yash,Adult Male,21-22,Strong,Basking,Pada,2026-02-21 16:27:44,"25.840301, 76.561251",,
-GEP--21-02-2026-d5f3,Yash,Adult Female,12-72,Medium-Strong,Basking,Pada,2026-02-21 17:17:14,"25.839761, 76.561033",,
-GEP--22-02-2026-cc44,Yash,Hatchling,88,Medium-Strong,Active in Water,Pali Guest House,2026-02-22 13:57:36,"25.860734, 76.571794",90,
-GEP--22-02-2026-cb9f,Yash,Hatchling,78,Strong,Basking,Pali Guest House,2026-02-22 13:58:23,"25.860651, 76.571734",90,
-GEP--22-02-2026-c308,Mahendra,Hatchling,78,,,,2026-02-22 17:13:15,"25.841600, 76.564054",,
-GEP--22-02-2026-5168,Mahendra,Hatchling,78,Strong,Basking,Pali Guest House,2026-02-22 17:15:07,"25.860563, 76.571630",90,Bassking me thi hame dekne ko mili
-GEP--22-02-2026-cc0f,Mahendra,Hatchling,88,Strong,Active in Water,Pali Guest House,2026-02-22 17:16:57,"25.860563, 76.571630",90,Aaj hame dekne ko nhi mili signal strong tha boat se disturbance ho kar pani me chali gyi
-GEP--22-02-2026-de11,Mahendra,Hatchling,84,Strong,Basking,Pali Nesting Side,2026-02-22 17:20:10,"25.846419, 76.563438",90,Bassking me thi dekne ko mili
-GEP--26-02-2026-d8de,Yash,Adult Female,18,Strong,Basking,Bagwada,2026-02-26 11:59:42,"25.792887, 76.521585",120,18 female pali upstream parvati river
-GEP--27-02-2026-9894,Yash,Hatchling,31,Medium-Strong,Basking,Icchana Khedi,2026-02-27 11:57:17,"25.811451, 76.529137",90,"Not found from rj side yesterday but today signal recieved from mp side"
-GEP--27-02-2026-3967,Yash,Hatchling,36,Strong,Basking,Adusa,2026-02-27 12:45:58,"25.821918, 76.537161",90,"Previously on mp side, now buffaloes bathing here hatchling Signal recieved from adusa rj side"
-GEP--27-02-2026-53d0,Mahendra,Hatchling,40,Strong,Active in Water,Pada,2026-02-27 13:24:36,"25.835448, 76.557775",170,
-GEP--27-02-2026-8a8e,Mahendra,Hatchling,37,Strong,Basking,Pada,2026-02-27 13:27:23,"25.833512, 76.553370",90,Basaking pada rj side
-GEP--27-02-2026-8484,Yash,Hatchling,62,Strong,Basking,Adusa,2026-02-27 12:57:42,"25.827502, 76.543997",120,
-GEP--27-02-2026-766c,Yash,Adult Female,05-06,Strong,Active in Water,Pada,2026-02-27 13:29:42,"25.832645, 76.552314",120,
-GEP--27-02-2026-47b8,Yash,Adult Female,06-07,Strong,Surface Active,Pada,2026-02-27 13:30:43,"25.832910, 76.552711",120,
-GEP--27-02-2026-1874,Yash,Adult Female,07-08,Strong,Basking,Pada,2026-02-27 13:31:26,"25.832857, 76.552810",120,
-GEP--27-02-2026-0a2d,Yash,Adult Female,22-23,Strong,Active in Water,Pada,2026-02-27 13:32:01,"25.832618, 76.552740",120,
-GEP--27-02-2026-7987,Yash,Adult Male,21-22,Strong,Basking,Pada,2026-02-27 13:32:38,"25.830369, 76.548524",45,
-GEP--27-02-2026-294d,Mahendra,Hatchling,80,Medium-Strong,Active in Water,Pada,2026-02-27 13:33:30,"25.828791, 76.549735",40,Pada mp side in water
-GEP--27-02-2026-856f,Mahendra,Hatchling,86,Medium-Strong,Active in Water,Pada,2026-02-27 13:35:33,"25.832360, 76.551875",110,
-GEP--05-03-2026-8c97,Mahendra,Hatchling,84,Strong,Basking,Pali Nesting Side,2026-03-05 09:20:14,"25.846109, 76.563220",120,
-GEP--05-03-2026-e0b0,Mahendra,Adult Male,05-06,Strong,Active in Water,Pali Nesting Side,2026-03-05 09:30:11,"25.844288, 76.561808",120,
-GEP--08-03-2026-8dd6,Yash,Hatchling,76,Strong,Basking,Pipdi,2026-03-08 09:35:17,"25.868146, 76.582690",90,"Shy hatchling seen today, always runs away hiding in sight but was seen today."
-GEP--08-03-2026-dacb,Yash,Hatchling,72,Strong,Basking,Bohna Upside,2026-03-08 10:11:12,"25.868410, 76.608470",90,72 hatchling sitting on MP side close to a bigger mugger
-GEP--10-03-2026-ba8f,Guddu,Hatchling,92,Strong,Basking,Pali MP Side,2026-03-10 20:24:35,"25.839474, 76.561216",10,92 radio hatchling pali nesting ke up
-GEP--11-03-2026-7ac0,Yash,Adult Female,06-76,Medium-Weak,Active in Water,Pali Chambal RJ Side,2026-03-11 09:01:20,"25.846794, 76.561678",90,
-GEP--13-03-2026-1ff2,Guddu,Hatchling,39,Strong,Basking,Binjari Sandbank,2026-03-13 09:20:00,"25.885112, 76.625436",180,39 radio hatchling bijari sand bank down R.J side baithe dikhi
-GEP--15-03-2026-2ab5,Guddu,Hatchling,37,Strong,Basking,Pada,2026-03-15 08:45:00,"25.833155, 76.553517",110,
-GEP--17-03-2026-a62a,Yash,Hatchling,38,Strong,Active in Water,Pali Guest House,2026-03-17 10:17:07,"25.854380, 76.567429",,"Radio is in water, no animal"`;
+        // --- CONFIGURATION ---
+        // Replace this URL with your "Publish to Web" CSV link from Google Sheets
+        const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS1jHj0eW0R_G_nS1YwT8l5XqA6Y9Y5_5ZzZ_5ZzZ_5ZzZ_5ZzZ_5ZzZ/pub?gid=0&single=true&output=csv';
 
-        let rawData = [];
+        let masterData = [];
         let filteredData = [];
+        let map, markers, activityChart, stageChart;
 
-        // Simple CSV Parser handling quotes
-        function parseCSV(str) {
-            const rows = [];
-            const lines = str.split('\n');
-            const headers = lines[0].split(',');
-
-            for (let i = 1; i < lines.length; i++) {
-                if(!lines[i].trim()) continue;
-                let obj = {};
-                let currentLine = lines[i];
-                let matches = currentLine.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || [];
-                
-                // fallback simple split if match fails due to weird formats, otherwise map
-                let rowValues = [];
-                let inQuotes = false;
-                let val = '';
-                for(let char of currentLine) {
-                    if(char === '"') inQuotes = !inQuotes;
-                    else if(char === ',' && !inQuotes) { rowValues.push(val); val = ''; }
-                    else val += char;
-                }
-                rowValues.push(val);
-
-                headers.forEach((h, idx) => {
-                    obj[h.trim()] = (rowValues[idx] || '').replace(/^"|"$/g, '').trim();
-                });
-
-                // Only keep valid coordinates
-                if (obj.LatLong && obj.LatLong.includes(',')) {
-                    let coords = obj.LatLong.split(',');
-                    obj.lat = parseFloat(coords[0]);
-                    obj.lon = parseFloat(coords[1]);
-                    if(!isNaN(obj.lat) && !isNaN(obj.lon) && obj.lat !== 0) {
-                        rows.push(obj);
-                    }
-                }
+        // --- DATA FETCHING ---
+        async function fetchData() {
+            try {
+                const response = await fetch(SHEET_CSV_URL);
+                const csvText = await response.text();
+                masterData = parseCSV(csvText);
+                initApp();
+            } catch (error) {
+                console.error("Fetch error:", error);
+                alert("Could not load data from Google Sheets. Ensure you have published the sheet as CSV.");
             }
-            return rows;
         }
 
-        // --- 2. GLOBAL STATE & UI INITIALIZATION ---
-        let map, markerClusterGroup, heatLayer;
-        let activityChartInstance, typeChartInstance;
+        function parseCSV(text) {
+            const lines = text.split(/\r?\n/);
+            const headers = lines[0].split(',').map(h => h.trim());
+            const data = [];
 
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i]) continue;
+                
+                // Advanced split to handle commas inside quotes
+                const values = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || [];
+                const row = {};
+                
+                headers.forEach((h, idx) => {
+                    let val = values[idx] ? values[idx].replace(/^"|"$/g, '').trim() : "";
+                    row[h] = val;
+                });
+
+                if (row.LatLong && row.LatLong.includes(',')) {
+                    const [lat, lon] = row.LatLong.split(',').map(Number);
+                    row.lat = lat;
+                    row.lon = lon;
+                    data.push(row);
+                }
+            }
+            return data;
+        }
+
+        // --- INITIALIZATION ---
         function initApp() {
-            rawData = parseCSV(csvData);
-            filteredData = [...rawData];
-
-            populateFilters();
+            document.getElementById('loader').style.display = 'none';
+            filteredData = [...masterData];
+            
             initMap();
             initCharts();
-            updateDashboard();
+            populateFilters();
+            updateUI();
+        }
 
-            // Bind filter events
-            document.querySelectorAll('.filter-input').forEach(el => {
-                el.addEventListener('change', applyFilters);
+        function initMap() {
+            map = L.map('map').setView([25.85, 76.56], 12);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+            markers = L.markerClusterGroup();
+            map.addLayer(markers);
+        }
+
+        function initCharts() {
+            const chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { color: '#8b95a5', font: { size: 10 } } } }
+            };
+
+            activityChart = new Chart(document.getElementById('activityChart'), {
+                type: 'doughnut',
+                data: { labels: [], datasets: [{ backgroundColor: ['#00d2ff', '#3a86ff', '#8338ec', '#ff006e', '#fb5607'], borderWidth: 0, data: [] }] },
+                options: chartOptions
+            });
+
+            stageChart = new Chart(document.getElementById('stageChart'), {
+                type: 'bar',
+                data: { labels: [], datasets: [{ backgroundColor: '#00d2ff', data: [] }] },
+                options: { ...chartOptions, plugins: { legend: { display: false } } }
             });
         }
 
         function populateFilters() {
-            const types = new Set(), activities = new Set(), locations = new Set(), observers = new Set();
-            rawData.forEach(d => {
-                if(d['Animal Type']) types.add(d['Animal Type']);
-                if(d.Activity) activities.add(d.Activity);
-                if(d.Location) locations.add(d.Location);
-                if(d.Observer) observers.add(d.Observer);
+            const sets = {
+                'filter-type': new Set(),
+                'filter-activity': new Set(),
+                'filter-location': new Set(),
+                'filter-observer': new Set()
+            };
+
+            masterData.forEach(d => {
+                if(d['Animal Type']) sets['filter-type'].add(d['Animal Type']);
+                if(d.Activity) sets['filter-activity'].add(d.Activity);
+                if(d.Location) sets['filter-location'].add(d.Location);
+                if(d.Observer) sets['filter-observer'].add(d.Observer);
             });
 
-            const fillSelect = (id, set) => {
+            Object.keys(sets).forEach(id => {
                 const select = document.getElementById(id);
-                [...set].sort().forEach(val => {
-                    let opt = document.createElement('option');
+                [...sets[id]].sort().forEach(val => {
+                    const opt = document.createElement('option');
                     opt.value = val; opt.textContent = val;
                     select.appendChild(opt);
                 });
+            });
+        }
+
+        // --- UPDATES ---
+        function applyFilters() {
+            const filters = {
+                type: document.getElementById('filter-type').value,
+                activity: document.getElementById('filter-activity').value,
+                location: document.getElementById('filter-location').value,
+                observer: document.getElementById('filter-observer').value
             };
 
-            fillSelect('filter-type', types);
-            fillSelect('filter-activity', activities);
-            fillSelect('filter-location', locations);
-            fillSelect('filter-observer', observers);
-        }
-
-        // --- 3. MAP LOGIC ---
-        function initMap() {
-            // CartoDB Dark Matter Base Map
-            map = L.map('map').setView([25.85, 76.56], 12);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; OpenStreetMap, &copy; CartoDB',
-                maxZoom: 19
-            }).addTo(map);
-
-            markerClusterGroup = L.markerClusterGroup({
-                spiderfyOnMaxZoom: true,
-                showCoverageOnHover: false,
-                zoomToBoundsOnClick: true
-            });
-            map.addTo(map); // Needed for layer control
-        }
-
-        function updateMap() {
-            if(map.hasLayer(markerClusterGroup)) map.removeLayer(markerClusterGroup);
-            if(heatLayer && map.hasLayer(heatLayer)) map.removeLayer(heatLayer);
-            markerClusterGroup.clearLayers();
-
-            const heatPoints = [];
-
-            filteredData.forEach(d => {
-                heatPoints.push([d.lat, d.lon, 0.5]); // lat, lon, intensity
-
-                let marker = L.circleMarker([d.lat, d.lon], {
-                    radius: 6,
-                    fillColor: getTypeColor(d['Animal Type']),
-                    color: '#fff',
-                    weight: 1,
-                    opacity: 1,
-                    fillOpacity: 0.8
-                });
-
-                let popupContent = `
-                    <div style="font-size: 13px;">
-                        <strong>ID:</strong> <a class="radio-link" onclick="openProfile('${d.Radio_ID}')">${d.Radio_ID}</a><br>
-                        <strong>Type:</strong> ${d['Animal Type']}<br>
-                        <strong>Activity:</strong> ${d.Activity}<br>
-                        <strong>Location:</strong> ${d.Location}<br>
-                        <strong>Date:</strong> ${d.Datetime}<br>
-                        <strong>Observer:</strong> ${d.Observer}
-                    </div>
-                `;
-                marker.bindPopup(popupContent);
-                markerClusterGroup.addLayer(marker);
+            filteredData = masterData.filter(d => {
+                return (filters.type === 'All' || d['Animal Type'] === filters.type) &&
+                       (filters.activity === 'All' || d.Activity === filters.activity) &&
+                       (filters.location === 'All' || d.Location === filters.location) &&
+                       (filters.observer === 'All' || d.Observer === filters.observer);
             });
 
-            map.addLayer(markerClusterGroup);
-
-            // Add Heatmap layer
-            heatLayer = L.heatLayer(heatPoints, { radius: 25, blur: 15, maxZoom: 14, gradient: {0.4: 'blue', 0.6: 'cyan', 0.8: 'yellow', 1.0: 'red'} });
-            
-            // Re-center map if points exist
-            if (filteredData.length > 0) {
-                const group = new L.featureGroup(markerClusterGroup.getLayers());
-                map.fitBounds(group.getBounds(), { padding: [20, 20], maxZoom: 15 });
-            }
-        }
-
-        function getTypeColor(type) {
-            if(type.includes('Female')) return '#ff006e';
-            if(type.includes('Male')) return '#3a86ff';
-            if(type.includes('Hatchling')) return '#00d2ff';
-            return '#fb5607';
-        }
-
-        // --- 4. CHARTS LOGIC ---
-        function initCharts() {
-            Chart.defaults.color = '#8b95a5';
-            Chart.defaults.font.family = "'Segoe UI', sans-serif";
-            
-            const ctxActivity = document.getElementById('activityChart').getContext('2d');
-            activityChartInstance = new Chart(ctxActivity, {
-                type: 'doughnut',
-                data: { labels: [], datasets: [{ data: [], backgroundColor: ['#00d2ff', '#3a86ff', '#8338ec', '#ff006e', '#fb5607'], borderWidth: 0 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
-            });
-
-            const ctxType = document.getElementById('typeChart').getContext('2d');
-            typeChartInstance = new Chart(ctxType, {
-                type: 'bar',
-                data: { labels: [], datasets: [{ label: 'Count', data: [], backgroundColor: '#00d2ff' }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#2d3142' } }, x: { grid: { display: false } } } }
-            });
-        }
-
-        function updateCharts() {
-            // Activity Chart
-            const activityCounts = {};
-            const typeCounts = {};
-            
-            filteredData.forEach(d => {
-                if(d.Activity) activityCounts[d.Activity] = (activityCounts[d.Activity] || 0) + 1;
-                if(d['Animal Type']) typeCounts[d['Animal Type']] = (typeCounts[d['Animal Type']] || 0) + 1;
-            });
-
-            activityChartInstance.data.labels = Object.keys(activityCounts);
-            activityChartInstance.data.datasets[0].data = Object.values(activityCounts);
-            activityChartInstance.update();
-
-            typeChartInstance.data.labels = Object.keys(typeCounts);
-            typeChartInstance.data.datasets[0].data = Object.values(typeCounts);
-            typeChartInstance.update();
-        }
-
-        // --- 5. DASHBOARD UPDATES ---
-        function applyFilters() {
-            const fType = document.getElementById('filter-type').value;
-            const fAct = document.getElementById('filter-activity').value;
-            const fLoc = document.getElementById('filter-location').value;
-            const fObs = document.getElementById('filter-observer').value;
-
-            filteredData = rawData.filter(d => {
-                return (fType === 'All' || d['Animal Type'] === fType) &&
-                       (fAct === 'All' || d.Activity === fAct) &&
-                       (fLoc === 'All' || d.Location === fLoc) &&
-                       (fObs === 'All' || d.Observer === fObs);
-            });
-
-            updateDashboard();
+            updateUI();
         }
 
         function resetFilters() {
-            document.querySelectorAll('.filter-input').forEach(el => el.value = 'All');
+            ['filter-type', 'filter-activity', 'filter-location', 'filter-observer'].forEach(id => {
+                document.getElementById(id).value = 'All';
+            });
             applyFilters();
         }
 
-        function updateDashboard() {
+        function updateUI() {
             // Stats
-            document.getElementById('stat-obs').innerText = filteredData.length;
-            document.getElementById('stat-animals').innerText = new Set(filteredData.map(d => d.Radio_ID)).size;
-            document.getElementById('stat-sites').innerText = new Set(filteredData.map(d => d.Location)).size;
-            document.getElementById('stat-observers').innerText = new Set(filteredData.map(d => d.Observer)).size;
+            document.getElementById('stat-obs').textContent = filteredData.length;
+            document.getElementById('stat-radio').textContent = new Set(filteredData.map(d => d.Radio_ID)).size;
+            document.getElementById('stat-sites').textContent = new Set(filteredData.map(d => d.Location)).size;
+            document.getElementById('stat-obs-count').textContent = new Set(filteredData.map(d => d.Observer)).size;
 
-            // Insights
-            const sites = {}, acts = {}, obs = {};
+            // Map
+            markers.clearLayers();
             filteredData.forEach(d => {
-                sites[d.Location] = (sites[d.Location]||0)+1;
-                acts[d.Activity] = (acts[d.Activity]||0)+1;
-                obs[d.Observer] = (obs[d.Observer]||0)+1;
+                const m = L.circleMarker([d.lat, d.lon], {
+                    radius: 8,
+                    fillColor: d['Animal Type'].includes('Male') ? '#3a86ff' : '#ff006e',
+                    color: '#fff', weight: 1, fillOpacity: 0.8
+                }).bindPopup(`<b>ID: ${d.Radio_ID}</b><br>${d.Activity}<br>${d.Location}`);
+                m.on('click', () => showAnimalProfile(d.Radio_ID));
+                markers.addLayer(m);
+            });
+            if(filteredData.length) map.fitBounds(markers.getBounds(), {padding: [50,50]});
+
+            // Charts
+            const actCounts = {}, stageCounts = {};
+            filteredData.forEach(d => {
+                actCounts[d.Activity] = (actCounts[d.Activity] || 0) + 1;
+                stageCounts[d['Animal Type']] = (stageCounts[d['Animal Type']] || 0) + 1;
             });
 
-            const getTop = (obj) => Object.keys(obj).length ? Object.keys(obj).reduce((a, b) => obj[a] > obj[b] ? a : b) : '-';
-            
-            document.getElementById('insight-site').innerText = getTop(sites);
-            document.getElementById('insight-activity').innerText = getTop(acts);
-            document.getElementById('insight-observer').innerText = getTop(obs);
-            
-            let sortedDates = [...filteredData].map(d => d.Datetime).sort();
-            document.getElementById('insight-latest').innerText = sortedDates.length ? sortedDates[sortedDates.length - 1].split(' ')[0] : '-';
+            activityChart.data.labels = Object.keys(actCounts);
+            activityChart.data.datasets[0].data = Object.values(actCounts);
+            activityChart.update();
 
-            updateMap();
-            updateCharts();
-            updateTable();
-        }
+            stageChart.data.labels = Object.keys(stageCounts);
+            stageChart.data.datasets[0].data = Object.values(stageCounts);
+            stageChart.update();
 
-        function updateTable() {
-            const tbody = document.querySelector('#data-table tbody');
-            tbody.innerHTML = '';
-            // Show only last 50 for performance in UI
-            const displayData = filteredData.slice(-50).reverse(); 
-            
-            displayData.forEach(d => {
-                let tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${d.Datetime.split(' ')[0]}</td>
-                    <td style="color:var(--accent); font-weight:bold; cursor:pointer;" onclick="openProfile('${d.Radio_ID}')">${d.Radio_ID}</td>
+            // Table
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = filteredData.slice(0, 100).map(d => `
+                <tr onclick="showAnimalProfile('${d.Radio_ID}')">
+                    <td>${d.Datetime}</td>
+                    <td style="color:var(--accent)">${d.Radio_ID}</td>
                     <td>${d['Animal Type']}</td>
                     <td>${d.Activity}</td>
                     <td>${d.Location}</td>
-                    <td>${d.Observer}</td>
-                    <td title="${d.Notes}">${d.Notes.substring(0,20)}${d.Notes.length > 20 ? '...' : ''}</td>
-                `;
-                tbody.appendChild(tr);
-            });
+                    <td style="font-size: 0.75rem; color: var(--text-muted)">${d.Notes || '-'}</td>
+                </tr>
+            `).join('');
         }
 
-        // --- 6. EXPORT & MODALS ---
+        function showAnimalProfile(id) {
+            const sightings = masterData.filter(d => d.Radio_ID === id);
+            const latest = sightings[0];
+            
+            document.getElementById('modal-title').textContent = `Profile: ${id}`;
+            document.getElementById('modal-content').innerHTML = `
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <p><label>Animal Type</label><b>${latest['Animal Type']}</b></p>
+                        <p><label>Total Sightings</label><b>${sightings.length}</b></p>
+                    </div>
+                    <div>
+                        <p><label>Last Seen</label><b>${latest.Location}</b></p>
+                        <p><label>Last Activity</label><b>${latest.Activity}</b></p>
+                    </div>
+                </div>
+                <h4 style="margin-top:20px; font-size: 0.8rem; color: var(--text-muted);">SIGHTING HISTORY</h4>
+                <div style="max-height: 200px; overflow-y: auto; margin-top: 10px; border: 1px solid var(--border); border-radius: 8px;">
+                    <table style="font-size: 0.75rem;">
+                        ${sightings.map(s => `<tr><td style="border:none">${s.Datetime}</td><td style="border:none">${s.Location}</td></tr>`).join('')}
+                    </table>
+                </div>
+            `;
+            document.getElementById('modal').style.display = 'flex';
+        }
+
+        function closeModal() { document.getElementById('modal').style.display = 'none'; }
+
         function exportCSV() {
-            if(!filteredData.length) return alert("No data to export.");
-            const headers = Object.keys(filteredData[0]).filter(k => k !== 'lat' && k !== 'lon').join(',');
-            const rows = filteredData.map(d => {
-                return Object.keys(d).filter(k => k !== 'lat' && k !== 'lon').map(k => `"${d[k]}"`).join(',');
-            });
-            const csv = [headers, ...rows].join('\n');
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
+            const headers = Object.keys(filteredData[0]).join(',');
+            const rows = filteredData.map(row => Object.values(row).map(v => `"${v}"`).join(','));
+            const blob = new Blob([[headers, ...rows].join('\n')], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.setAttribute('href', url);
-            a.setAttribute('download', 'filtered_observations.csv');
-            a.click();
+            a.href = url; a.download = 'gharial_observations.csv'; a.click();
         }
 
-        function openProfile(radioId) {
-            const animalData = rawData.filter(d => d.Radio_ID === radioId);
-            if(!animalData.length) return;
-
-            document.getElementById('modal-radio-id').innerText = radioId;
-            document.getElementById('modal-type').innerText = animalData[0]['Animal Type'];
-            document.getElementById('modal-sightings').innerText = animalData.length;
-
-            const tbody = document.getElementById('modal-history');
-            tbody.innerHTML = '';
-            animalData.sort((a,b) => new Date(b.Datetime) - new Date(a.Datetime)).forEach(d => {
-                tbody.innerHTML += `<tr><td style="padding:8px; border-bottom:1px solid var(--border);">${d.Datetime}</td>
-                                        <td style="padding:8px; border-bottom:1px solid var(--border);">${d.Location}</td>
-                                        <td style="padding:8px; border-bottom:1px solid var(--border);">${d.Activity}</td></tr>`;
-            });
-
-            document.getElementById('animal-modal').style.display = 'flex';
-        }
-
-        function closeModal() {
-            document.getElementById('animal-modal').style.display = 'none';
-        }
-
-        // Run on load
-        window.onload = initApp;
-
+        window.onload = fetchData;
     </script>
 </body>
 </html>
