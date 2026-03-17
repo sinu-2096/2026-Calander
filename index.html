@@ -430,7 +430,7 @@
   <div class="croc-icon">🐊</div>
   <div class="spinner"></div>
   <h2>Chambal Gharial Platform</h2>
-  <p>Loading telemetry data…</p>
+  <p id="loader-status">Connecting to Google Sheet…</p>
   <div id="loader-error">
     <p id="error-msg">Unable to load data from Google Sheet.</p>
     <button onclick="retryLoad()">Retry</button>
@@ -660,16 +660,62 @@ function splitCSVRow(row) {
 
 /* ── FETCH ───────────────────────────────────────────────── */
 async function fetchData() {
-  const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(CSV_URL)}`;
-  let res;
-  try { res = await fetch(proxyUrl, { cache: 'no-store' }); }
-  catch (e) {
-    // fallback: direct
-    res = await fetch(CSV_URL, { cache: 'no-store' });
+  // Ordered list of strategies to try.
+  // allorigins wraps in JSON; others return raw text; direct may work on some hosts.
+  const strategies = [
+    {
+      label: 'Connecting via allorigins…',
+      url: () => `https://api.allorigins.win/raw?url=${encodeURIComponent(CSV_URL)}`,
+      raw: true
+    },
+    {
+      label: 'Trying codetabs proxy…',
+      url: () => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(CSV_URL)}`,
+      raw: true
+    },
+    {
+      label: 'Trying corsproxy.io…',
+      url: () => `https://corsproxy.io/?${encodeURIComponent(CSV_URL)}`,
+      raw: true
+    },
+    {
+      label: 'Trying allorigins JSON…',
+      url: () => `https://api.allorigins.win/get?url=${encodeURIComponent(CSV_URL)}`,
+      raw: false
+    },
+    {
+      label: 'Trying direct fetch…',
+      url: () => CSV_URL,
+      raw: true
+    }
+  ];
+
+  let lastErr = null;
+  for (const s of strategies) {
+    try {
+      const statusEl = document.getElementById('loader-status');
+      if (statusEl) statusEl.textContent = s.label;
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 8000);
+      const res = await fetch(s.url(), { cache: 'no-store', signal: controller.signal });
+      clearTimeout(timer);
+      if (!res.ok) { lastErr = new Error(`HTTP ${res.status}`); continue; }
+      let text;
+      if (s.raw) {
+        text = await res.text();
+      } else {
+        const json = await res.json();
+        text = json.contents || json.body || '';
+      }
+      if (!text || text.trim().length < 10) { lastErr = new Error('Empty response'); continue; }
+      const records = parseCSV(text);
+      if (records.length === 0) { lastErr = new Error('No parseable rows'); continue; }
+      return records;
+    } catch (e) {
+      lastErr = e;
+    }
   }
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const text = await res.text();
-  return parseCSV(text);
+  throw lastErr || new Error('All fetch strategies failed');
 }
 
 /* ── LATEST FIX LOGIC ────────────────────────────────────── */
@@ -937,16 +983,17 @@ async function init() {
     console.error('Init error:', err);
     document.getElementById('error-msg').textContent = `Error: ${err.message}`;
     document.getElementById('loader-error').style.display = 'block';
-    // hide spinner
     document.querySelector('#loader .spinner').style.display = 'none';
-    document.querySelector('#loader p').style.display        = 'none';
+    const st = document.getElementById('loader-status');
+    if (st) st.style.display = 'none';
   }
 }
 
 function retryLoad() {
-  document.getElementById('loader-error').style.display = 'none';
+  document.getElementById('loader-error').style.display  = 'none';
   document.querySelector('#loader .spinner').style.display = 'block';
-  document.querySelector('#loader p').style.display        = 'block';
+  const st = document.getElementById('loader-status');
+  if (st) { st.style.display = 'block'; st.textContent = 'Connecting to Google Sheet…'; }
   init();
 }
 
