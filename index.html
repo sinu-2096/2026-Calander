@@ -1,514 +1,640 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chambal Telemetry Monitor</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐊 Chambal Gharial Telemetry Monitor</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ══ DESIGN TOKENS ══════════════════════════════════════════════ */
+:root{
+  /* Forest palette — FT Hatchling inspired */
+  --forest:#1b4332; --forest2:#2d6a4f; --forest3:#40916c; --green:#52b788;
+  --green-pale:#d8f3dc; --green-light:#b7e4c7;
+  /* Signal-age status colours (strong, high-contrast) */
+  --s-active:#1565c0; --s-active-lt:#dbeafe; --s-active-br:#bfdbfe;
+  --s-warn:#7c3aed;   --s-warn-lt:#f3e8ff;   --s-warn-br:#ddd6fe;
+  --s-stale:#b45309;  --s-stale-lt:#fef9c3;  --s-stale-br:#fef08a;
+  --s-crit:#b91c1c;   --s-crit-lt:#fee2e2;   --s-crit-br:#fecaca;
+  /* UI neutrals */
+  --text:#111827; --text2:#374151; --text3:#6b7280; --text4:#9ca3af;
+  --border:#e5e7eb; --border2:#d1d5db;
+  --bg:#f1f5f2; --surface:#ffffff; --surface2:#f8faf9;
+  --shadow:0 3px 14px rgba(0,0,0,.10);
+  --shadow-lg:0 8px 36px rgba(0,0,0,.16);
+  --font:'Inter',sans-serif; --mono:'IBM Plex Mono',monospace;
+  --r:8px; --r-lg:14px;
+  --hdr:58px; --btm-open:196px; --btm-closed:38px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--bg);color:var(--text);}
+button{cursor:pointer;font-family:var(--font);}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
 
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+/* ══ KEYFRAMES ══════════════════════════════════════════════════ */
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(82,183,136,.6);}50%{box-shadow:0 0 0 6px transparent;}}
+@keyframes mPulse{0%{transform:scale(1);opacity:.7;}70%{transform:scale(2.6);opacity:0;}100%{transform:scale(1);opacity:0;}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
 
-  <!-- IBM Plex Sans (body) + IBM Plex Mono (data values) -->
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
+/* ══ HEADER ══════════════════════════════════════════════════════ */
+#hdr{
+  position:fixed;top:0;left:0;right:0;height:var(--hdr);z-index:1000;
+  background:linear-gradient(108deg,#1b4332 0%,#2d6a4f 55%,#1b5e43 100%);
+  border-bottom:2px solid var(--green);
+  display:flex;align-items:center;gap:10px;padding:0 14px;
+  box-shadow:0 3px 18px rgba(27,67,50,.38);
+}
+/* Brand */
+#brand{display:flex;align-items:center;gap:10px;flex-shrink:0;padding-right:12px;border-right:1px solid rgba(255,255,255,.2);}
+#brand-icon{
+  width:36px;height:36px;border-radius:50%;
+  background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);
+  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;
+}
+#brand-t{font-family:var(--mono);font-size:13px;font-weight:700;color:#fff;line-height:1.25;}
+#brand-s{font-size:10px;color:rgba(255,255,255,.5);font-family:var(--mono);letter-spacing:.03em;}
 
-  <style>
-    /* ═══════════════════════════════════════════
-       DESIGN TOKENS
-    ═══════════════════════════════════════════ */
-    :root {
-      --white:        #ffffff;
-      --bg:           #f4f6f8;
-      --border:       #dde3ea;
-      --border-med:   #c4cdd6;
-      --text:         #1a2533;
-      --text-mid:     #4a6075;
-      --text-dim:     #8da0b3;
-      --header-h:     52px;
-      --font:         'IBM Plex Sans', sans-serif;
-      --mono:         'IBM Plex Mono', monospace;
-      --panel-w:      310px;
-      --shadow:       0 2px 12px rgba(0,0,0,0.10);
-      --shadow-lg:    0 4px 24px rgba(0,0,0,0.14);
+/* Filter pills area */
+#filter-bar{display:flex;align-items:center;gap:6px;flex:1;overflow-x:auto;scrollbar-width:none;}
+#filter-bar::-webkit-scrollbar{display:none;}
+.hpill{
+  display:flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;
+  border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.09);
+  color:rgba(255,255,255,.88);font-family:var(--mono);font-size:11px;font-weight:700;
+  cursor:pointer;flex-shrink:0;white-space:nowrap;user-select:none;
+  transition:all .18s;
+}
+.hpill:hover,.hpill.on{border-color:rgba(255,255,255,.65);background:rgba(255,255,255,.22);color:#fff;}
+.pdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.pcnt{
+  background:rgba(255,255,255,.22);border-radius:10px;
+  padding:1px 7px;font-weight:800;font-size:10px;min-width:20px;text-align:center;
+}
+#btn-all{
+  padding:4px 14px;border-radius:20px;
+  border:1.5px solid rgba(255,255,255,.28);background:rgba(255,255,255,.12);
+  color:rgba(255,255,255,.9);font-family:var(--mono);font-size:11px;font-weight:800;
+  cursor:pointer;flex-shrink:0;transition:all .18s;
+}
+#btn-all.on,#btn-all:hover{background:rgba(255,255,255,.28);border-color:rgba(255,255,255,.7);color:#fff;}
 
-      /* Status colours */
-      --c-green:   #2ecc71;
-      --c-purple:  #9b59b6;
-      --c-yellow:  #f39c12;
-      --c-red:     #e74c3c;
+/* Header right */
+#hdr-r{display:flex;align-items:center;gap:7px;flex-shrink:0;margin-left:auto;}
+#sync-info{text-align:right;font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.55);line-height:1.4;}
+#sync-info strong{display:block;font-size:8.5px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.38);}
+.hbtn{
+  display:flex;align-items:center;gap:5px;
+  padding:5px 12px;border-radius:var(--r);
+  background:rgba(255,255,255,.1);color:#fff;
+  border:1.5px solid rgba(255,255,255,.25);
+  font-family:var(--font);font-size:11.5px;font-weight:700;
+  transition:all .18s;white-space:nowrap;
+}
+.hbtn:hover,.hbtn.on{background:rgba(255,255,255,.25);border-color:rgba(255,255,255,.65);}
+.hbtn.loading .spin-ic{animation:spin .8s linear infinite;display:inline-block;}
 
-      --bg-green:  rgba(46,204,113,0.12);
-      --bg-purple: rgba(155,89,182,0.12);
-      --bg-yellow: rgba(243,156,18,0.12);
-      --bg-red:    rgba(231,76,60,0.13);
-    }
+/* ══ FILTER BANNER (drops below header on active filter) ════════ */
+#fbanner{
+  position:fixed;top:var(--hdr);left:50%;
+  transform:translateX(-50%) translateY(-46px);
+  z-index:950;background:var(--surface);
+  border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;
+  padding:5px 18px 6px;box-shadow:0 5px 18px rgba(0,0,0,.1);
+  font-family:var(--mono);font-size:11.5px;font-weight:700;color:var(--text2);
+  display:flex;align-items:center;gap:8px;white-space:nowrap;
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+}
+#fbanner.vis{transform:translateX(-50%) translateY(0);}
+#fb-dot{width:10px;height:10px;border-radius:50%;}
+#fb-clr{
+  margin-left:4px;padding:1px 9px;border-radius:10px;
+  border:1px solid var(--border2);font-size:10.5px;cursor:pointer;
+  background:var(--bg);transition:all .15s;
+}
+#fb-clr:hover{border-color:var(--s-crit);color:var(--s-crit);}
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; overflow: hidden; background: var(--bg); font-family: var(--font); color: var(--text); }
+/* ══ MAP ═══════════════════════════════════════════════════════ */
+#map{position:fixed;top:var(--hdr);left:0;right:0;bottom:0;z-index:1;}
 
-    /* ═══════════════════════════════════════════
-       HEADER
-    ═══════════════════════════════════════════ */
-    #header {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      height: var(--header-h);
-      z-index: 1000;
-      background: var(--white);
-      border-bottom: 1px solid var(--border);
-      box-shadow: 0 1px 6px rgba(0,0,0,0.07);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 0 14px;
-    }
+/* ══ LEAFLET OVERRIDES ══════════════════════════════════════════ */
+.leaflet-popup-content-wrapper{
+  background:var(--surface)!important;border:1px solid var(--border2)!important;
+  border-radius:var(--r-lg)!important;box-shadow:var(--shadow-lg)!important;
+  padding:0!important;color:var(--text)!important;min-width:255px;
+}
+.leaflet-popup-content{margin:0!important;}
+.leaflet-popup-tip-container{display:none!important;}
+.leaflet-popup-close-button{
+  color:rgba(255,255,255,.7)!important;right:10px!important;top:9px!important;
+  font-size:18px!important;font-weight:400!important;
+}
+.leaflet-popup-close-button:hover{color:#fff!important;}
+.leaflet-container{font-family:var(--font)!important;}
+.leaflet-control-zoom a{
+  font-family:var(--font)!important;color:var(--text2)!important;
+  border-color:var(--border)!important;background:var(--surface)!important;
+}
+.leaflet-control-zoom a:hover{background:var(--green-pale)!important;}
 
-    /* ── Emblem ── */
-    #emblem {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-shrink: 0;
-      padding-right: 12px;
-      border-right: 1px solid var(--border);
-    }
-    #emblem-icon {
-      width: 36px; height: 36px;
-      background: linear-gradient(135deg, #1a6b3c 0%, #2e8b57 100%);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
-    #emblem-icon svg { width: 20px; height: 20px; }
-    #emblem-text { line-height: 1.2; }
-    #emblem-text .title  { font-size: 13px; font-weight: 700; color: var(--text); letter-spacing: 0.01em; }
-    #emblem-text .sub    { font-size: 10px; font-weight: 500; color: var(--text-dim); letter-spacing: 0.04em; text-transform: uppercase; }
+/* ══ POPUP ══════════════════════════════════════════════════════ */
+.pw{overflow:hidden;border-radius:var(--r-lg);}
+.pw-top{
+  background:linear-gradient(108deg,var(--forest),var(--forest2));
+  padding:11px 36px 10px 13px;
+  display:flex;align-items:center;gap:11px;
+  border-bottom:2px solid var(--green);
+}
+.pw-badge{
+  width:44px;height:44px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:9px;font-weight:800;
+  color:#fff;line-height:1.2;text-align:center;
+  border:2.5px solid rgba(255,255,255,.6);
+  box-shadow:0 3px 10px rgba(0,0,0,.35);
+}
+.pw-collar{font-family:var(--mono);font-size:15px;font-weight:800;color:#fff;line-height:1.2;}
+.pw-radio{font-size:11px;font-weight:700;color:rgba(255,255,255,.75);font-family:var(--mono);margin-top:2px;}
+.pw-body{padding:10px 13px 10px;}
+.pw-row{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding:4px 0;border-bottom:1px solid var(--border);
+}
+.pw-row:last-child{border-bottom:none;}
+.pw-lbl{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);}
+.pw-val{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text);}
+.pw-foot{
+  padding:8px 13px;background:var(--surface2);border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  border-radius:0 0 var(--r-lg) var(--r-lg);
+}
+.pw-badge-days{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 10px;border-radius:12px;
+  font-size:11.5px;font-weight:800;font-family:var(--mono);
+}
+.pw-badge-days .dot{width:7px;height:7px;border-radius:50%;}
+.pw-coord{font-family:var(--mono);font-size:9.5px;color:var(--text3);font-weight:600;}
 
-    /* ── Filter Pills (clickable) ── */
-    #filter-bar {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex: 1;
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
-    #filter-bar::-webkit-scrollbar { display: none; }
+/* ══ COLLAR PANEL ════════════════════════════════════════════════ */
+#panel{
+  position:fixed;top:var(--hdr);right:0;bottom:0;
+  width:300px;z-index:900;
+  background:var(--surface);border-left:1px solid var(--border2);
+  box-shadow:-4px 0 20px rgba(0,0,0,.09);
+  transform:translateX(100%);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;
+}
+#panel.open{transform:translateX(0);}
 
-    #btn-all {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      padding: 5px 13px;
-      border-radius: 20px;
-      border: 1.5px solid var(--border-med);
-      background: var(--white);
-      color: var(--text-mid);
-      font-family: var(--font);
-      font-size: 12px; font-weight: 600;
-      cursor: pointer; white-space: nowrap;
-      transition: all 0.18s; flex-shrink: 0;
-    }
-    #btn-all:hover  { border-color: #3498db; color: #3498db; }
-    #btn-all.active { background: #3498db; border-color: #3498db; color: #fff; }
+#panel-head{
+  padding:11px 13px 10px;flex-shrink:0;
+  background:linear-gradient(108deg,var(--forest),var(--forest2));
+  border-bottom:2px solid var(--green);
+}
+#panel-head h3{
+  font-family:var(--mono);font-size:11px;font-weight:700;
+  color:#fff;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;
+}
+#panel-search{
+  width:100%;padding:6px 11px;
+  border:1px solid rgba(255,255,255,.28);border-radius:var(--r);
+  background:rgba(255,255,255,.14);color:#fff;
+  font-family:var(--mono);font-size:11.5px;outline:none;
+  transition:border-color .2s,background .2s;
+}
+#panel-search::placeholder{color:rgba(255,255,255,.42);}
+#panel-search:focus{border-color:rgba(255,255,255,.65);background:rgba(255,255,255,.2);}
 
-    .filter-pill {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 5px 12px;
-      border-radius: 20px;
-      border: 1.5px solid transparent;
-      font-family: var(--font);
-      font-size: 12px; font-weight: 600;
-      cursor: pointer; white-space: nowrap;
-      transition: all 0.18s; flex-shrink: 0; user-select: none;
-    }
-    .filter-pill .pip { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+#collar-list{flex:1;overflow-y:auto;}
 
-    .filter-pill[data-filter="green"]  { background: var(--bg-green);  color: #1a8a48; border-color: rgba(46,204,113,0.35); }
-    .filter-pill[data-filter="purple"] { background: var(--bg-purple); color: #7d3fa8; border-color: rgba(155,89,182,0.35); }
-    .filter-pill[data-filter="yellow"] { background: var(--bg-yellow); color: #b37400; border-color: rgba(243,156,18,0.35); }
-    .filter-pill[data-filter="red"]    { background: var(--bg-red);    color: #c0392b; border-color: rgba(231,76,60,0.35); }
+.ci{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 13px;border-bottom:1px solid var(--border);
+  cursor:pointer;transition:background .13s;
+  animation:fadeIn .2s ease;
+}
+.ci:hover{background:var(--green-pale);}
+.ci:last-child{border-bottom:none;}
 
-    .filter-pill[data-filter="green"]  .pip { background: var(--c-green); }
-    .filter-pill[data-filter="purple"] .pip { background: var(--c-purple); }
-    .filter-pill[data-filter="yellow"] .pip { background: var(--c-yellow); }
-    .filter-pill[data-filter="red"]    .pip { background: var(--c-red); }
+/* ── Radio ID badge: larger, bolder, clearly readable ─────────── */
+.ci-badge{
+  width:44px;height:44px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:9px;font-weight:800;
+  color:#fff;text-align:center;line-height:1.25;
+  border:3px solid rgba(255,255,255,.55);
+  box-shadow:0 2px 8px rgba(0,0,0,.28);
+}
+.ci-info{flex:1;min-width:0;}
+.ci-collar{
+  font-family:var(--mono);font-size:13px;font-weight:800;
+  color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.ci-date{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--text3);margin-top:2px;}
+.ci-days{font-family:var(--mono);font-size:11.5px;font-weight:800;text-align:right;flex-shrink:0;}
 
-    .filter-pill:hover { filter: brightness(0.93); transform: translateY(-1px); }
+#panel-foot{
+  padding:8px 13px;border-top:1px solid var(--border);background:var(--surface2);
+  font-size:11px;color:var(--text3);font-weight:600;
+  display:flex;justify-content:space-between;align-items:center;flex-shrink:0;
+}
+#panel-foot strong{font-family:var(--mono);font-weight:800;color:var(--text2);}
 
-    .filter-pill.active[data-filter="green"]  { background: var(--c-green);  color: #fff; border-color: var(--c-green);  box-shadow: 0 3px 10px rgba(46,204,113,0.35); }
-    .filter-pill.active[data-filter="purple"] { background: var(--c-purple); color: #fff; border-color: var(--c-purple); box-shadow: 0 3px 10px rgba(155,89,182,0.35); }
-    .filter-pill.active[data-filter="yellow"] { background: var(--c-yellow); color: #fff; border-color: var(--c-yellow); box-shadow: 0 3px 10px rgba(243,156,18,0.35); }
-    .filter-pill.active[data-filter="red"]    { background: var(--c-red);    color: #fff; border-color: var(--c-red);    box-shadow: 0 3px 10px rgba(231,76,60,0.35); }
-    .filter-pill.active .pip { background: rgba(255,255,255,0.7) !important; }
+/* ══ LEGEND ══════════════════════════════════════════════════════ */
+#legend{
+  position:fixed;left:14px;z-index:900;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
+  padding:11px 14px;box-shadow:var(--shadow);
+  transition:bottom .22s ease;
+}
+#legend h4{
+  font-family:var(--mono);font-size:9px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.14em;color:var(--text3);margin-bottom:8px;
+}
+.leg{display:flex;align-items:center;gap:9px;margin-bottom:5px;}
+.leg:last-child{margin-bottom:0;}
+.leg-dot{
+  width:13px;height:13px;border-radius:50%;flex-shrink:0;
+  border:2px solid rgba(255,255,255,.55);box-shadow:0 1px 5px rgba(0,0,0,.22);
+}
+.leg span{font-size:12px;font-weight:700;color:var(--text2);}
 
-    /* ── Header right ── */
-    #header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-    #sync-block { text-align: right; font-size: 10.5px; color: var(--text-dim); line-height: 1.4; }
-    #sync-block strong { display: block; font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-mid); }
+/* ══ BOTTOM TABLE ════════════════════════════════════════════════ */
+#btm{
+  position:fixed;bottom:0;left:0;right:0;z-index:800;
+  background:var(--surface);border-top:2px solid var(--border2);
+  display:flex;flex-direction:column;
+  height:var(--btm-open);transition:height .22s cubic-bezier(.4,0,.2,1);
+}
+#btm.closed{height:var(--btm-closed);}
 
-    .hdr-btn {
-      width: 32px; height: 32px; border-radius: 6px;
-      border: 1px solid var(--border); background: var(--white); color: var(--text-mid);
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: all 0.18s;
-    }
-    .hdr-btn:hover  { border-color: #3498db; color: #3498db; background: rgba(52,152,219,0.06); }
-    .hdr-btn.active { background: #3498db; border-color: #3498db; color: #fff; }
-    .hdr-btn svg    { width: 15px; height: 15px; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .hdr-btn.loading svg { animation: spin 0.8s linear infinite; }
+#btm-bar{
+  height:var(--btm-closed);flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 13px;background:var(--surface2);border-bottom:1px solid var(--border);
+  cursor:pointer;
+}
+#btm-bar-l{display:flex;align-items:center;gap:8px;}
+#btm-bar-l span{font-family:var(--mono);font-size:11px;font-weight:800;color:var(--text2);}
+#btm-rows-badge{
+  background:var(--forest);color:#fff;
+  border-radius:10px;padding:1px 9px;font-family:var(--mono);font-size:10px;font-weight:800;
+}
+#btm-toggle-btn{
+  background:none;border:none;color:var(--text3);
+  font-family:var(--mono);font-size:11px;font-weight:800;
+}
 
-    /* ═══════════════════════════════════════════
-       MAP
-    ═══════════════════════════════════════════ */
-    #map {
-      position: fixed;
-      top: var(--header-h); left: 0; right: 0; bottom: 0;
-      z-index: 1;
-    }
+#btm-scroll{
+  flex:1;overflow:auto;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;
+}
+/* When closed, hide scroll area */
+#btm.closed #btm-scroll{overflow:hidden;}
 
-    /* ── Leaflet popup overrides ── */
-    .leaflet-popup-content-wrapper {
-      background: var(--white) !important;
-      border: 1px solid var(--border) !important;
-      border-radius: 8px !important;
-      box-shadow: var(--shadow-lg) !important;
-      color: var(--text) !important;
-      padding: 0 !important;
-      min-width: 240px;
-    }
-    .leaflet-popup-tip-container { display: none !important; }
-    .leaflet-popup-close-button  { color: var(--text-dim) !important; font-size: 20px !important; top: 10px !important; right: 12px !important; font-weight: 300 !important; }
-    .leaflet-popup-close-button:hover { color: var(--text) !important; }
-    .leaflet-container { font-family: var(--font) !important; }
+.dtbl{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap;}
+.dtbl th{
+  background:var(--forest);color:#fff;padding:6px 11px;
+  text-align:left;position:sticky;top:0;z-index:1;
+  font-family:var(--mono);font-size:10px;font-weight:800;letter-spacing:.04em;
+}
+.dtbl td{padding:5px 11px;border-bottom:1px solid var(--border);}
+.dtbl tbody tr{cursor:pointer;transition:background .1s;}
+.dtbl tbody tr:hover{background:var(--green-pale);}
+.dtbl tbody tr.hi{background:#dbeafe!important;}
 
-    /* Popup content */
-    .pu-wrap { overflow: hidden; border-radius: 8px; }
-    .pu-top  { padding: 12px 38px 10px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
-    .pu-badge {
-      width: 40px; height: 40px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-family: var(--mono); font-size: 9px; font-weight: 700;
-      color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-      flex-shrink: 0; letter-spacing: 0; line-height: 1;
-      border: 2.5px solid rgba(255,255,255,0.6);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }
-    .pu-titles .collar { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: 0.01em; }
-    .pu-titles .radio  { font-size: 11px; font-weight: 500; color: var(--text-mid); margin-top: 1px; font-family: var(--mono); }
-    .pu-body  { padding: 10px 14px 12px; }
-    .pu-row   { display: flex; justify-content: space-between; align-items: baseline; padding: 3px 0; border-bottom: 1px solid #f0f4f7; }
-    .pu-row:last-child { border-bottom: none; }
-    .pu-lbl   { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-dim); }
-    .pu-val   { font-family: var(--mono); font-size: 11.5px; color: var(--text); }
-    .pu-footer {
-      padding: 8px 14px; background: #f8fafc; border-top: 1px solid var(--border);
-      border-radius: 0 0 8px 8px;
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .pu-days-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 12px; font-size: 11.5px; font-weight: 700; }
-    .pu-days-badge .dot { width: 7px; height: 7px; border-radius: 50%; }
-    .pu-coord { font-family: var(--mono); font-size: 9.5px; color: var(--text-dim); }
+/* ══ STATUS BADGES (text labels) ════════════════════════════════ */
+.sbadge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:2px 9px;border-radius:10px;
+  font-family:var(--mono);font-size:10.5px;font-weight:800;
+}
+.sbadge.active{background:var(--s-active-lt);color:var(--s-active);border:1.5px solid var(--s-active-br);}
+.sbadge.warn  {background:var(--s-warn-lt);  color:var(--s-warn);  border:1.5px solid var(--s-warn-br);}
+.sbadge.stale {background:var(--s-stale-lt); color:var(--s-stale); border:1.5px solid var(--s-stale-br);}
+.sbadge.crit  {background:var(--s-crit-lt);  color:var(--s-crit);  border:1.5px solid var(--s-crit-br);}
 
-    /* ═══════════════════════════════════════════
-       COLLAR PANEL (right)
-    ═══════════════════════════════════════════ */
-    #panel {
-      position: fixed; top: var(--header-h); right: 0; bottom: 0;
-      width: var(--panel-w); z-index: 900;
-      background: var(--white); border-left: 1px solid var(--border);
-      box-shadow: -3px 0 16px rgba(0,0,0,0.07);
-      transform: translateX(100%);
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      display: flex; flex-direction: column;
-    }
-    #panel.open { transform: translateX(0); }
+/* ══ MAP FOOT STRIP ══════════════════════════════════════════════ */
+#map-foot{
+  position:fixed;left:0;right:0;z-index:700;
+  background:rgba(255,255,255,.9);backdrop-filter:blur(8px);
+  padding:3px 13px;font-family:var(--mono);font-size:10.5px;font-weight:600;
+  color:var(--text3);border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;
+  transition:bottom .22s ease;
+}
+.mf-pulse{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0;animation:pulse 2s infinite;}
 
-    #panel-head { padding: 12px 14px 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-    #panel-head h3 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text); margin-bottom: 8px; }
-    #panel-search {
-      width: 100%; padding: 6px 10px;
-      border: 1px solid var(--border); border-radius: 5px;
-      font-family: var(--mono); font-size: 11.5px; color: var(--text);
-      background: var(--bg); outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    #panel-search:focus { border-color: #3498db; box-shadow: 0 0 0 3px rgba(52,152,219,0.12); }
-    #panel-search::placeholder { color: var(--text-dim); }
+/* ══ LOADING ══════════════════════════════════════════════════════ */
+#loading{
+  position:fixed;inset:0;z-index:2000;
+  background:linear-gradient(108deg,#1b4332 0%,#2d6a4f 55%,#1b5e43 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  transition:opacity .5s,visibility .5s;
+}
+#loading.gone{opacity:0;visibility:hidden;}
+#loading .ring{
+  width:48px;height:48px;
+  border:3px solid rgba(255,255,255,.2);border-top-color:var(--green);
+  border-radius:50%;animation:spin .85s linear infinite;
+}
+#loading h2{font-family:var(--mono);font-size:15px;font-weight:700;color:#fff;}
+#loading p{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.5);}
 
-    #collar-list { flex: 1; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
-    #collar-list::-webkit-scrollbar { width: 4px; }
-    #collar-list::-webkit-scrollbar-thumb { background: var(--border-med); border-radius: 2px; }
-
-    .ci {
-      display: flex; align-items: center; gap: 10px;
-      padding: 9px 14px; border-bottom: 1px solid #f0f4f7;
-      cursor: pointer; transition: background 0.14s;
-    }
-    .ci:hover { background: #f4f8ff; }
-    .ci:last-child { border-bottom: none; }
-    .ci-badge {
-      width: 34px; height: 34px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-family: var(--mono); font-size: 8.5px; font-weight: 700;
-      color: white; flex-shrink: 0; letter-spacing: 0; line-height: 1.1; text-align: center;
-      border: 2px solid rgba(255,255,255,0.5);
-      box-shadow: 0 1px 5px rgba(0,0,0,0.2);
-    }
-    .ci-info { flex: 1; min-width: 0; }
-    .ci-collar { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .ci-meta   { font-size: 10px; color: var(--text-dim); font-family: var(--mono); margin-top: 1px; }
-    .ci-days   { font-family: var(--mono); font-size: 11px; text-align: right; flex-shrink: 0; }
-
-    #panel-footer {
-      padding: 8px 14px; border-top: 1px solid var(--border); background: var(--bg);
-      font-size: 11px; color: var(--text-dim);
-      display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
-    }
-    #panel-footer span { font-family: var(--mono); font-weight: 600; color: var(--text-mid); }
-
-    /* ═══════════════════════════════════════════
-       LEGEND
-    ═══════════════════════════════════════════ */
-    #legend {
-      position: fixed; bottom: 32px; left: 14px; z-index: 900;
-      background: var(--white); border: 1px solid var(--border);
-      border-radius: 8px; padding: 10px 13px; box-shadow: var(--shadow);
-    }
-    #legend-title { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--text-dim); margin-bottom: 7px; }
-    .leg { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 11.5px; color: var(--text-mid); }
-    .leg:last-child { margin-bottom: 0; }
-    .leg-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
-
-    /* ═══════════════════════════════════════════
-       ACTIVE FILTER BANNER
-    ═══════════════════════════════════════════ */
-    #filter-banner {
-      position: fixed; top: var(--header-h); left: 50%;
-      transform: translateX(-50%) translateY(-50px);
-      z-index: 950;
-      background: var(--white); border: 1px solid var(--border);
-      border-top: none; border-radius: 0 0 10px 10px;
-      padding: 6px 18px 7px;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.1);
-      font-size: 12px; font-weight: 600; color: var(--text-mid);
-      display: flex; align-items: center; gap: 8px;
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      white-space: nowrap;
-    }
-    #filter-banner.show { transform: translateX(-50%) translateY(0); }
-    #filter-banner .fb-dot { width: 10px; height: 10px; border-radius: 50%; }
-    #filter-banner .fb-clear {
-      margin-left: 6px; padding: 1px 8px; border-radius: 10px;
-      border: 1px solid var(--border-med); font-size: 10.5px; cursor: pointer;
-      background: var(--bg); transition: all 0.15s;
-    }
-    #filter-banner .fb-clear:hover { border-color: #e74c3c; color: #e74c3c; }
-
-    /* ═══════════════════════════════════════════
-       LOADING
-    ═══════════════════════════════════════════ */
-    #loading {
-      position: fixed; inset: 0; z-index: 2000;
-      background: var(--white);
-      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
-      transition: opacity 0.4s, visibility 0.4s;
-    }
-    #loading.hidden { opacity: 0; visibility: hidden; }
-    #loading .ring {
-      width: 44px; height: 44px;
-      border: 3px solid var(--border); border-top-color: #2e8b57;
-      border-radius: 50%; animation: spin 0.85s linear infinite;
-    }
-    #loading p { font-size: 12.5px; color: var(--text-dim); font-family: var(--mono); letter-spacing: 0.06em; }
-
-    #toast {
-      position: fixed; bottom: 70px; left: 50%;
-      transform: translateX(-50%) translateY(14px); z-index: 3000;
-      background: rgba(231,76,60,0.1); border: 1px solid rgba(231,76,60,0.35);
-      color: #c0392b; padding: 8px 18px; border-radius: 6px;
-      font-size: 12px; opacity: 0; pointer-events: none;
-      transition: opacity 0.3s, transform 0.3s;
-    }
-    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-    /* Leaflet zoom control */
-    .leaflet-control-zoom a { font-family: var(--font) !important; color: var(--text-mid) !important; border-color: var(--border) !important; background: var(--white) !important; }
-    .leaflet-control-zoom a:hover { background: var(--bg) !important; }
-
-    @media (max-width: 520px) { :root { --panel-w: 100vw; } }
-  </style>
+/* Toast */
+#toast{
+  position:fixed;bottom:220px;left:50%;
+  transform:translateX(-50%) translateY(10px);z-index:3000;
+  background:#fee2e2;border:1px solid #fecaca;color:var(--s-crit);
+  padding:8px 18px;border-radius:var(--r);font-family:var(--mono);
+  font-size:12px;font-weight:600;opacity:0;pointer-events:none;
+  transition:opacity .3s,transform .3s;
+}
+#toast.vis{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
 </head>
 <body>
 
-<!-- LOADING -->
+<!-- ── LOADING ─────────────────────────────────────────────────── -->
 <div id="loading">
   <div class="ring"></div>
-  <p>FETCHING TELEMETRY DATA…</p>
+  <h2>🐊 Chambal Gharial Telemetry</h2>
+  <p>Fetching GPS collar data…</p>
 </div>
 
-<!-- HEADER -->
-<header id="header">
-  <div id="emblem">
-    <div id="emblem-icon">
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M2 14c1-2 3-3 5-3l3 1 4-2 5-1 2 1-1 2-4 1-3-1-4 2-3 1-2-1z" fill="rgba(255,255,255,0.9)"/>
-        <path d="M2 14l-1 1h3l1-1" fill="rgba(255,255,255,0.7)"/>
-        <circle cx="5.5" cy="11.5" r="0.6" fill="white"/>
-        <path d="M18 11l2-3 1 1-2 3" fill="rgba(255,255,255,0.7)"/>
-      </svg>
-    </div>
-    <div id="emblem-text">
-      <div class="title">Chambal Gharial Telemetry</div>
-      <div class="sub">Wildlife Field Operations · Real-Time</div>
+<!-- ── HEADER ──────────────────────────────────────────────────── -->
+<header id="hdr">
+  <div id="brand">
+    <div id="brand-icon">🐊</div>
+    <div>
+      <div id="brand-t">Chambal Gharial Telemetry</div>
+      <div id="brand-s">Wildlife Field Operations · Real-Time</div>
     </div>
   </div>
 
+  <!-- Clickable filter pills (injected by JS) -->
   <div id="filter-bar">
-    <button id="btn-all" class="active" onclick="setFilter(null)">ALL</button>
-    <!-- pills injected by JS -->
+    <button id="btn-all" class="on" onclick="setFilter(null)">ALL</button>
   </div>
 
-  <div id="header-right">
-    <div id="sync-block">
+  <div id="hdr-r">
+    <div id="sync-info">
       <strong>Last Sync</strong>
       <span id="sync-time">—</span>
     </div>
-    <button class="hdr-btn" id="btn-refresh" title="Refresh now" onclick="refreshData()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
-        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-      </svg>
+    <button class="hbtn" id="btn-ref" onclick="refreshData()">
+      <span class="spin-ic">⟳</span> Refresh
     </button>
-    <button class="hdr-btn" id="btn-list" title="Collar list" onclick="togglePanel()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="8" y1="6"  x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12"/>
-        <line x1="8" y1="18" x2="21" y2="18"/>
-        <circle cx="3" cy="6"  r="1" fill="currentColor" stroke="none"/>
-        <circle cx="3" cy="12" r="1" fill="currentColor" stroke="none"/>
-        <circle cx="3" cy="18" r="1" fill="currentColor" stroke="none"/>
-      </svg>
+    <button class="hbtn" id="btn-panel" onclick="togglePanel()">
+      ≡ List
     </button>
   </div>
 </header>
 
-<!-- ACTIVE FILTER BANNER -->
-<div id="filter-banner">
-  <div class="fb-dot" id="fb-dot"></div>
-  <span id="fb-text">—</span>
-  <span class="fb-clear" onclick="setFilter(null)">✕ Clear</span>
+<!-- ── ACTIVE FILTER BANNER ─────────────────────────────────────── -->
+<div id="fbanner">
+  <div id="fb-dot"></div>
+  <span id="fb-text"></span>
+  <span id="fb-clr" onclick="setFilter(null)">✕ Clear</span>
 </div>
 
-<!-- MAP -->
+<!-- ── MAP ─────────────────────────────────────────────────────── -->
 <div id="map"></div>
 
-<!-- LEGEND -->
-<div id="legend">
-  <div id="legend-title">Signal Age</div>
-  <div class="leg"><div class="leg-dot" style="background:var(--c-green)"></div>  ≤ 7 days (Active)</div>
-  <div class="leg"><div class="leg-dot" style="background:var(--c-purple)"></div> 8 – 30 days</div>
-  <div class="leg"><div class="leg-dot" style="background:var(--c-yellow)"></div> 31 – 44 days</div>
-  <div class="leg"><div class="leg-dot" style="background:var(--c-red)"></div>    ≥ 45 days (Critical)</div>
+<!-- ── MAP FOOT STRIP ───────────────────────────────────────────── -->
+<div id="map-foot">
+  <div class="mf-pulse"></div>
+  <span id="mf-txt">Loading…</span>
+  <span style="margin-left:auto;font-size:9px;letter-spacing:.05em;color:var(--text4);" id="mf-cnt"></span>
 </div>
 
-<!-- COLLAR PANEL -->
+<!-- ── LEGEND ──────────────────────────────────────────────────── -->
+<div id="legend">
+  <h4>Signal Age</h4>
+  <div class="leg"><div class="leg-dot" style="background:var(--s-active);"></div><span>≤ 7 days — Active</span></div>
+  <div class="leg"><div class="leg-dot" style="background:var(--s-warn);"></div><span>8 – 30 days</span></div>
+  <div class="leg"><div class="leg-dot" style="background:var(--s-stale);"></div><span>31 – 44 days</span></div>
+  <div class="leg"><div class="leg-dot" style="background:var(--s-crit);"></div><span>≥ 45 days — Critical</span></div>
+</div>
+
+<!-- ── COLLAR PANEL ─────────────────────────────────────────────── -->
 <aside id="panel">
   <div id="panel-head">
-    <h3>Collar Inventory</h3>
-    <input id="panel-search" type="text" placeholder="Search collar or radio ID…" oninput="filterList(this.value)" />
+    <h3>📡 Collar Inventory</h3>
+    <input id="panel-search" type="text" placeholder="Search collar or radio ID…" oninput="filterList(this.value)">
   </div>
   <div id="collar-list"></div>
-  <div id="panel-footer">Showing <span id="panel-count">—</span> collars</div>
+  <div id="panel-foot">
+    Showing <strong id="panel-cnt">—</strong> collars
+  </div>
 </aside>
+
+<!-- ── BOTTOM TABLE ─────────────────────────────────────────────── -->
+<div id="btm">
+  <div id="btm-bar" onclick="toggleBtm()">
+    <div id="btm-bar-l">
+      <span>📡 TELEMETRY TABLE</span>
+      <span id="btm-rows-badge">—</span>
+    </div>
+    <button id="btm-toggle-btn">▼ Hide</button>
+  </div>
+  <div id="btm-scroll">
+    <table class="dtbl">
+      <thead>
+        <tr>
+          <th>Collar #</th>
+          <th>Radio ID</th>
+          <th>Last Fix (DD-MM-YYYY HH:MM:SS)</th>
+          <th>Days Since Fix</th>
+          <th>Signal Status</th>
+          <th>Latitude</th>
+          <th>Longitude</th>
+        </tr>
+      </thead>
+      <tbody id="tbl-body"></tbody>
+    </table>
+  </div>
+</div>
 
 <div id="toast"></div>
 
-<!-- LEAFLET -->
+<!-- ── SCRIPTS ──────────────────────────────────────────────────── -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!--
+  OverlappingMarkerSpiderfier (OMS) — enables spider-web separation
+  of tightly clustered markers so each can be individually clicked.
+-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/OverlappingMarkerSpiderfier-Leaflet/0.2.6/oms.min.js"></script>
 
 <script>
-/* ──────────────────────────────────────────────
+/* ══════════════════════════════════════════════════════════════
    CONFIGURATION
-────────────────────────────────────────────── */
-const SHEET_ID         = '13HfRGsqKmVihmGYACi8nWgLTsV2kYKM83gBvVmWSfXw';
-const SHEET_GID        = '0';
-const CSV_URL          = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
-const AUTO_REFRESH_MS  = 6 * 60 * 60 * 1000; // 6 hours
+══════════════════════════════════════════════════════════════ */
+// Google Sheets published CSV URL
+// Publish via: File → Share → Publish to web → CSV
+const SHEET_ID  = '13HfRGsqKmVihmGYACi8nWgLTsV2kYKM83gBvVmWSfXw';
+const SHEET_GID = '0';
+const CSV_URL   = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
+const AUTO_REFRESH_MS = 6 * 60 * 60 * 1000; // 6 hours
 
-// Column headers — must match sheet row 1 exactly
-const COL = { collar:'CollarSerialNumber', lat:'Latitude', lon:'Longitude', date:'Date', radio:'RadioID' };
+// Column header names — must match the sheet's row 1 exactly
+const COL = {
+  collar : 'CollarSerialNumber',
+  lat    : 'Latitude',
+  lon    : 'Longitude',
+  date   : 'Date',
+  radio  : 'RadioID',
+};
 
-/* ──────────────────────────────────────────────
+/* ══════════════════════════════════════════════════════════════
    STATE
-────────────────────────────────────────────── */
+══════════════════════════════════════════════════════════════ */
 let map;
-let currentData  = [];   // Parsed records
-let allMarkers   = [];   // [{marker, rec}]
-let activeFilter = null; // null | 'green' | 'purple' | 'yellow' | 'red'
-let filterText   = '';
-let panelOpen    = false;
-let firstLoad    = true;
+let oms;                  // OverlappingMarkerSpiderfier instance
+let currentData   = [];   // Parsed records from latest fetch
+let markerMap     = {};   // { collarID → { marker, rec } } — O(1) lookup
+let allMarkersArr = [];   // Flat array of all Leaflet markers
+let activeFilter  = null; // null | 'active' | 'warn' | 'stale' | 'crit'
+let filterText    = '';
+let panelOpen     = false;
+let btmOpen       = true;
+let firstLoad     = true;
+let justSpider    = false; // True briefly after a spiderfy event
 
-/* ──────────────────────────────────────────────
-   COLOUR HELPERS
-────────────────────────────────────────────── */
-function colorKey(days) {
-  if (days <= 7)  return 'green';
-  if (days <= 30) return 'purple';
-  if (days < 45)  return 'yellow';
-  return 'red';
+/* ══════════════════════════════════════════════════════════════
+   COLOUR / STATUS SYSTEM
+══════════════════════════════════════════════════════════════ */
+const STATUS = {
+  active : { hex:'#1565c0', lt:'#dbeafe', br:'#bfdbfe', cls:'active', label:'Active ≤7d'   },
+  warn   : { hex:'#7c3aed', lt:'#f3e8ff', br:'#ddd6fe', cls:'warn',   label:'Silent >7d'   },
+  stale  : { hex:'#b45309', lt:'#fef9c3', br:'#fef08a', cls:'stale',  label:'Silent >30d'  },
+  crit   : { hex:'#b91c1c', lt:'#fee2e2', br:'#fecaca', cls:'crit',   label:'Critical ≥45d'},
+};
+
+// Returns status key for a given number of days since last fix
+function sKey(days) {
+  if (days <= 7)  return 'active';
+  if (days <= 30) return 'warn';
+  if (days < 45)  return 'stale';
+  return 'crit';
 }
-const COLOR_MAP = { green:'#2ecc71', purple:'#9b59b6', yellow:'#f39c12', red:'#e74c3c' };
-function colorHex(days) { return COLOR_MAP[colorKey(days)]; }
+function sColor(days) { return STATUS[sKey(days)]; }
 
-/* ──────────────────────────────────────────────
+/* ══════════════════════════════════════════════════════════════
    DATE UTILITIES
-────────────────────────────────────────────── */
+══════════════════════════════════════════════════════════════ */
+// Days elapsed from ISO date string to now
 function daysSince(iso) {
   const d = new Date(iso);
   return isNaN(d) ? 9999 : Math.max(0, Math.floor((Date.now() - d) / 86400000));
 }
-function fmtDate(iso) {
+
+// Format to DD-MM-YYYY HH:MM:SS
+function fmtDT(iso) {
   const d = new Date(iso);
   if (isNaN(d)) return '—';
   const p = n => String(n).padStart(2, '0');
   return `${p(d.getDate())}-${p(d.getMonth()+1)}-${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
 }
 
-/* ──────────────────────────────────────────────
-   MAP INIT
-   Google Hybrid tiles: lyrs=y = satellite + labels
-────────────────────────────────────────────── */
-function initMap() {
-  map = L.map('map', { center:[25.9, 76.8], zoom:10, zoomControl:false, attributionControl:false });
+// Format to DD-MM-YYYY only (short form for panel list)
+function fmtD(iso) {
+  const d = new Date(iso);
+  if (isNaN(d)) return '—';
+  const p = n => String(n).padStart(2, '0');
+  return `${p(d.getDate())}-${p(d.getMonth()+1)}-${d.getFullYear()}`;
+}
 
-  // Primary: Google Hybrid (satellite + road/label overlay, no API key)
+/* ══════════════════════════════════════════════════════════════
+   MAP INITIALISATION
+   Google Hybrid basemap + OMS for spiderweb clustering
+══════════════════════════════════════════════════════════════ */
+function initMap() {
+  map = L.map('map', {
+    center: [25.9, 76.8], zoom: 10,
+    zoomControl: false,
+    attributionControl: false,
+  });
+
+  // ── Google Hybrid tiles (satellite + road/label overlay) ─────
+  // lyrs=y = satellite imagery with labels; free, no API key needed
   L.tileLayer('https://mt{s}.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}', {
     maxZoom: 20,
     subdomains: '0123',
     attribution: '© Google',
   }).addTo(map);
 
-  L.control.zoom({ position:'bottomright' }).addTo(map);
-  L.control.attribution({ position:'bottomright', prefix: false })
-    .addAttribution('© Google Maps | Telemetry via Google Sheets')
+  L.control.zoom({ position: 'bottomright' }).addTo(map);
+  L.control.attribution({ position: 'bottomright', prefix: false })
+    .addAttribution('© Google Maps | Wildlife Telemetry')
     .addTo(map);
+
+  // ── OMS: OverlappingMarkerSpiderfier ─────────────────────────
+  // When markers overlap at a zoom level, OMS fans them out into
+  // a spider-web pattern so each can be individually clicked.
+  oms = new OverlappingMarkerSpiderfier(map, {
+    keepSpiderfied       : true,
+    nearbyDistance       : 30,       // px — radius to consider "overlapping"
+    circleSpiralSwitchover: 8,       // switch circle→spiral at N markers
+    circleFootSeparation : 55,
+    spiralFootSeparation : 35,
+    spiralLengthStart    : 22,
+    spiralLengthFactor   : 6,
+    legWeight            : 2.5,
+    legColors: {
+      usual      : '#2d6a4f',  // forest green connector lines
+      highlighted: '#e65100',  // orange on hover
+    },
+  });
+
+  // When markers spiderfy: briefly suppress individual click events
+  // so the popup doesn't open the instant they fan out
+  oms.addListener('spiderfy', function(markers) {
+    justSpider = true;
+    markers.forEach(m => { try { m.closePopup(); } catch(e) {} });
+    setTimeout(() => { justSpider = false; }, 450);
+  });
+
+  // ── OMS CLICK LISTENER ───────────────────────────────────────
+  // This is the SINGLE authoritative handler for ALL marker clicks.
+  // It auto-zooms to the clicked marker and opens its popup.
+  oms.addListener('click', function(marker) {
+    if (justSpider) return; // ignore click from spiderfy animation
+
+    const ll = marker.getLatLng();
+
+    // Fly to marker at zoom 16
+    map.flyTo(ll, 16, { duration: 0.9, easeLinearity: 0.5 });
+
+    // Open popup after the fly animation (~900 ms)
+    setTimeout(() => {
+      if (map.hasLayer(marker)) marker.openPopup();
+    }, 1000);
+  });
 }
 
-/* ──────────────────────────────────────────────
+/* ══════════════════════════════════════════════════════════════
    BUILD MARKER ICON
-   Numbered circle showing Radio ID
-────────────────────────────────────────────── */
-function buildIcon(rec, color) {
+   Coloured circle showing Radio ID in bold white text.
+   Size scales with text length. Very recent markers pulse.
+══════════════════════════════════════════════════════════════ */
+function buildIcon(rec, hex) {
   const radio = rec.radio || '??';
-  const sz    = radio.length > 4 ? 44 : 40;   // wider for long IDs
-  const fs    = radio.length > 4 ? '8px' : '9.5px';
+  // Wider badge for longer radio IDs
+  const sz = radio.length > 5 ? 48 : (radio.length > 4 ? 44 : 40);
+  const fs = radio.length > 5 ? '7.5px' : (radio.length > 4 ? '8.5px' : '9.5px');
 
-  // Subtle pulse ring for very fresh signals (≤ 2 days)
+  // Animated pulse ring for very fresh signals (≤ 2 days)
   const pulse = rec.days <= 2
-    ? `<div style="position:absolute;inset:-6px;border-radius:50%;border:2.5px solid ${color};opacity:0.45;animation:markerPulse 2.2s ease-out infinite;pointer-events:none;"></div>`
+    ? `<div style="
+        position:absolute;inset:-7px;border-radius:50%;
+        border:2.5px solid ${hex};opacity:.4;
+        animation:mPulse 2.3s ease-out infinite;
+        pointer-events:none;"></div>`
     : '';
 
   const html = `
@@ -516,210 +642,236 @@ function buildIcon(rec, color) {
       ${pulse}
       <div style="
         width:${sz}px;height:${sz}px;border-radius:50%;
-        background:${color};
-        border:2.5px solid white;
-        box-shadow:0 2px 10px rgba(0,0,0,0.35),0 0 0 1px ${color}66;
+        background:${hex};
+        border:3px solid white;
+        box-shadow:0 3px 12px rgba(0,0,0,.45),0 0 0 1.5px ${hex}88;
         display:flex;align-items:center;justify-content:center;
         font-family:'IBM Plex Mono',monospace;
-        font-size:${fs};font-weight:700;
-        color:white;letter-spacing:0;line-height:1.15;
-        text-align:center;white-space:nowrap;
-        text-shadow:0 1px 3px rgba(0,0,0,0.4);
+        font-size:${fs};font-weight:800;
+        color:white;line-height:1.2;
+        text-align:center;
+        text-shadow:0 1px 4px rgba(0,0,0,.55);
         cursor:pointer;
       ">${radio}</div>
     </div>`;
 
   return L.divIcon({
     html,
-    className:  '',
-    iconSize:   [sz, sz],
-    iconAnchor: [sz/2, sz/2],
-    popupAnchor:[0, -(sz/2 + 8)],
+    className  : '',
+    iconSize   : [sz, sz],
+    iconAnchor : [sz/2, sz/2],
+    popupAnchor: [0, -(sz/2 + 10)],
   });
 }
 
-/* ──────────────────────────────────────────────
+/* ══════════════════════════════════════════════════════════════
    BUILD POPUP HTML
-────────────────────────────────────────────── */
+══════════════════════════════════════════════════════════════ */
 function buildPopup(rec) {
-  const color    = colorHex(rec.days);
-  const bgCol    = color + '18';
-  const daysText = rec.days === 0 ? 'Today' : `${rec.days} day${rec.days !== 1 ? 's' : ''} ago`;
+  const sc = sColor(rec.days);
+  const dLabel = rec.days === 0 ? 'Today' : `${rec.days} day${rec.days !== 1 ? 's' : ''} ago`;
   return `
-    <div class="pu-wrap">
-      <div class="pu-top">
-        <div class="pu-badge" style="background:${color};">${rec.radio}</div>
-        <div class="pu-titles">
-          <div class="collar">Collar #${rec.collar}</div>
-          <div class="radio">Radio ID: ${rec.radio}</div>
+    <div class="pw">
+      <div class="pw-top">
+        <div class="pw-badge" style="background:${sc.hex};">${rec.radio}</div>
+        <div>
+          <div class="pw-collar">Collar #${rec.collar}</div>
+          <div class="pw-radio">📻 Radio ID: ${rec.radio}</div>
         </div>
       </div>
-      <div class="pu-body">
-        <div class="pu-row"><span class="pu-lbl">Latitude</span> <span class="pu-val">${parseFloat(rec.lat).toFixed(5)}°N</span></div>
-        <div class="pu-row"><span class="pu-lbl">Longitude</span><span class="pu-val">${parseFloat(rec.lon).toFixed(5)}°E</span></div>
-        <div class="pu-row"><span class="pu-lbl">Last Fix</span>  <span class="pu-val">${fmtDate(rec.date)}</span></div>
+      <div class="pw-body">
+        <div class="pw-row">
+          <span class="pw-lbl">Latitude</span>
+          <span class="pw-val">${parseFloat(rec.lat).toFixed(5)}° N</span>
+        </div>
+        <div class="pw-row">
+          <span class="pw-lbl">Longitude</span>
+          <span class="pw-val">${parseFloat(rec.lon).toFixed(5)}° E</span>
+        </div>
+        <div class="pw-row">
+          <span class="pw-lbl">Last Fix</span>
+          <span class="pw-val" style="font-size:10.5px;">${fmtDT(rec.date)}</span>
+        </div>
+        <div class="pw-row">
+          <span class="pw-lbl">Days Since</span>
+          <span class="pw-val">${rec.days} day${rec.days !== 1 ? 's' : ''}</span>
+        </div>
       </div>
-      <div class="pu-footer">
-        <span class="pu-days-badge" style="background:${bgCol};color:${color};border:1px solid ${color}44;">
-          <span class="dot" style="background:${color}"></span>${daysText}
+      <div class="pw-foot">
+        <span class="pw-badge-days" style="background:${sc.lt};color:${sc.hex};border:1.5px solid ${sc.br};">
+          <span class="dot" style="background:${sc.hex};"></span>${dLabel}
         </span>
-        <span class="pu-coord">${parseFloat(rec.lat).toFixed(3)}, ${parseFloat(rec.lon).toFixed(3)}</span>
+        <span class="pw-coord">${parseFloat(rec.lat).toFixed(3)}, ${parseFloat(rec.lon).toFixed(3)}</span>
       </div>
     </div>`;
 }
 
-/* ──────────────────────────────────────────────
+/* ══════════════════════════════════════════════════════════════
    RENDER MARKERS
-   Builds allMarkers[] and calls applyFilter()
-────────────────────────────────────────────── */
+   Clears all existing markers, rebuilds from currentData.
+   Registers every marker with OMS.
+   Calls applyFilter() to show/hide and fit bounds.
+══════════════════════════════════════════════════════════════ */
 function renderMarkers() {
-  // Clear all current markers from map
-  allMarkers.forEach(({ marker }) => map.removeLayer(marker));
-  allMarkers = [];
+  // ── Clear existing markers ──────────────────────────────────
+  allMarkersArr.forEach(m => {
+    try { oms.removeMarker(m); } catch(e) {}
+    try { map.removeLayer(m);  } catch(e) {}
+  });
+  allMarkersArr = [];
+  markerMap     = {};
 
+  // ── Build new markers ───────────────────────────────────────
   currentData.forEach(rec => {
-    const lat = parseFloat(rec.lat);
+    const lat = parseFloat(rec.lat); // handles "+26.10468" correctly
     const lon = parseFloat(rec.lon);
     if (isNaN(lat) || isNaN(lon)) return;
 
-    const color  = colorHex(rec.days);
-    const marker = L.marker([lat, lon], { icon: buildIcon(rec, color) })
-      .bindPopup(buildPopup(rec), { maxWidth:280, className:'' });
+    const sc     = sColor(rec.days);
+    const icon   = buildIcon(rec, sc.hex);
 
-    allMarkers.push({ marker, rec });
+    // Create marker — NO individual click listener.
+    // All clicks are handled by the OMS 'click' listener above.
+    const marker = L.marker([lat, lon], { icon });
+    marker.bindPopup(buildPopup(rec), { maxWidth: 310, className: '' });
+
+    // Add to map AND register with OMS
+    marker.addTo(map);
+    oms.addMarker(marker);
+
+    // Store reference for O(1) lookup by collar ID
+    allMarkersArr.push(marker);
+    markerMap[rec.collar] = { marker, rec };
   });
 
   applyFilter();
 }
 
-/* ──────────────────────────────────────────────
+/* ══════════════════════════════════════════════════════════════
    APPLY FILTER
-   Shows/hides markers based on activeFilter + text.
-   Auto-fits map bounds to visible markers.
-────────────────────────────────────────────── */
+   Shows / hides markers based on activeFilter + text search.
+   Auto-fits map to the visible set.
+══════════════════════════════════════════════════════════════ */
 function applyFilter() {
-  const visibleLL = [];
+  const visLL = [];
 
-  allMarkers.forEach(({ marker, rec }) => {
-    const keyOk  = !activeFilter || colorKey(rec.days) === activeFilter;
-    const txtOk  = !filterText  ||
+  Object.values(markerMap).forEach(({ marker, rec }) => {
+    const keyOk = !activeFilter || sKey(rec.days) === activeFilter;
+    const txtOk = !filterText  ||
       rec.collar.toLowerCase().includes(filterText) ||
       rec.radio.toLowerCase().includes(filterText);
-    const show   = keyOk && txtOk;
+    const show  = keyOk && txtOk;
 
     if (show) {
       if (!map.hasLayer(marker)) marker.addTo(map);
-      visibleLL.push(marker.getLatLng());
+      visLL.push(marker.getLatLng());
     } else {
-      if (map.hasLayer(marker))  map.removeLayer(marker);
+      if (map.hasLayer(marker)) map.removeLayer(marker);
     }
   });
 
-  // Auto-fit to visible markers
-  if (visibleLL.length > 0) {
-    map.fitBounds(L.latLngBounds(visibleLL), {
-      padding: [55, 55],
-      maxZoom: firstLoad ? 12 : 15,
+  // ── Auto-fit bounds to visible markers ──────────────────────
+  if (visLL.length > 0) {
+    map.fitBounds(L.latLngBounds(visLL), {
+      padding: [58, 58],
+      maxZoom : firstLoad ? 12 : 15,
     });
     firstLoad = false;
   }
 
   renderCollarList();
+  renderTable();
   updateFilterBanner();
 }
 
-/* ──────────────────────────────────────────────
-   SET FILTER — clicking a pill
-────────────────────────────────────────────── */
-function setFilter(key) {
-  // Toggle: click same filter again → reset to ALL
-  activeFilter = (activeFilter === key) ? null : key;
+/* ══════════════════════════════════════════════════════════════
+   FILTER PILLS — header clickable status chips
+══════════════════════════════════════════════════════════════ */
+const PILL_DEFS = [
+  { key:'active', emoji:'📍', dot:'#1565c0' },
+  { key:'warn',   emoji:'⚠️', dot:'#7c3aed' },
+  { key:'stale',  emoji:'🚨', dot:'#b45309' },
+  { key:'crit',   emoji:'🛑', dot:'#b91c1c' },
+];
 
-  document.querySelectorAll('.filter-pill').forEach(p => {
-    p.classList.toggle('active', p.dataset.filter === activeFilter);
-  });
-  document.getElementById('btn-all').classList.toggle('active', !activeFilter);
-
-  applyFilter();
-}
-
-/* ──────────────────────────────────────────────
-   FILTER BANNER (shows active filter label)
-────────────────────────────────────────────── */
-const FILTER_LABELS = {
-  green:  'Showing Active collars (≤ 7 days)',
-  purple: 'Showing Silent > 7 days',
-  yellow: 'Showing Silent > 30 days',
-  red:    'Showing Critical ≥ 45 days',
-};
-function updateFilterBanner() {
-  const banner = document.getElementById('filter-banner');
-  if (activeFilter) {
-    document.getElementById('fb-dot').style.background = COLOR_MAP[activeFilter];
-    document.getElementById('fb-text').textContent     = FILTER_LABELS[activeFilter];
-    banner.classList.add('show');
-  } else {
-    banner.classList.remove('show');
-  }
-}
-
-/* ──────────────────────────────────────────────
-   BUILD FILTER PILLS IN HEADER
-────────────────────────────────────────────── */
+// (Re)builds the pills in the header with fresh counts
 function buildFilterPills() {
   const bar    = document.getElementById('filter-bar');
-  const counts = { green:0, purple:0, yellow:0, red:0 };
-  currentData.forEach(r => counts[colorKey(r.days)]++);
+  const counts = { active:0, warn:0, stale:0, crit:0 };
+  currentData.forEach(r => counts[sKey(r.days)]++);
 
-  const defs = [
-    { key:'green',  emoji:'📍', label:`Active ≤7d`,    count: counts.green  },
-    { key:'purple', emoji:'⚠️', label:`Silent >7d`,    count: counts.purple },
-    { key:'yellow', emoji:'🚨', label:`Silent >30d`,   count: counts.yellow },
-    { key:'red',    emoji:'🛑', label:`Critical ≥45d`, count: counts.red    },
-  ];
+  bar.querySelectorAll('.hpill').forEach(el => el.remove());
 
-  // Remove old pills, keep btn-all
-  bar.querySelectorAll('.filter-pill').forEach(el => el.remove());
-
-  defs.forEach(({ key, emoji, label, count }) => {
+  PILL_DEFS.forEach(({ key, emoji, dot }) => {
     const pill = document.createElement('div');
-    pill.className        = 'filter-pill' + (activeFilter === key ? ' active' : '');
-    pill.dataset.filter   = key;
-    pill.title            = `Click to filter — ${label}`;
-    pill.onclick          = () => setFilter(key);
-    pill.innerHTML        = `<div class="pip"></div>${emoji}&nbsp;<strong>${count}</strong>&nbsp;${label}`;
+    pill.className    = 'hpill' + (activeFilter === key ? ' on' : '');
+    pill.dataset.filter = key;
+    pill.title        = `Click to show only: ${STATUS[key].label}`;
+    pill.onclick      = () => setFilter(key);
+    pill.innerHTML    = `
+      <div class="pdot" style="background:${dot};box-shadow:0 0 5px ${dot}55;"></div>
+      ${emoji} <span class="pcnt">${counts[key]}</span>&nbsp;${STATUS[key].label}`;
     bar.appendChild(pill);
   });
 }
 
-/* ──────────────────────────────────────────────
+// Toggle filter — clicking the same key again clears it
+function setFilter(key) {
+  activeFilter = (activeFilter === key) ? null : key;
+  document.querySelectorAll('.hpill').forEach(p =>
+    p.classList.toggle('on', p.dataset.filter === activeFilter));
+  document.getElementById('btn-all').classList.toggle('on', !activeFilter);
+  applyFilter();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FILTER BANNER (slides down below header when filter is active)
+══════════════════════════════════════════════════════════════ */
+const FILTER_LABELS = {
+  active : 'Active collars — signal ≤ 7 days',
+  warn   : 'Silent collars — signal 8–30 days',
+  stale  : 'Stale collars — signal 31–44 days',
+  crit   : 'Critical collars — signal ≥ 45 days',
+};
+function updateFilterBanner() {
+  const banner = document.getElementById('fbanner');
+  if (activeFilter) {
+    document.getElementById('fb-dot').style.background = STATUS[activeFilter].hex;
+    document.getElementById('fb-text').textContent     = FILTER_LABELS[activeFilter];
+    banner.classList.add('vis');
+  } else {
+    banner.classList.remove('vis');
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
    COLLAR LIST PANEL
-────────────────────────────────────────────── */
+══════════════════════════════════════════════════════════════ */
 function renderCollarList() {
   const listEl  = document.getElementById('collar-list');
-  const countEl = document.getElementById('panel-count');
+  const countEl = document.getElementById('panel-cnt');
 
   const records = currentData.filter(rec => {
-    const keyOk = !activeFilter || colorKey(rec.days) === activeFilter;
-    const txtOk = !filterText  ||
+    const k = !activeFilter || sKey(rec.days) === activeFilter;
+    const t = !filterText  ||
       rec.collar.toLowerCase().includes(filterText) ||
       rec.radio.toLowerCase().includes(filterText);
-    return keyOk && txtOk;
+    return k && t;
   });
 
   countEl.textContent = records.length;
 
   listEl.innerHTML = records.map(rec => {
-    const color  = colorHex(rec.days);
+    const sc     = sColor(rec.days);
     const dLabel = rec.days === 0 ? 'Today' : `${rec.days}d ago`;
     return `
-      <div class="ci" onclick="zoomToCollar(${rec.lat},${rec.lon},'${rec.collar}')">
-        <div class="ci-badge" style="background:${color};">${rec.radio}</div>
+      <div class="ci" onclick="zoomToCollar('${rec.collar}')">
+        <div class="ci-badge" style="background:${sc.hex};">${rec.radio}</div>
         <div class="ci-info">
-          <div class="ci-collar">Collar #${rec.collar}</div>
-          <div class="ci-meta">${fmtDate(rec.date).split(' ')[0]}</div>
+          <div class="ci-collar">#${rec.collar}</div>
+          <div class="ci-date">${fmtD(rec.date)}</div>
         </div>
-        <div class="ci-days" style="color:${color}">${dLabel}</div>
+        <div class="ci-days" style="color:${sc.hex};">${dLabel}</div>
       </div>`;
   }).join('');
 }
@@ -729,30 +881,156 @@ function filterList(val) {
   applyFilter();
 }
 
-/* ──────────────────────────────────────────────
-   ZOOM TO COLLAR + AUTO OPEN POPUP
-   Fly animation → wait → open popup
-────────────────────────────────────────────── */
-function zoomToCollar(lat, lon, collar) {
-  const tLat = parseFloat(lat);
-  const tLon = parseFloat(lon);
+/* ══════════════════════════════════════════════════════════════
+   ZOOM TO COLLAR
+   Called from collar panel list AND table row clicks.
+   Uses markerMap for reliable O(1) lookup by collar ID.
+   Flies to marker and opens popup for ALL collars.
+══════════════════════════════════════════════════════════════ */
+function zoomToCollar(collar) {
+  const key = String(collar).trim();
+  const hit = markerMap[key];
 
-  map.flyTo([tLat, tLon], 15, { duration: 1.1, easeLinearity: 0.5 });
+  if (!hit) {
+    console.warn('[zoomToCollar] Marker not found for collar:', key,
+      '— available keys:', Object.keys(markerMap));
+    return;
+  }
 
+  const ll = hit.marker.getLatLng();
+
+  // Ensure marker is on map (in case it was filtered out)
+  if (!map.hasLayer(hit.marker)) hit.marker.addTo(map);
+
+  // Fly to marker
+  map.flyTo(ll, 16, { duration: 1.0, easeLinearity: 0.5 });
+
+  // Open popup after fly animation completes
   setTimeout(() => {
-    const hit = allMarkers.find(({ rec }) => rec.collar === collar);
-    if (hit && map.hasLayer(hit.marker)) {
-      hit.marker.openPopup();
-    }
-  }, 1200);
+    hit.marker.openPopup();
+  }, 1100);
 }
 
-/* ──────────────────────────────────────────────
-   DETECT NEW LOCATIONS (diff vs localStorage)
-────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   BOTTOM TABLE
+══════════════════════════════════════════════════════════════ */
+function renderTable() {
+  const tbody = document.getElementById('tbl-body');
+  const badge = document.getElementById('btm-rows-badge');
+
+  const records = currentData.filter(rec => {
+    const k = !activeFilter || sKey(rec.days) === activeFilter;
+    const t = !filterText  ||
+      rec.collar.toLowerCase().includes(filterText) ||
+      rec.radio.toLowerCase().includes(filterText);
+    return k && t;
+  });
+
+  badge.textContent = records.length + ' rows';
+
+  tbody.innerHTML = records.map(rec => {
+    const sc = sColor(rec.days);
+    const dLabel = rec.days === 0 ? 'Today' : `${rec.days}d`;
+    return `
+      <tr onclick="zoomToCollar('${rec.collar}')">
+        <td><strong style="font-family:var(--mono)">#${rec.collar}</strong></td>
+        <td>
+          <strong style="
+            font-family:var(--mono);color:${sc.hex};
+            background:${sc.lt};padding:1px 7px;border-radius:8px;
+            border:1.5px solid ${sc.br};
+          ">${rec.radio}</strong>
+        </td>
+        <td style="font-family:var(--mono);font-size:11px;font-weight:600;">${fmtDT(rec.date)}</td>
+        <td><span class="sbadge ${sc.cls}">${dLabel}</span></td>
+        <td><span class="sbadge ${sc.cls}">${sc.label}</span></td>
+        <td style="font-family:var(--mono);font-size:11px;font-weight:600;">${parseFloat(rec.lat).toFixed(5)}</td>
+        <td style="font-family:var(--mono);font-size:11px;font-weight:600;">${parseFloat(rec.lon).toFixed(5)}</td>
+      </tr>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   UI TOGGLES
+══════════════════════════════════════════════════════════════ */
+function togglePanel() {
+  panelOpen = !panelOpen;
+  document.getElementById('panel').classList.toggle('open', panelOpen);
+  document.getElementById('btn-panel').classList.toggle('on', panelOpen);
+}
+
+function toggleBtm() {
+  btmOpen = !btmOpen;
+  document.getElementById('btm').classList.toggle('closed', !btmOpen);
+  document.getElementById('btm-toggle-btn').textContent = btmOpen ? '▼ Hide' : '▲ Show';
+  updateLegendPos();
+}
+
+// Keeps legend above the bottom table at all times
+function updateLegendPos() {
+  const legEl = document.getElementById('legend');
+  const mapFt = document.getElementById('map-foot');
+  const btmH  = btmOpen ? 210 : 52;
+  legEl.style.bottom = (btmH + 8) + 'px';
+  mapFt.style.bottom = btmOpen ? 'var(--btm-open)' : 'var(--btm-closed)';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CSV PARSING
+   Handles quoted fields, leading + signs in coordinates,
+   and trailing text in RadioID (e.g. "66-36 Son Male")
+══════════════════════════════════════════════════════════════ */
+function parseCSV(raw) {
+  const lines = raw.trim().split('\n');
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+  const records = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const vals = splitCSV(lines[i].trim());
+    if (vals.length < headers.length) continue;
+    const obj = {};
+    headers.forEach((h, idx) => { obj[h] = (vals[idx] || '').trim().replace(/^"|"$/g, ''); });
+
+    // parseFloat handles "+26.10468" and "+076.93867" correctly
+    const lat = parseFloat(obj[COL.lat]);
+    const lon = parseFloat(obj[COL.lon]);
+    if (!obj[COL.collar] || isNaN(lat) || isNaN(lon)) continue;
+
+    const days = daysSince(obj[COL.date]);
+    records.push({
+      collar : obj[COL.collar].trim(),
+      lat    : obj[COL.lat].trim(),
+      lon    : obj[COL.lon].trim(),
+      date   : obj[COL.date].trim(),
+      radio  : (obj[COL.radio] || '??').trim(), // kept with full text, e.g. "66-36 Son Male"
+      days   : isNaN(days) ? 9999 : days,
+    });
+  }
+
+  // Sort: most recent first
+  return records.sort((a, b) => a.days - b.days);
+}
+
+function splitCSV(line) {
+  const res = []; let cur = '', inQ = false;
+  for (const ch of line) {
+    if (ch === '"') { inQ = !inQ; }
+    else if (ch === ',' && !inQ) { res.push(cur); cur = ''; }
+    else { cur += ch; }
+  }
+  res.push(cur);
+  return res;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DETECT NEW LOCATIONS
+   Diffs against the previous fetch stored in localStorage.
+   Returns count of collars whose Date has changed.
+══════════════════════════════════════════════════════════════ */
 function detectNew(records) {
-  const KEY = 'telemetry_seen_v2';
-  let last  = {};
+  const KEY = 'tlm_v4';
+  let last = {};
   try { last = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e) {}
   const snap = {};
   let n = 0;
@@ -761,90 +1039,73 @@ function detectNew(records) {
   return n;
 }
 
-/* ──────────────────────────────────────────────
-   CSV PARSER
-────────────────────────────────────────────── */
-function parseCSV(raw) {
-  const lines   = raw.trim().split('\n');
-  if (lines.length < 2) return [];
-  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-  const records = [];
-  for (let i = 1; i < lines.length; i++) {
-    const vals = splitCSV(lines[i].trim());
-    if (vals.length < headers.length) continue;
-    const obj = {};
-    headers.forEach((h, idx) => { obj[h] = (vals[idx] || '').trim().replace(/^"|"$/g, ''); });
-    const lat = parseFloat(obj[COL.lat]);
-    const lon = parseFloat(obj[COL.lon]);
-    if (!obj[COL.collar] || isNaN(lat) || isNaN(lon)) continue;
-    const days = daysSince(obj[COL.date]);
-    records.push({ collar:obj[COL.collar], lat:obj[COL.lat], lon:obj[COL.lon], date:obj[COL.date], radio:obj[COL.radio]||'??', days: isNaN(days)?9999:days });
-  }
-  return records.sort((a,b) => a.days - b.days);
-}
-function splitCSV(line) {
-  const res = []; let cur='', inQ=false;
-  for (const ch of line) {
-    if (ch==='"') { inQ=!inQ; }
-    else if (ch===',' && !inQ) { res.push(cur); cur=''; }
-    else { cur+=ch; }
-  }
-  res.push(cur); return res;
-}
-
-/* ──────────────────────────────────────────────
-   FETCH + REFRESH
-────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   FETCH + FULL REFRESH
+══════════════════════════════════════════════════════════════ */
 async function refreshData() {
-  const btn = document.getElementById('btn-refresh');
+  const btn = document.getElementById('btn-ref');
   btn.classList.add('loading');
+
   try {
-    const resp = await fetch(`${CSV_URL}&cachebust=${Date.now()}`);
+    // Cache-bust: append timestamp so browser always fetches fresh CSV
+    const url  = `${CSV_URL}&cachebust=${Date.now()}`;
+    const resp = await fetch(url);
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const raw  = await resp.text();
+
     currentData = parseCSV(raw);
-    if (!currentData.length) { showToast('No records found — check column headers.'); return; }
+    if (!currentData.length) {
+      showToast('No records found — check column names match the sheet exactly.');
+      return;
+    }
+
     detectNew(currentData);
+
+    // Rebuild header filter pills with fresh counts
     buildFilterPills();
-    renderMarkers();    // internally calls applyFilter() + fitBounds
+
+    // Rebuild all markers on the map + re-register with OMS
+    renderMarkers(); // internally calls applyFilter() → fitBounds
+
+    // Update the map footer strip
+    const latest = new Date(Math.max(...currentData.map(r => new Date(r.date))));
+    document.getElementById('mf-txt').textContent =
+      `Latest fix: ${fmtDT(latest.toISOString())} · ${currentData.length} records`;
+    document.getElementById('mf-cnt').textContent =
+      `${currentData.length} collars`;
+
+    // Update sync timestamp in header
     document.getElementById('sync-time').textContent =
-      new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+      new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    // Update legend + map foot positions
+    updateLegendPos();
+
   } catch(err) {
-    console.error(err);
+    console.error('[refreshData]', err);
     showToast(`Fetch failed: ${err.message}`);
   } finally {
     btn.classList.remove('loading');
-    document.getElementById('loading').classList.add('hidden');
+    document.getElementById('loading').classList.add('gone');
   }
 }
 
-/* ──────────────────────────────────────────────
-   UI HELPERS
-────────────────────────────────────────────── */
-function togglePanel() {
-  panelOpen = !panelOpen;
-  document.getElementById('panel').classList.toggle('open', panelOpen);
-  document.getElementById('btn-list').classList.toggle('active', panelOpen);
-}
+/* ══════════════════════════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════════════════════════ */
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 5000);
+  t.classList.add('vis');
+  setTimeout(() => t.classList.remove('vis'), 5000);
 }
 
-/* ──────────────────────────────────────────────
-   INJECT @keyframes for pulse ring
-────────────────────────────────────────────── */
-const kf = document.createElement('style');
-kf.textContent = `@keyframes markerPulse{0%{transform:scale(1);opacity:0.6}70%{transform:scale(2.4);opacity:0}100%{transform:scale(1);opacity:0}}`;
-document.head.appendChild(kf);
-
-/* ──────────────────────────────────────────────
+/* ══════════════════════════════════════════════════════════════
    BOOT
-────────────────────────────────────────────── */
+══════════════════════════════════════════════════════════════ */
 (function boot() {
   initMap();
+  updateLegendPos(); // set initial legend/map-foot positions
   refreshData();
   setInterval(refreshData, AUTO_REFRESH_MS);
 })();
