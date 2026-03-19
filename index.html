@@ -3,1063 +3,851 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Wildlife Telemetry Monitor</title>
+  <title>Chambal Telemetry Monitor</title>
 
-  <!-- ─── Leaflet CSS ─────────────────────────────────────────────────── -->
+  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
-  <!-- ─── Google Fonts: Rajdhani (headings) + Share Tech Mono (data) ─── -->
-  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <!-- IBM Plex Sans (body) + IBM Plex Mono (data values) -->
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
 
   <style>
-    /* ══════════════════════════════════════════════
-       DESIGN TOKENS / CSS VARIABLES
-    ══════════════════════════════════════════════ */
+    /* ═══════════════════════════════════════════
+       DESIGN TOKENS
+    ═══════════════════════════════════════════ */
     :root {
-      --bg:          #060d15;
-      --panel:       rgba(8, 18, 32, 0.93);
-      --panel-light: rgba(12, 25, 44, 0.88);
-      --border:      rgba(0, 210, 160, 0.18);
-      --accent:      #00d2a0;
-      --accent-dim:  rgba(0, 210, 160, 0.12);
-      --text:        #c2d8e8;
-      --text-dim:    #5a7e96;
-      --text-bright: #e8f4ff;
+      --white:        #ffffff;
+      --bg:           #f4f6f8;
+      --border:       #dde3ea;
+      --border-med:   #c4cdd6;
+      --text:         #1a2533;
+      --text-mid:     #4a6075;
+      --text-dim:     #8da0b3;
+      --header-h:     52px;
+      --font:         'IBM Plex Sans', sans-serif;
+      --mono:         'IBM Plex Mono', monospace;
+      --panel-w:      310px;
+      --shadow:       0 2px 12px rgba(0,0,0,0.10);
+      --shadow-lg:    0 4px 24px rgba(0,0,0,0.14);
 
       /* Status colours */
-      --c-green:   #00e676;
-      --c-purple:  #ce93d8;
-      --c-yellow:  #ffd54f;
-      --c-red:     #ff5252;
+      --c-green:   #2ecc71;
+      --c-purple:  #9b59b6;
+      --c-yellow:  #f39c12;
+      --c-red:     #e74c3c;
 
-      /* Pill backgrounds */
-      --pill-green:  rgba(0, 230, 118, 0.12);
-      --pill-purple: rgba(206, 147, 216, 0.12);
-      --pill-yellow: rgba(255, 213, 79, 0.12);
-      --pill-red:    rgba(255, 82, 82, 0.14);
-
-      --header-h: 56px;
-      --panel-w: 320px;
-      --font-mono: 'Share Tech Mono', monospace;
-      --font-ui:   'Rajdhani', sans-serif;
+      --bg-green:  rgba(46,204,113,0.12);
+      --bg-purple: rgba(155,89,182,0.12);
+      --bg-yellow: rgba(243,156,18,0.12);
+      --bg-red:    rgba(231,76,60,0.13);
     }
 
-    /* ── Reset ── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--font-ui); }
+    html, body { height: 100%; overflow: hidden; background: var(--bg); font-family: var(--font); color: var(--text); }
 
-    /* ══════════════════════════════════════════════
-       HEADER BAR
-    ══════════════════════════════════════════════ */
+    /* ═══════════════════════════════════════════
+       HEADER
+    ═══════════════════════════════════════════ */
     #header {
       position: fixed;
       top: 0; left: 0; right: 0;
       height: var(--header-h);
       z-index: 1000;
-      background: var(--panel);
+      background: var(--white);
       border-bottom: 1px solid var(--border);
+      box-shadow: 0 1px 6px rgba(0,0,0,0.07);
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 0 16px;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      gap: 10px;
+      padding: 0 14px;
     }
 
-    /* Paw-print logo mark */
-    #logo {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      flex-shrink: 0;
-    }
-    #logo svg { width: 28px; height: 28px; }
-    #logo-text {
-      font-family: var(--font-ui);
-      font-weight: 700;
-      font-size: 15px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--text-bright);
-      line-height: 1.15;
-    }
-    #logo-text span {
-      display: block;
-      font-size: 9px;
-      letter-spacing: 0.22em;
-      color: var(--accent);
-      font-weight: 600;
-    }
-
-    /* Vertical divider */
-    .vdiv {
-      width: 1px; height: 30px;
-      background: var(--border);
-      flex-shrink: 0;
-    }
-
-    /* ── Status Pills ── */
-    #status-bar {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex: 1;
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
-    #status-bar::-webkit-scrollbar { display: none; }
-
-    .pill {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 11px;
-      border-radius: 3px;
-      font-family: var(--font-ui);
-      font-weight: 600;
-      font-size: 12.5px;
-      letter-spacing: 0.04em;
-      white-space: nowrap;
-      border: 1px solid transparent;
-      cursor: default;
-      transition: opacity 0.3s;
-    }
-    .pill.new     { background: var(--accent-dim); color: var(--accent); border-color: rgba(0,210,160,0.25); }
-    .pill.warn7   { background: var(--pill-purple); color: var(--c-purple); border-color: rgba(206,147,216,0.25); }
-    .pill.warn30  { background: var(--pill-yellow); color: var(--c-yellow); border-color: rgba(255,213,79,0.3); }
-    .pill.crit45  { background: var(--pill-red);   color: var(--c-red);   border-color: rgba(255,82,82,0.3); }
-    .pill .dot {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .pill.new   .dot { background: var(--accent); }
-    .pill.warn7 .dot { background: var(--c-purple); }
-    .pill.warn30 .dot { background: var(--c-yellow); }
-    .pill.crit45 .dot { background: var(--c-red); box-shadow: 0 0 5px var(--c-red); }
-
-    /* ── Header right cluster ── */
-    #header-right {
+    /* ── Emblem ── */
+    #emblem {
       display: flex;
       align-items: center;
       gap: 10px;
       flex-shrink: 0;
-      margin-left: auto;
+      padding-right: 12px;
+      border-right: 1px solid var(--border);
     }
-
-    #last-sync {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--text-dim);
-      text-align: right;
-      line-height: 1.4;
-    }
-    #last-sync strong { color: var(--accent); display: block; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; }
-
-    /* Refresh & toggle buttons */
-    .icon-btn {
-      width: 32px; height: 32px;
-      border-radius: 4px;
-      border: 1px solid var(--border);
-      background: var(--accent-dim);
-      color: var(--accent);
-      cursor: pointer;
+    #emblem-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, #1a6b3c 0%, #2e8b57 100%);
+      border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      transition: background 0.2s, border-color 0.2s;
       flex-shrink: 0;
     }
-    .icon-btn:hover { background: rgba(0,210,160,0.22); border-color: var(--accent); }
-    .icon-btn svg { width: 16px; height: 16px; }
-    .icon-btn.active { background: rgba(0,210,160,0.28); border-color: var(--accent); }
+    #emblem-icon svg { width: 20px; height: 20px; }
+    #emblem-text { line-height: 1.2; }
+    #emblem-text .title  { font-size: 13px; font-weight: 700; color: var(--text); letter-spacing: 0.01em; }
+    #emblem-text .sub    { font-size: 10px; font-weight: 500; color: var(--text-dim); letter-spacing: 0.04em; text-transform: uppercase; }
 
-    /* Refresh spinning state */
+    /* ── Filter Pills (clickable) ── */
+    #filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    #filter-bar::-webkit-scrollbar { display: none; }
+
+    #btn-all {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 13px;
+      border-radius: 20px;
+      border: 1.5px solid var(--border-med);
+      background: var(--white);
+      color: var(--text-mid);
+      font-family: var(--font);
+      font-size: 12px; font-weight: 600;
+      cursor: pointer; white-space: nowrap;
+      transition: all 0.18s; flex-shrink: 0;
+    }
+    #btn-all:hover  { border-color: #3498db; color: #3498db; }
+    #btn-all.active { background: #3498db; border-color: #3498db; color: #fff; }
+
+    .filter-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1.5px solid transparent;
+      font-family: var(--font);
+      font-size: 12px; font-weight: 600;
+      cursor: pointer; white-space: nowrap;
+      transition: all 0.18s; flex-shrink: 0; user-select: none;
+    }
+    .filter-pill .pip { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    .filter-pill[data-filter="green"]  { background: var(--bg-green);  color: #1a8a48; border-color: rgba(46,204,113,0.35); }
+    .filter-pill[data-filter="purple"] { background: var(--bg-purple); color: #7d3fa8; border-color: rgba(155,89,182,0.35); }
+    .filter-pill[data-filter="yellow"] { background: var(--bg-yellow); color: #b37400; border-color: rgba(243,156,18,0.35); }
+    .filter-pill[data-filter="red"]    { background: var(--bg-red);    color: #c0392b; border-color: rgba(231,76,60,0.35); }
+
+    .filter-pill[data-filter="green"]  .pip { background: var(--c-green); }
+    .filter-pill[data-filter="purple"] .pip { background: var(--c-purple); }
+    .filter-pill[data-filter="yellow"] .pip { background: var(--c-yellow); }
+    .filter-pill[data-filter="red"]    .pip { background: var(--c-red); }
+
+    .filter-pill:hover { filter: brightness(0.93); transform: translateY(-1px); }
+
+    .filter-pill.active[data-filter="green"]  { background: var(--c-green);  color: #fff; border-color: var(--c-green);  box-shadow: 0 3px 10px rgba(46,204,113,0.35); }
+    .filter-pill.active[data-filter="purple"] { background: var(--c-purple); color: #fff; border-color: var(--c-purple); box-shadow: 0 3px 10px rgba(155,89,182,0.35); }
+    .filter-pill.active[data-filter="yellow"] { background: var(--c-yellow); color: #fff; border-color: var(--c-yellow); box-shadow: 0 3px 10px rgba(243,156,18,0.35); }
+    .filter-pill.active[data-filter="red"]    { background: var(--c-red);    color: #fff; border-color: var(--c-red);    box-shadow: 0 3px 10px rgba(231,76,60,0.35); }
+    .filter-pill.active .pip { background: rgba(255,255,255,0.7) !important; }
+
+    /* ── Header right ── */
+    #header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    #sync-block { text-align: right; font-size: 10.5px; color: var(--text-dim); line-height: 1.4; }
+    #sync-block strong { display: block; font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-mid); }
+
+    .hdr-btn {
+      width: 32px; height: 32px; border-radius: 6px;
+      border: 1px solid var(--border); background: var(--white); color: var(--text-mid);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.18s;
+    }
+    .hdr-btn:hover  { border-color: #3498db; color: #3498db; background: rgba(52,152,219,0.06); }
+    .hdr-btn.active { background: #3498db; border-color: #3498db; color: #fff; }
+    .hdr-btn svg    { width: 15px; height: 15px; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .icon-btn.loading svg { animation: spin 0.9s linear infinite; }
+    .hdr-btn.loading svg { animation: spin 0.8s linear infinite; }
 
-    /* ══════════════════════════════════════════════
+    /* ═══════════════════════════════════════════
        MAP
-    ══════════════════════════════════════════════ */
+    ═══════════════════════════════════════════ */
     #map {
       position: fixed;
-      top: var(--header-h);
-      left: 0; right: 0; bottom: 0;
+      top: var(--header-h); left: 0; right: 0; bottom: 0;
       z-index: 1;
     }
 
     /* ── Leaflet popup overrides ── */
     .leaflet-popup-content-wrapper {
-      background: var(--panel) !important;
+      background: var(--white) !important;
       border: 1px solid var(--border) !important;
-      border-radius: 6px !important;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.7) !important;
-      backdrop-filter: blur(14px);
+      border-radius: 8px !important;
+      box-shadow: var(--shadow-lg) !important;
       color: var(--text) !important;
       padding: 0 !important;
-      min-width: 230px;
+      min-width: 240px;
     }
-    .leaflet-popup-tip { background: rgba(8,18,32,0.95) !important; }
-    .leaflet-popup-close-button {
-      color: var(--text-dim) !important;
-      font-size: 18px !important;
-      top: 8px !important; right: 10px !important;
-    }
-    .leaflet-popup-close-button:hover { color: var(--accent) !important; }
-    .leaflet-container { background: #070d15 !important; }
+    .leaflet-popup-tip-container { display: none !important; }
+    .leaflet-popup-close-button  { color: var(--text-dim) !important; font-size: 20px !important; top: 10px !important; right: 12px !important; font-weight: 300 !important; }
+    .leaflet-popup-close-button:hover { color: var(--text) !important; }
+    .leaflet-container { font-family: var(--font) !important; }
 
-    /* ─── Custom Popup Content ─── */
-    .popup-inner {
-      padding: 14px 16px 12px;
+    /* Popup content */
+    .pu-wrap { overflow: hidden; border-radius: 8px; }
+    .pu-top  { padding: 12px 38px 10px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+    .pu-badge {
+      width: 40px; height: 40px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono); font-size: 9px; font-weight: 700;
+      color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+      flex-shrink: 0; letter-spacing: 0; line-height: 1;
+      border: 2.5px solid rgba(255,255,255,0.6);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
-    .popup-header {
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      margin-bottom: 10px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid var(--border);
+    .pu-titles .collar { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: 0.01em; }
+    .pu-titles .radio  { font-size: 11px; font-weight: 500; color: var(--text-mid); margin-top: 1px; font-family: var(--mono); }
+    .pu-body  { padding: 10px 14px 12px; }
+    .pu-row   { display: flex; justify-content: space-between; align-items: baseline; padding: 3px 0; border-bottom: 1px solid #f0f4f7; }
+    .pu-row:last-child { border-bottom: none; }
+    .pu-lbl   { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-dim); }
+    .pu-val   { font-family: var(--mono); font-size: 11.5px; color: var(--text); }
+    .pu-footer {
+      padding: 8px 14px; background: #f8fafc; border-top: 1px solid var(--border);
+      border-radius: 0 0 8px 8px;
+      display: flex; align-items: center; justify-content: space-between;
     }
-    .popup-color-bar {
-      width: 4px;
-      border-radius: 2px;
-      flex-shrink: 0;
-      align-self: stretch;
-      min-height: 32px;
-    }
-    .popup-collar {
-      font-family: var(--font-ui);
-      font-weight: 700;
-      font-size: 16px;
-      color: var(--text-bright);
-      letter-spacing: 0.04em;
-    }
-    .popup-radio {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--accent);
-      letter-spacing: 0.06em;
-      margin-top: 1px;
-    }
-    .popup-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 5px;
-    }
-    .popup-label {
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-    }
-    .popup-value {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--text-bright);
-    }
-    .popup-days {
-      display: inline-block;
-      margin-top: 8px;
-      padding: 3px 9px;
-      border-radius: 3px;
-      font-family: var(--font-ui);
-      font-weight: 700;
-      font-size: 12px;
-      letter-spacing: 0.05em;
-    }
+    .pu-days-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 12px; font-size: 11.5px; font-weight: 700; }
+    .pu-days-badge .dot { width: 7px; height: 7px; border-radius: 50%; }
+    .pu-coord { font-family: var(--mono); font-size: 9.5px; color: var(--text-dim); }
 
-    /* ══════════════════════════════════════════════
-       COLLAR LIST PANEL (collapsible, right side)
-    ══════════════════════════════════════════════ */
+    /* ═══════════════════════════════════════════
+       COLLAR PANEL (right)
+    ═══════════════════════════════════════════ */
     #panel {
-      position: fixed;
-      top: var(--header-h);
-      right: 0;
-      width: var(--panel-w);
-      bottom: 0;
-      z-index: 900;
-      background: var(--panel);
-      border-left: 1px solid var(--border);
+      position: fixed; top: var(--header-h); right: 0; bottom: 0;
+      width: var(--panel-w); z-index: 900;
+      background: var(--white); border-left: 1px solid var(--border);
+      box-shadow: -3px 0 16px rgba(0,0,0,0.07);
       transform: translateX(100%);
-      transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
-      display: flex;
-      flex-direction: column;
-      backdrop-filter: blur(14px);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex; flex-direction: column;
     }
     #panel.open { transform: translateX(0); }
 
-    #panel-header {
-      padding: 13px 16px 11px;
-      border-bottom: 1px solid var(--border);
-      font-weight: 700;
-      font-size: 12px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-shrink: 0;
-    }
-    #collar-count {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--text-dim);
-      font-weight: 400;
-    }
-
-    /* Search / filter within panel */
-    #panel-search-wrap {
-      padding: 10px 12px;
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-    }
+    #panel-head { padding: 12px 14px 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    #panel-head h3 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text); margin-bottom: 8px; }
     #panel-search {
-      width: 100%;
-      background: rgba(0,0,0,0.3);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      color: var(--text);
-      font-family: var(--font-mono);
-      font-size: 11.5px;
-      padding: 6px 10px;
-      outline: none;
-      transition: border-color 0.2s;
+      width: 100%; padding: 6px 10px;
+      border: 1px solid var(--border); border-radius: 5px;
+      font-family: var(--mono); font-size: 11.5px; color: var(--text);
+      background: var(--bg); outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
+    #panel-search:focus { border-color: #3498db; box-shadow: 0 0 0 3px rgba(52,152,219,0.12); }
     #panel-search::placeholder { color: var(--text-dim); }
-    #panel-search:focus { border-color: var(--accent); }
 
-    /* Collar list */
-    #collar-list {
-      flex: 1;
-      overflow-y: auto;
-      scrollbar-width: thin;
-      scrollbar-color: rgba(0,210,160,0.2) transparent;
-    }
+    #collar-list { flex: 1; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
     #collar-list::-webkit-scrollbar { width: 4px; }
-    #collar-list::-webkit-scrollbar-track { background: transparent; }
-    #collar-list::-webkit-scrollbar-thumb { background: rgba(0,210,160,0.25); border-radius: 2px; }
+    #collar-list::-webkit-scrollbar-thumb { background: var(--border-med); border-radius: 2px; }
 
-    .collar-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 9px 14px;
-      border-bottom: 1px solid rgba(0,210,160,0.06);
-      cursor: pointer;
-      transition: background 0.15s;
+    .ci {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 14px; border-bottom: 1px solid #f0f4f7;
+      cursor: pointer; transition: background 0.14s;
     }
-    .collar-item:hover { background: rgba(0,210,160,0.06); }
-    .collar-item:last-child { border-bottom: none; }
-
-    .ci-dot {
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      flex-shrink: 0;
+    .ci:hover { background: #f4f8ff; }
+    .ci:last-child { border-bottom: none; }
+    .ci-badge {
+      width: 34px; height: 34px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono); font-size: 8.5px; font-weight: 700;
+      color: white; flex-shrink: 0; letter-spacing: 0; line-height: 1.1; text-align: center;
+      border: 2px solid rgba(255,255,255,0.5);
+      box-shadow: 0 1px 5px rgba(0,0,0,0.2);
     }
     .ci-info { flex: 1; min-width: 0; }
-    .ci-collar {
-      font-family: var(--font-ui);
-      font-weight: 600;
-      font-size: 13px;
-      color: var(--text-bright);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .ci-meta {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--text-dim);
-      margin-top: 2px;
-    }
-    .ci-days {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      flex-shrink: 0;
-      text-align: right;
-    }
+    .ci-collar { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ci-meta   { font-size: 10px; color: var(--text-dim); font-family: var(--mono); margin-top: 1px; }
+    .ci-days   { font-family: var(--mono); font-size: 11px; text-align: right; flex-shrink: 0; }
 
-    /* Legend (bottom-left corner of map) */
+    #panel-footer {
+      padding: 8px 14px; border-top: 1px solid var(--border); background: var(--bg);
+      font-size: 11px; color: var(--text-dim);
+      display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+    }
+    #panel-footer span { font-family: var(--mono); font-weight: 600; color: var(--text-mid); }
+
+    /* ═══════════════════════════════════════════
+       LEGEND
+    ═══════════════════════════════════════════ */
     #legend {
-      position: fixed;
-      bottom: 22px;
-      left: 14px;
-      z-index: 900;
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 10px 13px;
-      backdrop-filter: blur(12px);
+      position: fixed; bottom: 32px; left: 14px; z-index: 900;
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 13px; box-shadow: var(--shadow);
     }
-    #legend-title {
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-      margin-bottom: 7px;
-    }
-    .leg-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 5px;
-      font-size: 11.5px;
-      color: var(--text);
-    }
-    .leg-row:last-child { margin-bottom: 0; }
-    .leg-dot {
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
+    #legend-title { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--text-dim); margin-bottom: 7px; }
+    .leg { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 11.5px; color: var(--text-mid); }
+    .leg:last-child { margin-bottom: 0; }
+    .leg-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
 
-    /* ── Custom marker pulse ring for green (≤7 days) ── */
-    @keyframes markerPulse {
-      0%   { transform: scale(1); opacity: 0.7; }
-      70%  { transform: scale(2.4); opacity: 0; }
-      100% { transform: scale(1); opacity: 0; }
+    /* ═══════════════════════════════════════════
+       ACTIVE FILTER BANNER
+    ═══════════════════════════════════════════ */
+    #filter-banner {
+      position: fixed; top: var(--header-h); left: 50%;
+      transform: translateX(-50%) translateY(-50px);
+      z-index: 950;
+      background: var(--white); border: 1px solid var(--border);
+      border-top: none; border-radius: 0 0 10px 10px;
+      padding: 6px 18px 7px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+      font-size: 12px; font-weight: 600; color: var(--text-mid);
+      display: flex; align-items: center; gap: 8px;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      white-space: nowrap;
     }
-    .marker-wrap { position: relative; }
-    .marker-ring {
-      position: absolute;
-      top: 50%; left: 50%;
-      width: 100%; height: 100%;
-      transform: translate(-50%, -50%);
-      border-radius: 50%;
-      animation: markerPulse 2.4s ease-out infinite;
-      pointer-events: none;
+    #filter-banner.show { transform: translateX(-50%) translateY(0); }
+    #filter-banner .fb-dot { width: 10px; height: 10px; border-radius: 50%; }
+    #filter-banner .fb-clear {
+      margin-left: 6px; padding: 1px 8px; border-radius: 10px;
+      border: 1px solid var(--border-med); font-size: 10.5px; cursor: pointer;
+      background: var(--bg); transition: all 0.15s;
     }
+    #filter-banner .fb-clear:hover { border-color: #e74c3c; color: #e74c3c; }
 
-    /* ── Loading overlay ── */
+    /* ═══════════════════════════════════════════
+       LOADING
+    ═══════════════════════════════════════════ */
     #loading {
-      position: fixed;
-      inset: 0;
-      z-index: 2000;
-      background: var(--bg);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 18px;
-      transition: opacity 0.5s, visibility 0.5s;
+      position: fixed; inset: 0; z-index: 2000;
+      background: var(--white);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+      transition: opacity 0.4s, visibility 0.4s;
     }
     #loading.hidden { opacity: 0; visibility: hidden; }
-    .loader-ring {
-      width: 48px; height: 48px;
-      border: 3px solid rgba(0,210,160,0.15);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.85s linear infinite;
+    #loading .ring {
+      width: 44px; height: 44px;
+      border: 3px solid var(--border); border-top-color: #2e8b57;
+      border-radius: 50%; animation: spin 0.85s linear infinite;
     }
-    #loading p {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--text-dim);
-      letter-spacing: 0.08em;
-    }
+    #loading p { font-size: 12.5px; color: var(--text-dim); font-family: var(--mono); letter-spacing: 0.06em; }
 
-    /* ── Error toast ── */
     #toast {
-      position: fixed;
-      bottom: 70px;
-      left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      z-index: 3000;
-      background: rgba(255,82,82,0.18);
-      border: 1px solid rgba(255,82,82,0.4);
-      color: var(--c-red);
-      padding: 9px 18px;
-      border-radius: 5px;
-      font-family: var(--font-mono);
-      font-size: 12px;
-      letter-spacing: 0.04em;
-      opacity: 0;
-      pointer-events: none;
+      position: fixed; bottom: 70px; left: 50%;
+      transform: translateX(-50%) translateY(14px); z-index: 3000;
+      background: rgba(231,76,60,0.1); border: 1px solid rgba(231,76,60,0.35);
+      color: #c0392b; padding: 8px 18px; border-radius: 6px;
+      font-size: 12px; opacity: 0; pointer-events: none;
       transition: opacity 0.3s, transform 0.3s;
     }
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    /* ── Responsive: hide panel on very small screens when toggled ── */
-    @media (max-width: 500px) {
-      :root { --panel-w: 100vw; }
-    }
+    /* Leaflet zoom control */
+    .leaflet-control-zoom a { font-family: var(--font) !important; color: var(--text-mid) !important; border-color: var(--border) !important; background: var(--white) !important; }
+    .leaflet-control-zoom a:hover { background: var(--bg) !important; }
+
+    @media (max-width: 520px) { :root { --panel-w: 100vw; } }
   </style>
 </head>
 <body>
 
-  <!-- ══════════════════════════════════════════════════════════
-       LOADING OVERLAY
-  ══════════════════════════════════════════════════════════ -->
-  <div id="loading">
-    <div class="loader-ring"></div>
-    <p>FETCHING TELEMETRY DATA…</p>
-  </div>
+<!-- LOADING -->
+<div id="loading">
+  <div class="ring"></div>
+  <p>FETCHING TELEMETRY DATA…</p>
+</div>
 
-  <!-- ══════════════════════════════════════════════════════════
-       HEADER BAR
-  ══════════════════════════════════════════════════════════ -->
-  <header id="header">
-
-    <!-- Logo -->
-    <div id="logo">
-      <!-- Paw-print SVG icon -->
-      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="16" cy="20" r="7" fill="rgba(0,210,160,0.15)" stroke="#00d2a0" stroke-width="1.4"/>
-        <circle cx="10" cy="12" r="3.5" fill="rgba(0,210,160,0.12)" stroke="#00d2a0" stroke-width="1.2"/>
-        <circle cx="22" cy="12" r="3.5" fill="rgba(0,210,160,0.12)" stroke="#00d2a0" stroke-width="1.2"/>
-        <circle cx="6" cy="18" r="2.8" fill="rgba(0,210,160,0.1)" stroke="#00d2a0" stroke-width="1.1"/>
-        <circle cx="26" cy="18" r="2.8" fill="rgba(0,210,160,0.1)" stroke="#00d2a0" stroke-width="1.1"/>
-        <circle cx="16" cy="21" r="2.5" fill="#00d2a0" opacity="0.6"/>
+<!-- HEADER -->
+<header id="header">
+  <div id="emblem">
+    <div id="emblem-icon">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 14c1-2 3-3 5-3l3 1 4-2 5-1 2 1-1 2-4 1-3-1-4 2-3 1-2-1z" fill="rgba(255,255,255,0.9)"/>
+        <path d="M2 14l-1 1h3l1-1" fill="rgba(255,255,255,0.7)"/>
+        <circle cx="5.5" cy="11.5" r="0.6" fill="white"/>
+        <path d="M18 11l2-3 1 1-2 3" fill="rgba(255,255,255,0.7)"/>
       </svg>
-      <div id="logo-text">
-        Telemetry Monitor
-        <span>Wildlife Field Operations</span>
-      </div>
     </div>
-
-    <div class="vdiv"></div>
-
-    <!-- Status Pills - populated by JS -->
-    <div id="status-bar">
-      <div class="pill new"   id="pill-new">  <div class="dot"></div> <span>—</span></div>
-      <div class="pill warn7" id="pill-w7">   <div class="dot"></div> <span>—</span></div>
-      <div class="pill warn30" id="pill-w30"> <div class="dot"></div> <span>—</span></div>
-      <div class="pill crit45" id="pill-c45"> <div class="dot"></div> <span>—</span></div>
+    <div id="emblem-text">
+      <div class="title">Chambal Gharial Telemetry</div>
+      <div class="sub">Wildlife Field Operations · Real-Time</div>
     </div>
-
-    <!-- Right cluster: sync time, refresh, list toggle -->
-    <div id="header-right">
-      <div id="last-sync">
-        <strong>Last Sync</strong>
-        <span id="sync-time">—</span>
-      </div>
-
-      <!-- Refresh button -->
-      <button class="icon-btn" id="btn-refresh" title="Refresh now" onclick="refreshData()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="23 4 23 10 17 10"></polyline>
-          <polyline points="1 20 1 14 7 14"></polyline>
-          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-        </svg>
-      </button>
-
-      <!-- List toggle button -->
-      <button class="icon-btn" id="btn-list" title="Toggle collar list" onclick="togglePanel()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="8" y1="6" x2="21" y2="6"></line>
-          <line x1="8" y1="12" x2="21" y2="12"></line>
-          <line x1="8" y1="18" x2="21" y2="18"></line>
-          <line x1="3" y1="6" x2="3.01" y2="6"></line>
-          <line x1="3" y1="12" x2="3.01" y2="12"></line>
-          <line x1="3" y1="18" x2="3.01" y2="18"></line>
-        </svg>
-      </button>
-    </div>
-  </header>
-
-  <!-- ══════════════════════════════════════════════════════════
-       MAP
-  ══════════════════════════════════════════════════════════ -->
-  <div id="map"></div>
-
-  <!-- ══════════════════════════════════════════════════════════
-       LEGEND (bottom-left, fixed)
-  ══════════════════════════════════════════════════════════ -->
-  <div id="legend">
-    <div id="legend-title">Signal Age</div>
-    <div class="leg-row"><div class="leg-dot" style="background:var(--c-green)"></div> ≤ 7 days</div>
-    <div class="leg-row"><div class="leg-dot" style="background:var(--c-purple)"></div> 8 – 30 days</div>
-    <div class="leg-row"><div class="leg-dot" style="background:var(--c-yellow)"></div> 31 – 44 days</div>
-    <div class="leg-row"><div class="leg-dot" style="background:var(--c-red)"></div> ≥ 45 days</div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════════════
-       COLLAR LIST PANEL
-  ══════════════════════════════════════════════════════════ -->
-  <aside id="panel">
-    <div id="panel-header">
-      Collar Inventory
-      <span id="collar-count">—</span>
+  <div id="filter-bar">
+    <button id="btn-all" class="active" onclick="setFilter(null)">ALL</button>
+    <!-- pills injected by JS -->
+  </div>
+
+  <div id="header-right">
+    <div id="sync-block">
+      <strong>Last Sync</strong>
+      <span id="sync-time">—</span>
     </div>
-    <div id="panel-search-wrap">
-      <input id="panel-search" type="text" placeholder="Search collar / radio ID…" oninput="filterList(this.value)" />
-    </div>
-    <div id="collar-list"></div>
-  </aside>
+    <button class="hdr-btn" id="btn-refresh" title="Refresh now" onclick="refreshData()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+      </svg>
+    </button>
+    <button class="hdr-btn" id="btn-list" title="Collar list" onclick="togglePanel()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="8" y1="6"  x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12"/>
+        <line x1="8" y1="18" x2="21" y2="18"/>
+        <circle cx="3" cy="6"  r="1" fill="currentColor" stroke="none"/>
+        <circle cx="3" cy="12" r="1" fill="currentColor" stroke="none"/>
+        <circle cx="3" cy="18" r="1" fill="currentColor" stroke="none"/>
+      </svg>
+    </button>
+  </div>
+</header>
 
-  <!-- ── Error Toast ── -->
-  <div id="toast"></div>
+<!-- ACTIVE FILTER BANNER -->
+<div id="filter-banner">
+  <div class="fb-dot" id="fb-dot"></div>
+  <span id="fb-text">—</span>
+  <span class="fb-clear" onclick="setFilter(null)">✕ Clear</span>
+</div>
 
-  <!-- ══════════════════════════════════════════════════════════
-       LEAFLET JS
-  ══════════════════════════════════════════════════════════ -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- MAP -->
+<div id="map"></div>
 
-  <script>
-    /* ────────────────────────────────────────────────────────────
-       CONFIGURATION
-    ──────────────────────────────────────────────────────────── */
+<!-- LEGEND -->
+<div id="legend">
+  <div id="legend-title">Signal Age</div>
+  <div class="leg"><div class="leg-dot" style="background:var(--c-green)"></div>  ≤ 7 days (Active)</div>
+  <div class="leg"><div class="leg-dot" style="background:var(--c-purple)"></div> 8 – 30 days</div>
+  <div class="leg"><div class="leg-dot" style="background:var(--c-yellow)"></div> 31 – 44 days</div>
+  <div class="leg"><div class="leg-dot" style="background:var(--c-red)"></div>    ≥ 45 days (Critical)</div>
+</div>
 
-    // Google Sheets published CSV URL
-    // The sheet must be: File → Share → Publish to web → CSV
-    // OR it can be exported directly from its spreadsheet ID:
-    const SHEET_ID  = '13HfRGsqKmVihmGYACi8nWgLTsV2kYKM83gBvVmWSfXw';
-    const SHEET_GID = '0';
-    const CSV_URL   = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
+<!-- COLLAR PANEL -->
+<aside id="panel">
+  <div id="panel-head">
+    <h3>Collar Inventory</h3>
+    <input id="panel-search" type="text" placeholder="Search collar or radio ID…" oninput="filterList(this.value)" />
+  </div>
+  <div id="collar-list"></div>
+  <div id="panel-footer">Showing <span id="panel-count">—</span> collars</div>
+</aside>
 
-    // Auto-refresh interval (milliseconds). 6 hours = 21600000 ms
-    const REFRESH_INTERVAL = 6 * 60 * 60 * 1000;
+<div id="toast"></div>
 
-    // Column names (must match sheet header row exactly, case-sensitive)
-    const COL = {
-      collar : 'CollarSerialNumber',
-      lat    : 'Latitude',
-      lon    : 'Longitude',
-      date   : 'Date',
-      radio  : 'RadioID',
-    };
+<!-- LEAFLET -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    /* ────────────────────────────────────────────────────────────
-       STATE
-    ──────────────────────────────────────────────────────────── */
-    let map;            // Leaflet map instance
-    let markerLayer;    // LayerGroup holding all markers
-    let currentData = []; // Parsed records from last fetch
-    let panelOpen   = false;
-    let filterText  = '';
+<script>
+/* ──────────────────────────────────────────────
+   CONFIGURATION
+────────────────────────────────────────────── */
+const SHEET_ID         = '13HfRGsqKmVihmGYACi8nWgLTsV2kYKM83gBvVmWSfXw';
+const SHEET_GID        = '0';
+const CSV_URL          = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
+const AUTO_REFRESH_MS  = 6 * 60 * 60 * 1000; // 6 hours
 
-    /* ────────────────────────────────────────────────────────────
-       INITIALISE MAP
-       Basemap: ESRI World Imagery (satellite) + ESRI labels (hybrid)
-       Drop-in Google equivalent; swap tile URLs below if you have
-       a valid Google Maps API key and wish to use Google tiles.
-    ──────────────────────────────────────────────────────────── */
-    function initMap() {
-      map = L.map('map', {
-        center:          [25.9, 76.8],   // Rough centre of data extent
-        zoom:            10,
-        zoomControl:     false,           // We'll position it manually
-        attributionControl: false,
-      });
+// Column headers — must match sheet row 1 exactly
+const COL = { collar:'CollarSerialNumber', lat:'Latitude', lon:'Longitude', date:'Date', radio:'RadioID' };
 
-      // ── Satellite imagery layer (ESRI) ──────────────────────
-      L.tileLayer(
-        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        { maxZoom: 19, attribution: '© Esri, Maxar, Earthstar Geographics' }
-      ).addTo(map);
+/* ──────────────────────────────────────────────
+   STATE
+────────────────────────────────────────────── */
+let map;
+let currentData  = [];   // Parsed records
+let allMarkers   = [];   // [{marker, rec}]
+let activeFilter = null; // null | 'green' | 'purple' | 'yellow' | 'red'
+let filterText   = '';
+let panelOpen    = false;
+let firstLoad    = true;
 
-      // ── Labels + roads overlay (hybrid effect) ───────────────
-      L.tileLayer(
-        'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
-        { maxZoom: 19, opacity: 0.85 }
-      ).addTo(map);
+/* ──────────────────────────────────────────────
+   COLOUR HELPERS
+────────────────────────────────────────────── */
+function colorKey(days) {
+  if (days <= 7)  return 'green';
+  if (days <= 30) return 'purple';
+  if (days < 45)  return 'yellow';
+  return 'red';
+}
+const COLOR_MAP = { green:'#2ecc71', purple:'#9b59b6', yellow:'#f39c12', red:'#e74c3c' };
+function colorHex(days) { return COLOR_MAP[colorKey(days)]; }
 
-      // ── Zoom control (bottom-right) ──────────────────────────
-      L.control.zoom({ position: 'bottomright' }).addTo(map);
+/* ──────────────────────────────────────────────
+   DATE UTILITIES
+────────────────────────────────────────────── */
+function daysSince(iso) {
+  const d = new Date(iso);
+  return isNaN(d) ? 9999 : Math.max(0, Math.floor((Date.now() - d) / 86400000));
+}
+function fmtDate(iso) {
+  const d = new Date(iso);
+  if (isNaN(d)) return '—';
+  const p = n => String(n).padStart(2, '0');
+  return `${p(d.getDate())}-${p(d.getMonth()+1)}-${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
 
-      // ── Attribution (bottom-right, minimal) ──────────────────
-      L.control.attribution({ position: 'bottomright', prefix: false })
-        .addAttribution('Imagery © Esri | Telemetry data fetched from Google Sheets')
-        .addTo(map);
+/* ──────────────────────────────────────────────
+   MAP INIT
+   Google Hybrid tiles: lyrs=y = satellite + labels
+────────────────────────────────────────────── */
+function initMap() {
+  map = L.map('map', { center:[25.9, 76.8], zoom:10, zoomControl:false, attributionControl:false });
 
-      // ── Marker layer group ───────────────────────────────────
-      markerLayer = L.layerGroup().addTo(map);
+  // Primary: Google Hybrid (satellite + road/label overlay, no API key)
+  L.tileLayer('https://mt{s}.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}', {
+    maxZoom: 20,
+    subdomains: '0123',
+    attribution: '© Google',
+  }).addTo(map);
+
+  L.control.zoom({ position:'bottomright' }).addTo(map);
+  L.control.attribution({ position:'bottomright', prefix: false })
+    .addAttribution('© Google Maps | Telemetry via Google Sheets')
+    .addTo(map);
+}
+
+/* ──────────────────────────────────────────────
+   BUILD MARKER ICON
+   Numbered circle showing Radio ID
+────────────────────────────────────────────── */
+function buildIcon(rec, color) {
+  const radio = rec.radio || '??';
+  const sz    = radio.length > 4 ? 44 : 40;   // wider for long IDs
+  const fs    = radio.length > 4 ? '8px' : '9.5px';
+
+  // Subtle pulse ring for very fresh signals (≤ 2 days)
+  const pulse = rec.days <= 2
+    ? `<div style="position:absolute;inset:-6px;border-radius:50%;border:2.5px solid ${color};opacity:0.45;animation:markerPulse 2.2s ease-out infinite;pointer-events:none;"></div>`
+    : '';
+
+  const html = `
+    <div style="position:relative;width:${sz}px;height:${sz}px;">
+      ${pulse}
+      <div style="
+        width:${sz}px;height:${sz}px;border-radius:50%;
+        background:${color};
+        border:2.5px solid white;
+        box-shadow:0 2px 10px rgba(0,0,0,0.35),0 0 0 1px ${color}66;
+        display:flex;align-items:center;justify-content:center;
+        font-family:'IBM Plex Mono',monospace;
+        font-size:${fs};font-weight:700;
+        color:white;letter-spacing:0;line-height:1.15;
+        text-align:center;white-space:nowrap;
+        text-shadow:0 1px 3px rgba(0,0,0,0.4);
+        cursor:pointer;
+      ">${radio}</div>
+    </div>`;
+
+  return L.divIcon({
+    html,
+    className:  '',
+    iconSize:   [sz, sz],
+    iconAnchor: [sz/2, sz/2],
+    popupAnchor:[0, -(sz/2 + 8)],
+  });
+}
+
+/* ──────────────────────────────────────────────
+   BUILD POPUP HTML
+────────────────────────────────────────────── */
+function buildPopup(rec) {
+  const color    = colorHex(rec.days);
+  const bgCol    = color + '18';
+  const daysText = rec.days === 0 ? 'Today' : `${rec.days} day${rec.days !== 1 ? 's' : ''} ago`;
+  return `
+    <div class="pu-wrap">
+      <div class="pu-top">
+        <div class="pu-badge" style="background:${color};">${rec.radio}</div>
+        <div class="pu-titles">
+          <div class="collar">Collar #${rec.collar}</div>
+          <div class="radio">Radio ID: ${rec.radio}</div>
+        </div>
+      </div>
+      <div class="pu-body">
+        <div class="pu-row"><span class="pu-lbl">Latitude</span> <span class="pu-val">${parseFloat(rec.lat).toFixed(5)}°N</span></div>
+        <div class="pu-row"><span class="pu-lbl">Longitude</span><span class="pu-val">${parseFloat(rec.lon).toFixed(5)}°E</span></div>
+        <div class="pu-row"><span class="pu-lbl">Last Fix</span>  <span class="pu-val">${fmtDate(rec.date)}</span></div>
+      </div>
+      <div class="pu-footer">
+        <span class="pu-days-badge" style="background:${bgCol};color:${color};border:1px solid ${color}44;">
+          <span class="dot" style="background:${color}"></span>${daysText}
+        </span>
+        <span class="pu-coord">${parseFloat(rec.lat).toFixed(3)}, ${parseFloat(rec.lon).toFixed(3)}</span>
+      </div>
+    </div>`;
+}
+
+/* ──────────────────────────────────────────────
+   RENDER MARKERS
+   Builds allMarkers[] and calls applyFilter()
+────────────────────────────────────────────── */
+function renderMarkers() {
+  // Clear all current markers from map
+  allMarkers.forEach(({ marker }) => map.removeLayer(marker));
+  allMarkers = [];
+
+  currentData.forEach(rec => {
+    const lat = parseFloat(rec.lat);
+    const lon = parseFloat(rec.lon);
+    if (isNaN(lat) || isNaN(lon)) return;
+
+    const color  = colorHex(rec.days);
+    const marker = L.marker([lat, lon], { icon: buildIcon(rec, color) })
+      .bindPopup(buildPopup(rec), { maxWidth:280, className:'' });
+
+    allMarkers.push({ marker, rec });
+  });
+
+  applyFilter();
+}
+
+/* ──────────────────────────────────────────────
+   APPLY FILTER
+   Shows/hides markers based on activeFilter + text.
+   Auto-fits map bounds to visible markers.
+────────────────────────────────────────────── */
+function applyFilter() {
+  const visibleLL = [];
+
+  allMarkers.forEach(({ marker, rec }) => {
+    const keyOk  = !activeFilter || colorKey(rec.days) === activeFilter;
+    const txtOk  = !filterText  ||
+      rec.collar.toLowerCase().includes(filterText) ||
+      rec.radio.toLowerCase().includes(filterText);
+    const show   = keyOk && txtOk;
+
+    if (show) {
+      if (!map.hasLayer(marker)) marker.addTo(map);
+      visibleLL.push(marker.getLatLng());
+    } else {
+      if (map.hasLayer(marker))  map.removeLayer(marker);
     }
+  });
 
-    /* ────────────────────────────────────────────────────────────
-       COLOUR LOGIC
-       Returns hex colour string based on days since last fix.
-    ──────────────────────────────────────────────────────────── */
-    function markerColor(days) {
-      if (days <= 7)  return '#00e676';  // Green  – recent
-      if (days <= 30) return '#ce93d8';  // Purple – moderate
-      if (days <  45) return '#ffd54f';  // Yellow – stale
-      return '#ff5252';                  // Red    – critical
+  // Auto-fit to visible markers
+  if (visibleLL.length > 0) {
+    map.fitBounds(L.latLngBounds(visibleLL), {
+      padding: [55, 55],
+      maxZoom: firstLoad ? 12 : 15,
+    });
+    firstLoad = false;
+  }
+
+  renderCollarList();
+  updateFilterBanner();
+}
+
+/* ──────────────────────────────────────────────
+   SET FILTER — clicking a pill
+────────────────────────────────────────────── */
+function setFilter(key) {
+  // Toggle: click same filter again → reset to ALL
+  activeFilter = (activeFilter === key) ? null : key;
+
+  document.querySelectorAll('.filter-pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.filter === activeFilter);
+  });
+  document.getElementById('btn-all').classList.toggle('active', !activeFilter);
+
+  applyFilter();
+}
+
+/* ──────────────────────────────────────────────
+   FILTER BANNER (shows active filter label)
+────────────────────────────────────────────── */
+const FILTER_LABELS = {
+  green:  'Showing Active collars (≤ 7 days)',
+  purple: 'Showing Silent > 7 days',
+  yellow: 'Showing Silent > 30 days',
+  red:    'Showing Critical ≥ 45 days',
+};
+function updateFilterBanner() {
+  const banner = document.getElementById('filter-banner');
+  if (activeFilter) {
+    document.getElementById('fb-dot').style.background = COLOR_MAP[activeFilter];
+    document.getElementById('fb-text').textContent     = FILTER_LABELS[activeFilter];
+    banner.classList.add('show');
+  } else {
+    banner.classList.remove('show');
+  }
+}
+
+/* ──────────────────────────────────────────────
+   BUILD FILTER PILLS IN HEADER
+────────────────────────────────────────────── */
+function buildFilterPills() {
+  const bar    = document.getElementById('filter-bar');
+  const counts = { green:0, purple:0, yellow:0, red:0 };
+  currentData.forEach(r => counts[colorKey(r.days)]++);
+
+  const defs = [
+    { key:'green',  emoji:'📍', label:`Active ≤7d`,    count: counts.green  },
+    { key:'purple', emoji:'⚠️', label:`Silent >7d`,    count: counts.purple },
+    { key:'yellow', emoji:'🚨', label:`Silent >30d`,   count: counts.yellow },
+    { key:'red',    emoji:'🛑', label:`Critical ≥45d`, count: counts.red    },
+  ];
+
+  // Remove old pills, keep btn-all
+  bar.querySelectorAll('.filter-pill').forEach(el => el.remove());
+
+  defs.forEach(({ key, emoji, label, count }) => {
+    const pill = document.createElement('div');
+    pill.className        = 'filter-pill' + (activeFilter === key ? ' active' : '');
+    pill.dataset.filter   = key;
+    pill.title            = `Click to filter — ${label}`;
+    pill.onclick          = () => setFilter(key);
+    pill.innerHTML        = `<div class="pip"></div>${emoji}&nbsp;<strong>${count}</strong>&nbsp;${label}`;
+    bar.appendChild(pill);
+  });
+}
+
+/* ──────────────────────────────────────────────
+   COLLAR LIST PANEL
+────────────────────────────────────────────── */
+function renderCollarList() {
+  const listEl  = document.getElementById('collar-list');
+  const countEl = document.getElementById('panel-count');
+
+  const records = currentData.filter(rec => {
+    const keyOk = !activeFilter || colorKey(rec.days) === activeFilter;
+    const txtOk = !filterText  ||
+      rec.collar.toLowerCase().includes(filterText) ||
+      rec.radio.toLowerCase().includes(filterText);
+    return keyOk && txtOk;
+  });
+
+  countEl.textContent = records.length;
+
+  listEl.innerHTML = records.map(rec => {
+    const color  = colorHex(rec.days);
+    const dLabel = rec.days === 0 ? 'Today' : `${rec.days}d ago`;
+    return `
+      <div class="ci" onclick="zoomToCollar(${rec.lat},${rec.lon},'${rec.collar}')">
+        <div class="ci-badge" style="background:${color};">${rec.radio}</div>
+        <div class="ci-info">
+          <div class="ci-collar">Collar #${rec.collar}</div>
+          <div class="ci-meta">${fmtDate(rec.date).split(' ')[0]}</div>
+        </div>
+        <div class="ci-days" style="color:${color}">${dLabel}</div>
+      </div>`;
+  }).join('');
+}
+
+function filterList(val) {
+  filterText = val.toLowerCase();
+  applyFilter();
+}
+
+/* ──────────────────────────────────────────────
+   ZOOM TO COLLAR + AUTO OPEN POPUP
+   Fly animation → wait → open popup
+────────────────────────────────────────────── */
+function zoomToCollar(lat, lon, collar) {
+  const tLat = parseFloat(lat);
+  const tLon = parseFloat(lon);
+
+  map.flyTo([tLat, tLon], 15, { duration: 1.1, easeLinearity: 0.5 });
+
+  setTimeout(() => {
+    const hit = allMarkers.find(({ rec }) => rec.collar === collar);
+    if (hit && map.hasLayer(hit.marker)) {
+      hit.marker.openPopup();
     }
+  }, 1200);
+}
 
-    function markerLabel(days) {
-      if (days <= 7)  return '≤ 7 days';
-      if (days <= 30) return `${days}d`;
-      if (days <  45) return `${days}d`;
-      return `${days}d – CRITICAL`;
-    }
+/* ──────────────────────────────────────────────
+   DETECT NEW LOCATIONS (diff vs localStorage)
+────────────────────────────────────────────── */
+function detectNew(records) {
+  const KEY = 'telemetry_seen_v2';
+  let last  = {};
+  try { last = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e) {}
+  const snap = {};
+  let n = 0;
+  records.forEach(r => { snap[r.collar] = r.date; if (last[r.collar] !== r.date) n++; });
+  try { localStorage.setItem(KEY, JSON.stringify(snap)); } catch(e) {}
+  return n;
+}
 
-    /* ────────────────────────────────────────────────────────────
-       BUILD CUSTOM SVG DIV ICON
-       Uses a coloured circle with optional pulse ring for recent.
-    ──────────────────────────────────────────────────────────── */
-    function buildIcon(color, isRecent) {
-      const size  = isRecent ? 14 : 12;
-      const pulse = isRecent
-        ? `<div class="marker-ring" style="background:${color};opacity:0.35;"></div>`
-        : '';
+/* ──────────────────────────────────────────────
+   CSV PARSER
+────────────────────────────────────────────── */
+function parseCSV(raw) {
+  const lines   = raw.trim().split('\n');
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+  const records = [];
+  for (let i = 1; i < lines.length; i++) {
+    const vals = splitCSV(lines[i].trim());
+    if (vals.length < headers.length) continue;
+    const obj = {};
+    headers.forEach((h, idx) => { obj[h] = (vals[idx] || '').trim().replace(/^"|"$/g, ''); });
+    const lat = parseFloat(obj[COL.lat]);
+    const lon = parseFloat(obj[COL.lon]);
+    if (!obj[COL.collar] || isNaN(lat) || isNaN(lon)) continue;
+    const days = daysSince(obj[COL.date]);
+    records.push({ collar:obj[COL.collar], lat:obj[COL.lat], lon:obj[COL.lon], date:obj[COL.date], radio:obj[COL.radio]||'??', days: isNaN(days)?9999:days });
+  }
+  return records.sort((a,b) => a.days - b.days);
+}
+function splitCSV(line) {
+  const res = []; let cur='', inQ=false;
+  for (const ch of line) {
+    if (ch==='"') { inQ=!inQ; }
+    else if (ch===',' && !inQ) { res.push(cur); cur=''; }
+    else { cur+=ch; }
+  }
+  res.push(cur); return res;
+}
 
-      const html = `
-        <div class="marker-wrap" style="width:${size}px;height:${size}px;">
-          ${pulse}
-          <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-            <circle cx="${size/2}" cy="${size/2}" r="${size/2 - 1}"
-              fill="${color}" stroke="rgba(255,255,255,0.55)" stroke-width="1.5"/>
-          </svg>
-        </div>`;
+/* ──────────────────────────────────────────────
+   FETCH + REFRESH
+────────────────────────────────────────────── */
+async function refreshData() {
+  const btn = document.getElementById('btn-refresh');
+  btn.classList.add('loading');
+  try {
+    const resp = await fetch(`${CSV_URL}&cachebust=${Date.now()}`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const raw  = await resp.text();
+    currentData = parseCSV(raw);
+    if (!currentData.length) { showToast('No records found — check column headers.'); return; }
+    detectNew(currentData);
+    buildFilterPills();
+    renderMarkers();    // internally calls applyFilter() + fitBounds
+    document.getElementById('sync-time').textContent =
+      new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+  } catch(err) {
+    console.error(err);
+    showToast(`Fetch failed: ${err.message}`);
+  } finally {
+    btn.classList.remove('loading');
+    document.getElementById('loading').classList.add('hidden');
+  }
+}
 
-      return L.divIcon({
-        html,
-        className : '',
-        iconSize  : [size, size],
-        iconAnchor: [size/2, size/2],
-        popupAnchor:[0, -(size/2 + 6)],
-      });
-    }
+/* ──────────────────────────────────────────────
+   UI HELPERS
+────────────────────────────────────────────── */
+function togglePanel() {
+  panelOpen = !panelOpen;
+  document.getElementById('panel').classList.toggle('open', panelOpen);
+  document.getElementById('btn-list').classList.toggle('active', panelOpen);
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 5000);
+}
 
-    /* ────────────────────────────────────────────────────────────
-       DATE UTILITIES
-    ──────────────────────────────────────────────────────────── */
+/* ──────────────────────────────────────────────
+   INJECT @keyframes for pulse ring
+────────────────────────────────────────────── */
+const kf = document.createElement('style');
+kf.textContent = `@keyframes markerPulse{0%{transform:scale(1);opacity:0.6}70%{transform:scale(2.4);opacity:0}100%{transform:scale(1);opacity:0}}`;
+document.head.appendChild(kf);
 
-    // Calculate days elapsed from an ISO date string to now
-    function daysSince(isoString) {
-      const then = new Date(isoString);
-      const now  = new Date();
-      const ms   = now - then;
-      return Math.floor(ms / (1000 * 60 * 60 * 24));
-    }
-
-    // Format ISO date to DD-MM-YYYY HH:MM:SS
-    function formatDate(isoString) {
-      const d = new Date(isoString);
-      if (isNaN(d)) return '—';
-      const pad = n => String(n).padStart(2, '0');
-      return `${pad(d.getDate())}-${pad(d.getMonth()+1)}-${d.getFullYear()} ` +
-             `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-    }
-
-    /* ────────────────────────────────────────────────────────────
-       BUILD POPUP HTML
-    ──────────────────────────────────────────────────────────── */
-    function buildPopup(rec) {
-      const color = markerColor(rec.days);
-      const bg    = color + '22';  // Semi-transparent background for days badge
-
-      return `
-        <div class="popup-inner">
-          <div class="popup-header">
-            <div class="popup-color-bar" style="background:${color}"></div>
-            <div>
-              <div class="popup-collar">#${rec.collar}</div>
-              <div class="popup-radio">Radio: ${rec.radio}</div>
-            </div>
-          </div>
-
-          <div class="popup-row">
-            <span class="popup-label">Latitude</span>
-            <span class="popup-value">${parseFloat(rec.lat).toFixed(5)}°</span>
-          </div>
-          <div class="popup-row">
-            <span class="popup-label">Longitude</span>
-            <span class="popup-value">${parseFloat(rec.lon).toFixed(5)}°</span>
-          </div>
-          <div class="popup-row">
-            <span class="popup-label">Last Fix</span>
-            <span class="popup-value">${formatDate(rec.date)}</span>
-          </div>
-
-          <div style="margin-top:8px;">
-            <span class="popup-days" style="background:${bg};color:${color};border:1px solid ${color}44;">
-              ${rec.days === 0 ? 'Today' : rec.days + ' day' + (rec.days !== 1 ? 's' : '') + ' ago'}
-            </span>
-          </div>
-        </div>`;
-    }
-
-    /* ────────────────────────────────────────────────────────────
-       RENDER MARKERS
-       Clears previous markers, rebuilds from currentData.
-    ──────────────────────────────────────────────────────────── */
-    function renderMarkers() {
-      markerLayer.clearLayers();
-
-      currentData.forEach(rec => {
-        const lat = parseFloat(rec.lat);
-        const lon = parseFloat(rec.lon);
-
-        // Skip if coordinates are invalid
-        if (isNaN(lat) || isNaN(lon)) return;
-
-        const color    = markerColor(rec.days);
-        const isRecent = rec.days <= 7;
-        const icon     = buildIcon(color, isRecent);
-
-        const marker = L.marker([lat, lon], { icon })
-          .bindPopup(buildPopup(rec), {
-            maxWidth  : 280,
-            className : 'telemetry-popup',
-          });
-
-        markerLayer.addLayer(marker);
-      });
-    }
-
-    /* ────────────────────────────────────────────────────────────
-       UPDATE STATUS PILLS
-    ──────────────────────────────────────────────────────────── */
-    function updateStatusPills(newCount) {
-      const w7  = currentData.filter(r => r.days > 7).length;
-      const w30 = currentData.filter(r => r.days > 30).length;
-      const c45 = currentData.filter(r => r.days >= 45).length;
-
-      setpill('pill-new', `📍 ${newCount} new location${newCount !== 1 ? 's' : ''} detected`);
-      setpill('pill-w7',  `⚠️ ${w7} radio${w7 !== 1 ? 's' : ''} silent > 7 days`);
-      setpill('pill-w30', `🚨 ${w30} radio${w30 !== 1 ? 's' : ''} silent > 30 days`);
-      setpill('pill-c45', `🛑 ${c45} radio${c45 !== 1 ? 's' : ''} silent ≥ 45 days`);
-    }
-
-    function setpill(id, text) {
-      const el = document.getElementById(id);
-      if (el) el.querySelector('span').textContent = text;
-    }
-
-    /* ────────────────────────────────────────────────────────────
-       DETECT NEW LOCATIONS
-       Compares current data against last-known state stored in
-       localStorage.  A "new location" = a collar whose Date
-       timestamp differs from what was stored previously.
-    ──────────────────────────────────────────────────────────── */
-    function detectNewLocations(records) {
-      const LS_KEY = 'telemetry_last_seen';
-      let lastSeen = {};
-
-      try {
-        lastSeen = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
-      } catch(e) { /* ignore parse error */ }
-
-      // Build new snapshot and count changed entries
-      const snapshot  = {};
-      let   newCount  = 0;
-
-      records.forEach(rec => {
-        snapshot[rec.collar] = rec.date;
-        if (lastSeen[rec.collar] !== rec.date) newCount++;
-      });
-
-      // Save snapshot for next refresh
-      try { localStorage.setItem(LS_KEY, JSON.stringify(snapshot)); }
-      catch(e) { /* storage may be unavailable */ }
-
-      return newCount;
-    }
-
-    /* ────────────────────────────────────────────────────────────
-       PARSE CSV TEXT → ARRAY OF OBJECTS
-       Handles quoted fields and trims whitespace.
-    ──────────────────────────────────────────────────────────── */
-    function parseCSV(raw) {
-      const lines = raw.trim().split('\n');
-      if (lines.length < 2) return [];
-
-      // Header row: split by comma, trim each field
-      const headers = lines[0].split(',').map(h => h.trim());
-
-      const records = [];
-      for (let i = 1; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (!line) continue;
-
-        // Simple CSV split (handles quoted commas)
-        const values = splitCSVLine(line);
-        if (values.length < headers.length) continue;
-
-        const obj = {};
-        headers.forEach((h, idx) => {
-          obj[h] = (values[idx] || '').trim();
-        });
-
-        // Validate required fields
-        const lat = parseFloat(obj[COL.lat]);
-        const lon = parseFloat(obj[COL.lon]);
-        if (!obj[COL.collar] || isNaN(lat) || isNaN(lon)) continue;
-
-        // Calculate days since last fix
-        const days = daysSince(obj[COL.date]);
-
-        records.push({
-          collar : obj[COL.collar],
-          lat    : obj[COL.lat],
-          lon    : obj[COL.lon],
-          date   : obj[COL.date],
-          radio  : obj[COL.radio] || '—',
-          days   : isNaN(days) ? 9999 : Math.max(0, days),
-        });
-      }
-
-      // Sort: most recent first
-      records.sort((a, b) => a.days - b.days);
-      return records;
-    }
-
-    // Split a CSV line respecting quoted fields
-    function splitCSVLine(line) {
-      const result = [];
-      let   cur    = '';
-      let   inQuote = false;
-      for (let i = 0; i < line.length; i++) {
-        const ch = line[i];
-        if (ch === '"') {
-          inQuote = !inQuote;
-        } else if (ch === ',' && !inQuote) {
-          result.push(cur);
-          cur = '';
-        } else {
-          cur += ch;
-        }
-      }
-      result.push(cur);
-      return result;
-    }
-
-    /* ────────────────────────────────────────────────────────────
-       FETCH DATA FROM GOOGLE SHEETS (published CSV)
-    ──────────────────────────────────────────────────────────── */
-    async function fetchData() {
-      // Add cache-busting timestamp so browsers don't serve stale CSV
-      const url = `${CSV_URL}&cachebust=${Date.now()}`;
-
-      const resp = await fetch(url);
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      return await resp.text();
-    }
-
-    /* ────────────────────────────────────────────────────────────
-       MAIN REFRESH FLOW
-    ──────────────────────────────────────────────────────────── */
-    async function refreshData() {
-      const btn = document.getElementById('btn-refresh');
-      btn.classList.add('loading');
-
-      try {
-        const raw    = await fetchData();
-        currentData  = parseCSV(raw);
-
-        if (currentData.length === 0) {
-          showToast('No records found in sheet. Check column headers.');
-          return;
-        }
-
-        // Detect new locations vs previous run
-        const newCount = detectNewLocations(currentData);
-
-        // Render map markers
-        renderMarkers();
-
-        // Update status pills
-        updateStatusPills(newCount);
-
-        // Update collar panel list
-        renderCollarList();
-
-        // Record sync time
-        document.getElementById('sync-time').textContent =
-          new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-        // Auto-fit map to data bounds on first load
-        if (markerLayer.getLayers().length > 0) {
-          const bounds = markerLayer.getLayers()
-            .map(l => l.getLatLng ? l.getLatLng() : null)
-            .filter(Boolean);
-          if (bounds.length) map.fitBounds(L.latLngBounds(bounds), { padding: [40, 40] });
-        }
-
-      } catch (err) {
-        console.error('Fetch error:', err);
-        showToast(`Data fetch failed: ${err.message}`);
-      } finally {
-        btn.classList.remove('loading');
-        document.getElementById('loading').classList.add('hidden');
-      }
-    }
-
-    /* ────────────────────────────────────────────────────────────
-       COLLAR LIST PANEL
-    ──────────────────────────────────────────────────────────── */
-    function renderCollarList(filter = '') {
-      const list    = document.getElementById('collar-list');
-      const count   = document.getElementById('collar-count');
-      const records = filter
-        ? currentData.filter(r =>
-            r.collar.toLowerCase().includes(filter) ||
-            r.radio.toLowerCase().includes(filter))
-        : currentData;
-
-      count.textContent = `${records.length} collars`;
-
-      list.innerHTML = records.map(rec => {
-        const color = markerColor(rec.days);
-        const daysLabel = rec.days === 0 ? 'today' : `${rec.days}d ago`;
-        return `
-          <div class="collar-item" onclick="flyTo(${rec.lat},${rec.lon},'${rec.collar}')">
-            <div class="ci-dot" style="background:${color}"></div>
-            <div class="ci-info">
-              <div class="ci-collar">#${rec.collar}</div>
-              <div class="ci-meta">Radio: ${rec.radio}</div>
-            </div>
-            <div class="ci-days" style="color:${color}">${daysLabel}</div>
-          </div>`;
-      }).join('');
-    }
-
-    function filterList(val) {
-      filterText = val.toLowerCase();
-      renderCollarList(filterText);
-    }
-
-    // Fly to a marker and open its popup
-    function flyTo(lat, lon, collar) {
-      map.flyTo([parseFloat(lat), parseFloat(lon)], 14, { duration: 1.2 });
-
-      // Find the matching marker and open its popup
-      setTimeout(() => {
-        markerLayer.getLayers().forEach(layer => {
-          const ll = layer.getLatLng ? layer.getLatLng() : null;
-          if (ll && Math.abs(ll.lat - lat) < 0.0001 && Math.abs(ll.lng - lon) < 0.0001) {
-            layer.openPopup();
-          }
-        });
-      }, 1300);
-    }
-
-    /* ────────────────────────────────────────────────────────────
-       PANEL TOGGLE
-    ──────────────────────────────────────────────────────────── */
-    function togglePanel() {
-      panelOpen = !panelOpen;
-      document.getElementById('panel').classList.toggle('open', panelOpen);
-      document.getElementById('btn-list').classList.toggle('active', panelOpen);
-    }
-
-    /* ────────────────────────────────────────────────────────────
-       ERROR TOAST
-    ──────────────────────────────────────────────────────────── */
-    function showToast(msg) {
-      const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), 5000);
-    }
-
-    /* ────────────────────────────────────────────────────────────
-       BOOT
-    ──────────────────────────────────────────────────────────── */
-    (function boot() {
-      // 1. Initialise the map
-      initMap();
-
-      // 2. First data load
-      refreshData();
-
-      // 3. Schedule automatic refresh every 6 hours
-      setInterval(refreshData, REFRESH_INTERVAL);
-    })();
-  </script>
+/* ──────────────────────────────────────────────
+   BOOT
+────────────────────────────────────────────── */
+(function boot() {
+  initMap();
+  refreshData();
+  setInterval(refreshData, AUTO_REFRESH_MS);
+})();
+</script>
 </body>
 </html>
