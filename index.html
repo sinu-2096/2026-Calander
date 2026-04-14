@@ -957,13 +957,28 @@ function mergeEntities(logBuckets){
    ZONE ASSIGNMENT - REWRITTEN FOR GEOMETRY ROBUSTNESS
    Uses ONLY map (1).geojson (loaded as geojsonData / URLS.zones).
    ═══════════════════════════════════════════════ */
-function getZoneName(f){
-  return f?.properties?.name
-      || f?.properties?.Name
-      || f?.properties?.ZONE
-      || f?.properties?.zone
-      || f?.properties?.STRETCH
-      || '-';
+function getZoneName(f) {
+  if (!f || !f.properties) return '-';
+  const p = f.properties;
+  
+  // 1. Check standard keys
+  if (p.name) return p.name;
+  if (p.Name) return p.Name;
+  if (p.ZONE) return p.ZONE;
+  if (p.zone) return p.zone;
+  if (p.STRETCH) return p.STRETCH;
+  
+  // 2. Check for typo key
+  if (p['name ']) return p['name '];
+  
+  // 3. Fallback to extracting the very first key if no standard ones are present
+  const keys = Object.keys(p);
+  if (keys.length > 0) {
+    return keys[0];
+  }
+  
+  // 4. Ultimate fallback
+  return '-';
 }
 
 function assignZones(){
