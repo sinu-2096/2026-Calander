@@ -32,12 +32,12 @@
   --mono:'IBM Plex Mono',monospace;
   --font:'Space Grotesk',sans-serif;
 
-  /* ── REQ 5: Updated Status bucket accent colours ── */
-  --col-active:#16a34a;           /* Green */
-  --col-missing:#d97706;          /* Amber */
-  --col-missing-start:#7c3aed;    /* Purple (was slate) */
-  --col-water:#2563eb;            /* Blue */
-  --col-recovered:#dc2626;        /* Red (was cyan) */
+  /* ── Status bucket accent colours ── */
+  --col-active:#16a34a;
+  --col-missing:#d97706;
+  --col-missing-start:#7c3aed;
+  --col-water:#2563eb;
+  --col-recovered:#dc2626;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden;background:var(--sand);color:var(--text);font-family:var(--font)}
@@ -82,7 +82,7 @@ button{cursor:pointer}
 .hdr-title{font:700 .94rem var(--mono);letter-spacing:.04em;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hdr-sub{margin-top:3px;font:600 .62rem var(--mono);letter-spacing:.08em;color:rgba(255,255,255,.62);text-transform:uppercase}
 
-/* ─── REQ 2: Status Blocks ── */
+/* ─── Status Blocks ── */
 #statusBlocks{grid-row:2;grid-column:1/-1;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;min-width:0;width:100%}
 .sblock{min-height:48px;padding:7px 10px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.1);display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;color:#fff;transition:transform .12s ease,border-color .12s ease,background .12s ease;border-left:3px solid transparent}
 .sblock.clickable{cursor:pointer}
@@ -91,7 +91,6 @@ button{cursor:pointer}
 .sblock-label{font:700 .58rem var(--mono);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}
 .sblock-count{font:700 .98rem var(--mono)}
 .sblock-sub{font:500 .5rem var(--mono);color:rgba(255,255,255,.52);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}
-/* REQ 2 & 5: Ordered Active, Missing, Missing soon after release, Radios in water, Recovered */
 .sblock[data-bucket="active"]        {border-left-color:var(--col-active)}
 .sblock[data-bucket="missing"]       {border-left-color:var(--col-missing)}
 .sblock[data-bucket="missing_start"] {border-left-color:var(--col-missing-start)}
@@ -155,11 +154,11 @@ path.leaflet-interactive:focus{outline:none!important;box-shadow:none!important}
 .fab{width:34px;height:34px;border-radius:10px;border:1px solid var(--line-2);background:rgba(255,255,255,.94);color:var(--text);font-size:.92rem;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow)}
 .fab:hover{background:#eef8f1;color:var(--forest-2);border-color:#8ab99a}
 
-/* ─── REQ 3: Legend – top-right, collapsible ─── */
+/* ─── Legend – top-right, collapsible ─── */
 #legend{
   position:absolute;
   right:12px;
-  top:12px;       /* top-right instead of bottom-right */
+  top:12px;
   z-index:500;
   min-width:0;
   border-radius:14px;
@@ -217,16 +216,17 @@ path.leaflet-interactive:focus{outline:none!important;box-shadow:none!important}
 .pab:hover{background:#dff1e5;border-color:#8ab99a}
 .sbadge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font:700 .56rem var(--mono);letter-spacing:.04em;border:1px solid transparent}
 
-/* ─── REQ 4: Field Updates Panel – fixed top offset ─── */
+/* ── popup divider for telemetry block ── */
+.pop-telemetry-sep{height:1px;background:var(--line);margin:8px 0 8px 0}
+
+/* ─── Field Updates Panel ─── */
 #fpBg{display:none;position:fixed;inset:0;z-index:1180;background:rgba(12,24,18,.38)}
 #fpBg.open{display:block}
 #fp{
   position:fixed;
-  /* REQ 4: Push down below header + filter bar so it never hides behind nav */
   top:calc(var(--hdr) + var(--fbar));
   right:-400px;
   width:400px;
-  /* height fills remaining viewport below the nav */
   height:calc(100vh - var(--hdr) - var(--fbar));
   z-index:1190;
   background:#fff;
@@ -335,7 +335,6 @@ path.leaflet-interactive:focus{outline:none!important;box-shadow:none!important}
   #mapFoot{padding:4px 10px}
   #mapFootText{font-size:.58rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .fab{width:40px;height:40px}
-  /* REQ 3: mobile legend at top-right */
   #legend{right:8px;top:8px}
   .legend-title{font-size:.52rem}
   .legend-row{font-size:.58rem}
@@ -348,14 +347,13 @@ path.leaflet-interactive:focus{outline:none!important;box-shadow:none!important}
   #btmHdr{height:52px;padding:0 12px}
   .btm-title{font-size:.66rem}
   #btmScroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .dtbl{min-width:860px}  /* REQ 7: 1 fewer column, reduced min-width */
+  .dtbl{min-width:860px}
   .dtbl th,.dtbl td{padding:7px 8px;font-size:.6rem}
   .dtbl tbody tr{min-height:44px}
   #btm.mobile-expanded{height:55vh}
   .btm-actions{gap:4px}
   .bc{height:36px;padding:0 10px;font-size:.6rem}
   #toast{bottom:calc(var(--btm) + 8px)}
-  /* REQ 4: on mobile panel goes to top of viewport */
   #fp{width:100%;right:-100%;top:var(--hdr);height:calc(100vh - var(--hdr))}
   #fp.open{right:0}
   .loading-logos img{height:56px}
@@ -409,7 +407,6 @@ path.leaflet-interactive:focus{outline:none!important;box-shadow:none!important}
     <div class="hdr-sub">VHF Telemetry Monitor | 30 Individuals</div>
   </div>
 
-  <!-- REQ 2: Strict order: Active, Missing, Missing soon after release, Radios in water, Recovered -->
   <div id="statusBlocks">
     <button class="sblock clickable" id="sb-active" data-bucket="active" type="button" onclick="toggleBucket('active')">
       <span class="sblock-label">Active</span>
@@ -468,7 +465,6 @@ path.leaflet-interactive:focus{outline:none!important;box-shadow:none!important}
       </div>
     </div>
     <div class="fsep"></div>
-    <!-- REQ 1: Zone filter is active -->
     <div class="fg">
       <label>Zone</label>
       <div class="ms-wrap">
@@ -592,7 +588,6 @@ path.leaflet-interactive:focus{outline:none!important;box-shadow:none!important}
   <div class="map-fab">
     <button class="fab" type="button" title="Reset View" onclick="resetView()">H</button>
   </div>
-  <!-- REQ 3: Legend repositioned to top-right, collapsible -->
   <div id="legend">
     <div id="legend-header" onclick="toggleLegend()" title="Toggle legend">
       <span class="legend-title">Legend</span>
@@ -627,7 +622,7 @@ path.leaflet-interactive:focus{outline:none!important;box-shadow:none!important}
   </div>
 </aside>
 
-<!-- REQ 7: Bottom Table Panel – Retag History column REMOVED -->
+<!-- Bottom Table Panel -->
 <div id="btm">
   <div id="resizeBar"></div>
   <div id="btmHdr">
@@ -645,7 +640,6 @@ path.leaflet-interactive:focus{outline:none!important;box-shadow:none!important}
           <th>Sex</th>
           <th>T.L (cm)</th>
           <th>Tag Place</th>
-          <!-- REQ 7: Retag History removed from table -->
           <th>Latest VHF Signal</th>
           <th>Days Since Release</th>
           <th>Days Since Last Fix</th>
@@ -678,7 +672,9 @@ const URLS = {
   master:  `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=226140717`,
   radioLog:`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=0`,
   updates: `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=238985281`,
+  /* Zone polygons come ONLY from map (1).geojson – never used for zone calculation */
   zones:   'https://raw.githubusercontent.com/sinu-2096/g-m-v/main/map%20(1).geojson',
+  /* River GeoJSON is rendered as a visual overlay only – not used in zone logic */
   river:   'https://raw.githubusercontent.com/sinu-2096/g-m-v/main/river%20(1).geojson'
 };
 
@@ -695,7 +691,7 @@ const WATER_IDS          = new Set(['31','38','72']);
 const HARD_MISSING_IDS   = new Set(['39','40','62','82']);
 const HARD_ACTIVE_IDS    = new Set(['32','37','65','67','69','71','74','78','80','90','92','94']);
 
-/* ── REQ 5: Updated Status display metadata ── */
+/* ── Status display metadata ── */
 const STATUS_COLORS = {
   active:        { color:'#fff', bg:'#16a34a',  border:'#16a34a',  label:'Active'                    },
   missing:       { color:'#fff', bg:'#d97706',  border:'#d97706',  label:'Missing'                   },
@@ -704,13 +700,12 @@ const STATUS_COLORS = {
   recovered:     { color:'#fff', bg:'#dc2626',  border:'#dc2626',  label:'Recovered'                 }
 };
 
-/* ── REQ 5: Updated Marker colours ── */
 const MARKER_COLORS = {
-  active:        '#16a34a',   /* Green  */
-  missing:       '#d97706',   /* Amber  */
-  missing_start: '#7c3aed',   /* Purple */
-  water:         '#2563eb',   /* Blue   */
-  recovered:     '#dc2626'    /* Red    */
+  active:        '#16a34a',
+  missing:       '#d97706',
+  missing_start: '#7c3aed',
+  water:         '#2563eb',
+  recovered:     '#dc2626'
 };
 
 const MAP_CENTER = [25.84, 76.56];
@@ -744,6 +739,13 @@ let entityMarkerMap = {};
    UTILITY
    ═══════════════════════════════════════════════ */
 function normId(raw){ return String(raw||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,''); }
+
+/**
+ * gc – get cell value from a row object by trying multiple column-name aliases.
+ * Column keys are normalised (lowercased, whitespace/punctuation stripped) before
+ * comparison so variants like "Signal Strength", "signal_strength", "SignalStrength"
+ * all resolve to the same field.
+ */
 function gc(row,...keys){
   const rk = Object.keys(row||{});
   for(const key of keys){
@@ -767,8 +769,6 @@ function parsePaliDate(val){
   return isNaN(d) ? null : d;
 }
 
-/* REQ 4: Enhanced date parsing to handle more sheet formats including
-   plain text like "April 10 2025", "10 April 2025", "10-Apr-25", ISO strings, etc. */
 function parseTagDate(val){
   if(!val) return null;
   const s = String(val).trim();
@@ -776,15 +776,13 @@ function parseTagDate(val){
 
   const MON = {
     jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11,
-    january:0,february:1,march:2,april:3,may2:4,june:5,july:6,august:7,
+    january:0,february:1,march:2,april:3,june:5,july:6,august:7,
     september:8,october:9,november:10,december:11
   };
 
-  // Try native Date first for ISO-ish strings
   const iso = new Date(s);
   if(!isNaN(iso) && iso.getFullYear() > 2000) return iso;
 
-  // D-Mon-YYYY or D Month YYYY
   const m1 = s.match(/^(\d{1,2})[\s\-\/]([A-Za-z]{3,})[\s\-\/,]*(\d{2,4})$/i);
   if(m1){
     const monKey = m1[2].toLowerCase();
@@ -793,7 +791,6 @@ function parseTagDate(val){
     if(mIdx !== undefined){ const dt = new Date(y,mIdx,+m1[1]); if(!isNaN(dt)) return dt; }
   }
 
-  // Month D, YYYY  (e.g. "April 10, 2025" or "April 10 2025")
   const m2 = s.match(/^([A-Za-z]{3,})\s+(\d{1,2})[,\s]+(\d{4})$/i);
   if(m2){
     const monKey = m2[1].toLowerCase();
@@ -801,11 +798,9 @@ function parseTagDate(val){
     if(mIdx !== undefined){ const dt = new Date(+m2[3],mIdx,+m2[2]); if(!isNaN(dt)) return dt; }
   }
 
-  // DD/MM/YYYY or DD-MM-YYYY
   const m3 = s.match(/^(\d{1,2})[\-\/](\d{1,2})[\-\/](\d{4})/);
   if(m3){ const dt = new Date(+m3[3],+m3[2]-1,+m3[1]); if(!isNaN(dt)) return dt; }
 
-  // YYYY-MM-DD
   const m4 = s.match(/^(\d{4})[\-\/](\d{1,2})[\-\/](\d{1,2})/);
   if(m4){ const dt = new Date(+m4[1],+m4[2]-1,+m4[3]); if(!isNaN(dt)) return dt; }
 
@@ -894,6 +889,16 @@ function buildMasterMap(rows){
   });
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   buildEntitiesFromLog
+   Parses every row of the Radio Log (telemetry) sheet.
+   CHANGE: Each fix object now captures three additional columns from the sheet:
+     • place    – the location name recorded at the fix (Place / Current Place / Locality)
+     • activity – the observed behaviour (Activity / Behaviour / Behavior)
+     • signal   – the VHF signal strength reading (Signal / Signal Strength)
+   These are surfaced in the popup via popupHtml().
+   Zone assignment happens separately in assignZones() using map (1).geojson only.
+───────────────────────────────────────────────────────────────────────────── */
 function buildEntitiesFromLog(rows){
   const buckets = {};
   rows.forEach(row=>{
@@ -907,8 +912,12 @@ function buildEntitiesFromLog(rows){
     if(!buckets[remappedId]) buckets[remappedId] = { fixes:[], originalOldId: RETAG_OLD_TO_NEW[rawId]?rawId:null };
     buckets[remappedId].fixes.push({
       lat, lon, ts,
-      signal: gc(row,'Signal','signal'),
-      remarks: gc(row,'Remarks','Notes','remarks'),
+      /* ── PATCH 1: telemetry field extraction ── */
+      place:    gc(row,'Place','place','Current Place','CurrentPlace','Locality','Site','Location'),
+      activity: gc(row,'Activity','activity','Behaviour','Behavior','Activity_Type','Activity Type'),
+      signal:   gc(row,'Signal','signal','Signal Strength','SignalStrength','Signal_Strength'),
+      /* ────────────────────────────────────────── */
+      remarks:  gc(row,'Remarks','Notes','remarks'),
       zone: '-',
       fromOldId: (RETAG_OLD_TO_NEW[rawId] ? rawId : null)
     });
@@ -960,39 +969,63 @@ function mergeEntities(logBuckets){
 }
 
 /* ═══════════════════════════════════════════════
-   REQ 1: ZONE ASSIGNMENT – uses map GeoJSON strictly for polygon calculation
+   ZONE ASSIGNMENT
+   Uses ONLY map (1).geojson (loaded as geojsonData / URLS.zones).
+   The river GeoJSON (URLS.river) is never touched here – it is used
+   exclusively for the visual river-line overlay on the map.
    ═══════════════════════════════════════════════ */
 function getZoneName(f){
-  return f?.properties?.name||f?.properties?.Name||f?.properties?.ZONE||f?.properties?.zone||f?.properties?.STRETCH||'-';
+  return f?.properties?.name
+      || f?.properties?.Name
+      || f?.properties?.ZONE
+      || f?.properties?.zone
+      || f?.properties?.STRETCH
+      || '-';
 }
 
 function assignZones(){
+  /* Guard: only proceed if map (1).geojson has loaded */
   if(!geojsonData?.features) return;
+
+  /* Extract polygon features from map (1).geojson only */
   zonePolygons = geojsonData.features.filter(f=>f.geometry&&
     (f.geometry.type==='Polygon'||f.geometry.type==='MultiPolygon'));
 
   entities.forEach(entity=>{
     entity.fixes.forEach(fix=>{
       if(!Number.isFinite(fix.lat)||!Number.isFinite(fix.lon)){fix.zone='-';return;}
-      const pt = turf.point([fix.lon,fix.lat]);
+      const pt = turf.point([fix.lon, fix.lat]);
       let found = '-';
+
+      /* Step 1: point-in-polygon test against map (1).geojson polygons */
       for(const feat of zonePolygons){
-        try{if(turf.booleanPointInPolygon(pt,feat)){found=getZoneName(feat);break;}}catch(e){}
+        try{
+          if(turf.booleanPointInPolygon(pt, feat)){
+            found = getZoneName(feat);
+            break;
+          }
+        }catch(e){}
       }
+
+      /* Step 2: if no polygon contains the point, snap to nearest polygon
+         boundary (max ZONE_SNAP_MAX_KM km) */
       if(found==='-'){
-        let best=Infinity, bestName='-';
+        let best = Infinity, bestName = '-';
         for(const feat of zonePolygons){
           try{
-            const ol=turf.polygonToLine(feat);
-            const np=turf.nearestPointOnLine(ol,pt);
-            const d=turf.distance(pt,np,{units:'kilometers'});
-            if(d<best){best=d;bestName=getZoneName(feat);}
+            const ol = turf.polygonToLine(feat);
+            const np = turf.nearestPointOnLine(ol, pt);
+            const d  = turf.distance(pt, np, {units:'kilometers'});
+            if(d < best){ best = d; bestName = getZoneName(feat); }
           }catch(e){}
         }
-        found = best<=ZONE_SNAP_MAX_KM ? bestName : 'Outside Defined Zones';
+        found = best <= ZONE_SNAP_MAX_KM ? bestName : 'Outside Defined Zones';
       }
+
       fix.zone = found;
     });
+
+    /* Propagate latest fix zone to the entity-level zone property */
     if(entity.latestFix) entity.zone = entity.latestFix.zone || '-';
   });
 }
@@ -1005,18 +1038,12 @@ function ensureZoneLayer(){
   });
 }
 
-/* REQ 1: River GeoJSON rendered as a simple non-interactive blue polyline (no fill).
-   Used ONLY for visual context – NOT for zone calculations. */
+/* River GeoJSON – visual overlay only, never used for zone assignment */
 function ensureRiverLayer(){
   if(riverGeoLayer||!riverData) return;
   riverGeoLayer = L.geoJSON(riverData,{
-    style:{
-      color:'#3b82f6',
-      weight:2.5,
-      opacity:0.65,
-      fill:false        // no fill – purely a centerline polyline
-    },
-    interactive: false  // non-interactive (REQ 1)
+    style:{color:'#3b82f6',weight:2.5,opacity:0.65,fill:false},
+    interactive: false
   });
 }
 
@@ -1034,7 +1061,7 @@ function showRiverLayer(visible){
 }
 
 /* ═══════════════════════════════════════════════
-   REQ 2: STATUS BLOCKS – updated order & labels
+   STATUS BLOCKS
    ═══════════════════════════════════════════════ */
 function updateStatusBlocks(){
   const counts = {active:0,recovered:0,water:0,missing_start:0,missing:0};
@@ -1058,7 +1085,7 @@ function toggleBucket(bucket){
 }
 
 /* ═══════════════════════════════════════════════
-   REQ 3: LEGEND – collapsible toggle
+   LEGEND
    ═══════════════════════════════════════════════ */
 function toggleLegend(){
   legendCollapsed = !legendCollapsed;
@@ -1069,7 +1096,6 @@ function toggleLegend(){
 }
 
 function renderLegend(){
-  /* REQ 2 & REQ 5: legend rows in the new order with updated colours */
   const rows = [
     {label:'Active (VHF ≤ 14d)',           color:MARKER_COLORS.active},
     {label:'Missing (> 14d)',               color:MARKER_COLORS.missing},
@@ -1093,20 +1119,17 @@ function rebuildFilters(){
     String(a).localeCompare(String(b),undefined,{numeric:true,sensitivity:'base'}));
   buildMSOptions('rid', allIds);
 
-  /* REQ 1: Zone filter – populated from actual zone assignments via Turf.js */
   const zoneCounts={};
   entities.forEach(e=>{
     const z=e.zone||'-';
     if(z&&z!=='-'&&z!=='Outside Defined Zones') zoneCounts[z]=(zoneCounts[z]||0)+1;
   });
-  // Also include 'Outside Defined Zones' if present
   entities.forEach(e=>{
     if(e.zone==='Outside Defined Zones') zoneCounts['Outside Defined Zones']=(zoneCounts['Outside Defined Zones']||0)+1;
   });
   const sortedZones=Object.keys(zoneCounts).sort((a,b)=>zoneCounts[b]-zoneCounts[a]);
   buildMSOptions('zone', sortedZones, z=>z+' ('+zoneCounts[z]+')');
 
-  /* REQ 2: Status buckets in the new order */
   const statuses = ['active','missing','missing_start','water','recovered'];
   buildMSOptions('status', statuses, s=>statusLabel(s));
 
@@ -1180,7 +1203,6 @@ function applyFilters(){
   const idFilter=selectedSet('rid'), zoneFilter=selectedSet('zone'), statusFilter=selectedSet('status');
   displayed = entities.filter(e=>{
     if(idFilter && !idFilter.has(e.id)) return false;
-    /* REQ 1: zone filter is active and populated */
     if(zoneFilter && !zoneFilter.has(e.zone||'-')) return false;
     if(statusFilter && !statusFilter.has(e.status)) return false;
     return true;
@@ -1196,12 +1218,10 @@ function applyFilters(){
   updateMapFoot();
 }
 
-/* REQ 6: clearFilters also tears down heatmap/KDE overlays */
 function clearFilters(){
   activeBucket = null;
   document.querySelectorAll('.ms-drop').forEach(d=>d.classList.remove('open'));
 
-  // Disable Heatmap overlay
   if(heatmapOn || heatLayer){
     heatmapOn = false;
     if(heatLayer){ map.removeLayer(heatLayer); heatLayer = null; }
@@ -1211,7 +1231,6 @@ function clearFilters(){
     if(mhBtn) mhBtn.classList.remove('on');
   }
 
-  // Disable KDE overlay
   if(kdeOn || kdeLayer){
     kdeOn = false;
     if(kdeLayer){ map.removeLayer(kdeLayer); kdeLayer = null; }
@@ -1221,7 +1240,6 @@ function clearFilters(){
     if(mkBtn) mkBtn.classList.remove('on');
   }
 
-  // Restore standard marker view if markerLayer was hidden
   if(markerLayer && !map.hasLayer(markerLayer)) markerLayer.addTo(map);
 
   rebuildFilters();
@@ -1242,7 +1260,16 @@ function markerIcon(entity){
   });
 }
 
-/* REQ 7: Retag History is kept ONLY in popups, not the table */
+/* ─────────────────────────────────────────────────────────────────────────────
+   popupHtml
+   CHANGE: Added three new rows in the "Telemetry Details" block:
+     • Zone          – computed from map (1).geojson via Turf.js
+     • Current Place – extracted from the Place column of the radio log
+     • Activity      – extracted from the Activity / Behaviour column
+     • Signal Strength – extracted from the Signal column
+   These rows are grouped below a visual separator after the core identification
+   rows, and above the Coordinates row.
+───────────────────────────────────────────────────────────────────────────── */
 function popupHtml(entity){
   const fix = entity.latestFix;
   const color = MARKER_COLORS[entity.status]||MARKER_COLORS.missing;
@@ -1266,7 +1293,27 @@ function popupHtml(entity){
       <div class="pop-row"><span class="pop-label">Latest VHF Signal</span><span class="pop-value">${escapeHtml(fmtDateTime(fix?.ts))}</span></div>
       <div class="pop-row"><span class="pop-label">Days Since Release</span><span class="pop-value" style="font-weight:700;color:var(--forest-2)">${escapeHtml(daysRelease)}</span></div>
       <div class="pop-row"><span class="pop-label">Days Since Last Fix</span><span class="pop-value">${escapeHtml(daysFix)}</span></div>
-      <div class="pop-row"><span class="pop-label">Zone</span><span class="pop-value">${escapeHtml(entity.zone||'-')}</span></div>
+
+      <!-- ── PATCH 2: spatial & telemetry detail rows ── -->
+      <div class="pop-telemetry-sep"></div>
+      <div class="pop-row">
+        <span class="pop-label">Zone</span>
+        <span class="pop-value">${escapeHtml(entity.zone||'-')}</span>
+      </div>
+      <div class="pop-row">
+        <span class="pop-label">Current Place</span>
+        <span class="pop-value">${escapeHtml(fix?.place||'-')}</span>
+      </div>
+      <div class="pop-row">
+        <span class="pop-label">Activity</span>
+        <span class="pop-value">${escapeHtml(fix?.activity||'-')}</span>
+      </div>
+      <div class="pop-row">
+        <span class="pop-label">Signal Strength</span>
+        <span class="pop-value">${escapeHtml(fix?.signal||'-')}</span>
+      </div>
+      <!-- ──────────────────────────────────────────── -->
+
       <div class="pop-row"><span class="pop-label">Coordinates</span><span class="pop-value">${fix?fix.lat.toFixed(5)+', '+fix.lon.toFixed(5):'-'}</span></div>
       ${entity.remarks?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line);font:600 .66rem/1.5 var(--font);color:var(--muted)">${escapeHtml(entity.remarks)}</div>`:''}
     </div>
@@ -1322,7 +1369,7 @@ function focusTableRow(id){
 }
 
 /* ═══════════════════════════════════════════════
-   TABLE – REQ 7: Retag History column REMOVED
+   TABLE
    ═══════════════════════════════════════════════ */
 function renderTable(){
   const body = document.getElementById('tableBody');
@@ -1330,7 +1377,6 @@ function renderTable(){
   displayRows = displayed;
   document.getElementById('tableBadge').textContent = displayed.length+' records';
   if(!displayed.length){
-    /* REQ 7: colspan is now 13 (was 14) */
     body.innerHTML='<tr class="no-data"><td colspan="13">No records match the current filters.</td></tr>';return;
   }
   displayed.forEach(entity=>{
@@ -1340,14 +1386,12 @@ function renderTable(){
     const color = MARKER_COLORS[entity.status]||MARKER_COLORS.missing;
     const tr = document.createElement('tr');
     tr.dataset.rowId = entity.id;
-    /* REQ 7: No Retag History td */
     tr.innerHTML =
       `<td><strong style="color:${color}">${escapeHtml(entity.id)}</strong></td>`+
       `<td>${escapeHtml(entity.category||'-')}</td>`+
       `<td>${escapeHtml(entity.sex||'-')}</td>`+
       `<td>${escapeHtml(entity.tl||'-')}</td>`+
       `<td>${escapeHtml(entity.tagPlace||'-')}</td>`+
-      /* Retag History td REMOVED */
       `<td>${escapeHtml(fmtDateTime(fix?.ts))}</td>`+
       `<td>${escapeHtml(String(daysRelease))}</td>`+
       `<td>${escapeHtml(String(daysFix))}</td>`+
@@ -1445,8 +1489,7 @@ function toggleKDE(){
    ═══════════════════════════════════════════════ */
 function exportCSV(){
   if(!displayRows.length){toast('No visible records to export.');return;}
-  /* REQ 7: Retag History removed from CSV export header as well */
-  const header=['Radio_ID','Category','Sex','TL_cm','Tag_Place','Latest_VHF_Signal','Days_Since_Release','Days_Since_Last_Fix','Current_Status','Zone','Latitude','Longitude','Remarks'];
+  const header=['Radio_ID','Category','Sex','TL_cm','Tag_Place','Latest_VHF_Signal','Days_Since_Release','Days_Since_Last_Fix','Current_Status','Zone','Place','Activity','Signal_Strength','Latitude','Longitude','Remarks'];
   const rows = [header];
   displayRows.forEach(e=>{
     const fix=e.latestFix;
@@ -1457,6 +1500,9 @@ function exportCSV(){
       e.daysSinceLastFix !== null ? e.daysSinceLastFix : '-',
       statusLabel(e.status),
       e.zone||'-',
+      fix?.place||'-',
+      fix?.activity||'-',
+      fix?.signal||'-',
       Number.isFinite(fix?.lat)?fix.lat.toFixed(6):'',
       Number.isFinite(fix?.lon)?fix.lon.toFixed(6):'',
       e.remarks||'-'
@@ -1470,19 +1516,15 @@ function exportCSV(){
 }
 
 /* ═══════════════════════════════════════════════
-   REQ 4: FIELD UPDATES PANEL – robust date parsing
+   FIELD UPDATES PANEL
    ═══════════════════════════════════════════════ */
-
-/** Try every known column name variant for the update date */
 function getUpdateDate(row){
-  // Try a broad set of possible column names in the Field_Updates sheet
   const raw = gc(row,
     'Date','date','Update Date','UpdateDate','Timestamp','timestamp',
     'Posted','Field Date','Log Date','Entry Date','Record Date',
     'Update_Date','FieldDate','Post Date','DatePosted'
   );
   if(!raw) return null;
-  // Try parsePaliDate first (DD/MM/YYYY HH:MM), then parseTagDate for text dates
   return parsePaliDate(raw) || parseTagDate(raw);
 }
 
@@ -1519,9 +1561,7 @@ function loadUpdates(rows){
     return;
   }
 
-  // Latest entry
   const rd = getUpdateDate(sorted[0]);
-  /* REQ 4: Use fmtDateOnly if date parsed, otherwise fall back to raw string */
   if(rd){
     latestDate.textContent = fmtDateOnly(rd);
   } else {
@@ -1531,7 +1571,6 @@ function loadUpdates(rows){
   const textContent = gc(sorted[0],'Update','update','Notes','Text','notes','Content','content','Update_Text','UpdateText','Details','detail');
   latestText.innerHTML = formatUpdateText(textContent);
 
-  // Previous entries
   sorted.slice(1).forEach(row=>{
     const rowDate=getUpdateDate(row);
     const item=document.createElement('div'); item.className='fu';
@@ -1561,7 +1600,6 @@ function toggleFilterBar(){
   document.getElementById('fbar').classList.toggle('hidden',filterBarHidden);
   document.getElementById('filterToggleBtn').classList.toggle('on',!filterBarHidden);
   document.getElementById('map-wrap').style.top=filterBarHidden?'var(--hdr)':'calc(var(--hdr) + var(--fbar))';
-  /* REQ 4: Also update #fp top position when filter bar is toggled */
   const fp = document.getElementById('fp');
   if(fp && !isMobile()){
     fp.style.top = filterBarHidden
@@ -1630,7 +1668,6 @@ function rebuildMobileFilters(){
   entities.forEach(e=>{const z=e.zone||'-';if(z&&z!=='-')zoneCounts[z]=(zoneCounts[z]||0)+1;});
   const sortedZones=Object.keys(zoneCounts).sort((a,b)=>zoneCounts[b]-zoneCounts[a]);
   buildMobMSOptions('zone',sortedZones,z=>z+' ('+zoneCounts[z]+')');
-  /* REQ 2: status order in mobile */
   const statuses=['active','missing','missing_start','water','recovered'];
   buildMobMSOptions('status',statuses,s=>statusLabel(s));
 }
@@ -1724,8 +1761,12 @@ async function loadAllData(){
     const logBuckets = buildEntitiesFromLog(logRows);
     mergeEntities(logBuckets);
 
-    geojsonData = zonesData; riverData = riverGeoData;
-    document.getElementById('loadingCopy').textContent='Assigning zones to fixes (Turf.js)...';
+    /* Zone polygons come exclusively from map (1).geojson (zonesData).
+       riverGeoData is stored separately and never touched by assignZones(). */
+    geojsonData = zonesData;
+    riverData   = riverGeoData;
+
+    document.getElementById('loadingCopy').textContent='Assigning zones to fixes (map (1).geojson via Turf.js)...';
     if(geojsonData) assignZones();
 
     loadUpdates(updateRows);
