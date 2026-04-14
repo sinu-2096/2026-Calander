@@ -32,12 +32,12 @@
   --mono:'IBM Plex Mono',monospace;
   --font:'Space Grotesk',sans-serif;
 
-  /* Status bucket accent colours */
-  --col-active:#16a34a;
-  --col-recovered:#0891b2;
-  --col-water:#2563eb;
-  --col-missing-start:#64748b;
-  --col-missing:#d97706;
+  /* ── REQ 5: Updated Status bucket accent colours ── */
+  --col-active:#16a34a;           /* Green */
+  --col-missing:#d97706;          /* Amber */
+  --col-missing-start:#7c3aed;    /* Purple (was slate) */
+  --col-water:#2563eb;            /* Blue */
+  --col-recovered:#dc2626;        /* Red (was cyan) */
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden;background:var(--sand);color:var(--text);font-family:var(--font)}
@@ -82,7 +82,7 @@ button{cursor:pointer}
 .hdr-title{font:700 .94rem var(--mono);letter-spacing:.04em;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hdr-sub{margin-top:3px;font:600 .62rem var(--mono);letter-spacing:.08em;color:rgba(255,255,255,.62);text-transform:uppercase}
 
-/* ─── Status Blocks (5 buckets) ─── */
+/* ─── REQ 2: Status Blocks ── */
 #statusBlocks{grid-row:2;grid-column:1/-1;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;min-width:0;width:100%}
 .sblock{min-height:48px;padding:7px 10px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.1);display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;color:#fff;transition:transform .12s ease,border-color .12s ease,background .12s ease;border-left:3px solid transparent}
 .sblock.clickable{cursor:pointer}
@@ -91,11 +91,12 @@ button{cursor:pointer}
 .sblock-label{font:700 .58rem var(--mono);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}
 .sblock-count{font:700 .98rem var(--mono)}
 .sblock-sub{font:500 .5rem var(--mono);color:rgba(255,255,255,.52);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}
-.sblock[data-bucket="active"]{border-left-color:var(--col-active)}
-.sblock[data-bucket="recovered"]{border-left-color:var(--col-recovered)}
-.sblock[data-bucket="water"]{border-left-color:var(--col-water)}
-.sblock[data-bucket="missing_start"]{border-left-color:var(--col-missing-start)}
-.sblock[data-bucket="missing"]{border-left-color:var(--col-missing)}
+/* REQ 2 & 5: Ordered Active, Missing, Missing soon after release, Radios in water, Recovered */
+.sblock[data-bucket="active"]        {border-left-color:var(--col-active)}
+.sblock[data-bucket="missing"]       {border-left-color:var(--col-missing)}
+.sblock[data-bucket="missing_start"] {border-left-color:var(--col-missing-start)}
+.sblock[data-bucket="water"]         {border-left-color:var(--col-water)}
+.sblock[data-bucket="recovered"]     {border-left-color:var(--col-recovered)}
 
 /* Header actions */
 .hdr-actions{display:flex;align-items:center;gap:8px;justify-self:end;z-index:10021;position:relative}
@@ -153,11 +154,48 @@ path.leaflet-interactive:focus{outline:none!important;box-shadow:none!important}
 .map-fab{position:absolute;top:12px;left:12px;z-index:500;display:flex;flex-direction:column;gap:6px}
 .fab{width:34px;height:34px;border-radius:10px;border:1px solid var(--line-2);background:rgba(255,255,255,.94);color:var(--text);font-size:.92rem;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow)}
 .fab:hover{background:#eef8f1;color:var(--forest-2);border-color:#8ab99a}
-#legend{position:absolute;right:12px;bottom:12px;z-index:500;min-width:180px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.95);border:1px solid var(--line-2);box-shadow:var(--shadow)}
-.legend-title{font:700 .58rem var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+
+/* ─── REQ 3: Legend – top-right, collapsible ─── */
+#legend{
+  position:absolute;
+  right:12px;
+  top:12px;       /* top-right instead of bottom-right */
+  z-index:500;
+  min-width:0;
+  border-radius:14px;
+  background:rgba(255,255,255,.97);
+  border:1px solid var(--line-2);
+  box-shadow:var(--shadow);
+  overflow:hidden;
+  transition:min-width .18s ease;
+}
+#legend-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:8px 10px;
+  border-bottom:1px solid var(--line);
+  background:var(--panel-2);
+  cursor:pointer;
+  user-select:none;
+}
+#legend-header:hover{background:#eef8f1}
+.legend-title{font:700 .58rem var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+#legend-toggle-btn{
+  width:20px;height:20px;border-radius:50%;border:1px solid var(--line-2);
+  background:#fff;color:var(--muted);font:700 .7rem var(--mono);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:all .15s ease;
+}
+#legend-toggle-btn:hover{background:#eef8f1;color:var(--forest-2)}
+#legend-body{padding:10px 12px;transition:all .18s ease}
+#legend.collapsed #legend-body{display:none}
+#legend.collapsed #legend-header{border-bottom:none}
 .legend-row{display:flex;align-items:center;gap:8px;font:600 .62rem var(--mono);color:var(--text);margin-bottom:6px}
 .legend-row:last-child{margin-bottom:0}
 .legend-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+
 #mapFoot{position:absolute;left:0;right:0;bottom:0;z-index:450;display:flex;align-items:center;gap:10px;padding:6px 14px;background:rgba(255,255,255,.94);border-top:1px solid var(--line);backdrop-filter:blur(10px)}
 .map-foot-dot{width:8px;height:8px;border-radius:50%;background:var(--lime);flex-shrink:0}
 #mapFootText{font:600 .65rem var(--mono);color:var(--muted)}
@@ -179,10 +217,26 @@ path.leaflet-interactive:focus{outline:none!important;box-shadow:none!important}
 .pab:hover{background:#dff1e5;border-color:#8ab99a}
 .sbadge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font:700 .56rem var(--mono);letter-spacing:.04em;border:1px solid transparent}
 
-/* ─── Field Updates Panel ─── */
+/* ─── REQ 4: Field Updates Panel – fixed top offset ─── */
 #fpBg{display:none;position:fixed;inset:0;z-index:1180;background:rgba(12,24,18,.38)}
 #fpBg.open{display:block}
-#fp{position:fixed;top:0;right:-400px;width:400px;height:100vh;z-index:1190;background:#fff;border-left:1px solid var(--line-2);box-shadow:-18px 0 44px rgba(12,24,18,.18);transition:right .24s ease;display:flex;flex-direction:column;overflow:hidden}
+#fp{
+  position:fixed;
+  /* REQ 4: Push down below header + filter bar so it never hides behind nav */
+  top:calc(var(--hdr) + var(--fbar));
+  right:-400px;
+  width:400px;
+  /* height fills remaining viewport below the nav */
+  height:calc(100vh - var(--hdr) - var(--fbar));
+  z-index:1190;
+  background:#fff;
+  border-left:1px solid var(--line-2);
+  box-shadow:-18px 0 44px rgba(12,24,18,.18);
+  transition:right .24s ease;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
 #fp.open{right:0}
 .fp-hdr{padding:16px 20px;background:#2d5a45;color:#fff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .fp-hdr h3{font:700 .92rem var(--mono);display:flex;align-items:center;gap:10px}
@@ -281,7 +335,8 @@ path.leaflet-interactive:focus{outline:none!important;box-shadow:none!important}
   #mapFoot{padding:4px 10px}
   #mapFootText{font-size:.58rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .fab{width:40px;height:40px}
-  #legend{right:auto;left:8px;bottom:8px;min-width:160px;padding:10px 12px}
+  /* REQ 3: mobile legend at top-right */
+  #legend{right:8px;top:8px}
   .legend-title{font-size:.52rem}
   .legend-row{font-size:.58rem}
   .leaflet-popup-content-wrapper{max-width:calc(100vw - 32px)}
@@ -293,14 +348,15 @@ path.leaflet-interactive:focus{outline:none!important;box-shadow:none!important}
   #btmHdr{height:52px;padding:0 12px}
   .btm-title{font-size:.66rem}
   #btmScroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .dtbl{min-width:960px}
+  .dtbl{min-width:860px}  /* REQ 7: 1 fewer column, reduced min-width */
   .dtbl th,.dtbl td{padding:7px 8px;font-size:.6rem}
   .dtbl tbody tr{min-height:44px}
   #btm.mobile-expanded{height:55vh}
   .btm-actions{gap:4px}
   .bc{height:36px;padding:0 10px;font-size:.6rem}
   #toast{bottom:calc(var(--btm) + 8px)}
-  #fp{width:100%;right:-100%}
+  /* REQ 4: on mobile panel goes to top of viewport */
+  #fp{width:100%;right:-100%;top:var(--hdr);height:calc(100vh - var(--hdr))}
   #fp.open{right:0}
   .loading-logos img{height:56px}
   .loading-logos .loading-divider{height:44px}
@@ -353,19 +409,20 @@ path.leaflet-interactive:focus{outline:none!important;box-shadow:none!important}
     <div class="hdr-sub">VHF Telemetry Monitor | 30 Individuals</div>
   </div>
 
+  <!-- REQ 2: Strict order: Active, Missing, Missing soon after release, Radios in water, Recovered -->
   <div id="statusBlocks">
     <button class="sblock clickable" id="sb-active" data-bucket="active" type="button" onclick="toggleBucket('active')">
       <span class="sblock-label">Active</span>
       <span class="sblock-count" id="sbc-active">-</span>
       <span class="sblock-sub">VHF within 14d</span>
     </button>
-    <button class="sblock clickable" id="sb-recovered" data-bucket="recovered" type="button" onclick="toggleBucket('recovered')">
-      <span class="sblock-label">Recovered</span>
-      <span class="sblock-count" id="sbc-recovered">7</span>
-      <span class="sblock-sub">Radios retrieved</span>
+    <button class="sblock clickable" id="sb-missing" data-bucket="missing" type="button" onclick="toggleBucket('missing')">
+      <span class="sblock-label">Missing</span>
+      <span class="sblock-count" id="sbc-missing">-</span>
+      <span class="sblock-sub">No signal &gt; 14d</span>
     </button>
     <button class="sblock clickable" id="sb-missing_start" data-bucket="missing_start" type="button" onclick="toggleBucket('missing_start')">
-      <span class="sblock-label">Missing from Start</span>
+      <span class="sblock-label">Missing Soon After Release</span>
       <span class="sblock-count" id="sbc-missing_start">4</span>
       <span class="sblock-sub">Presumed dead / dispersed</span>
     </button>
@@ -374,10 +431,10 @@ path.leaflet-interactive:focus{outline:none!important;box-shadow:none!important}
       <span class="sblock-count" id="sbc-water">3</span>
       <span class="sblock-sub">Static in water</span>
     </button>
-    <button class="sblock clickable" id="sb-missing" data-bucket="missing" type="button" onclick="toggleBucket('missing')">
-      <span class="sblock-label">Missing</span>
-      <span class="sblock-count" id="sbc-missing">-</span>
-      <span class="sblock-sub">No signal > 14d</span>
+    <button class="sblock clickable" id="sb-recovered" data-bucket="recovered" type="button" onclick="toggleBucket('recovered')">
+      <span class="sblock-label">Recovered</span>
+      <span class="sblock-count" id="sbc-recovered">7</span>
+      <span class="sblock-sub">Radios retrieved</span>
     </button>
   </div>
 
@@ -411,6 +468,7 @@ path.leaflet-interactive:focus{outline:none!important;box-shadow:none!important}
       </div>
     </div>
     <div class="fsep"></div>
+    <!-- REQ 1: Zone filter is active -->
     <div class="fg">
       <label>Zone</label>
       <div class="ms-wrap">
@@ -534,7 +592,14 @@ path.leaflet-interactive:focus{outline:none!important;box-shadow:none!important}
   <div class="map-fab">
     <button class="fab" type="button" title="Reset View" onclick="resetView()">H</button>
   </div>
-  <div id="legend"></div>
+  <!-- REQ 3: Legend repositioned to top-right, collapsible -->
+  <div id="legend">
+    <div id="legend-header" onclick="toggleLegend()" title="Toggle legend">
+      <span class="legend-title">Legend</span>
+      <button id="legend-toggle-btn" type="button" aria-label="Toggle legend">−</button>
+    </div>
+    <div id="legend-body"></div>
+  </div>
   <div id="mapFoot">
     <div class="map-foot-dot"></div>
     <span id="mapFootText">Loading Pali FTH 2025 telemetry...</span>
@@ -562,7 +627,7 @@ path.leaflet-interactive:focus{outline:none!important;box-shadow:none!important}
   </div>
 </aside>
 
-<!-- Bottom Table Panel -->
+<!-- REQ 7: Bottom Table Panel – Retag History column REMOVED -->
 <div id="btm">
   <div id="resizeBar"></div>
   <div id="btmHdr">
@@ -580,7 +645,7 @@ path.leaflet-interactive:focus{outline:none!important;box-shadow:none!important}
           <th>Sex</th>
           <th>T.L (cm)</th>
           <th>Tag Place</th>
-          <th>Retag History</th>
+          <!-- REQ 7: Retag History removed from table -->
           <th>Latest VHF Signal</th>
           <th>Days Since Release</th>
           <th>Days Since Last Fix</th>
@@ -592,7 +657,7 @@ path.leaflet-interactive:focus{outline:none!important;box-shadow:none!important}
         </tr>
       </thead>
       <tbody id="tableBody">
-        <tr class="no-data"><td colspan="14">Loading telemetry data...</td></tr>
+        <tr class="no-data"><td colspan="13">Loading telemetry data...</td></tr>
       </tbody>
     </table>
   </div>
@@ -619,31 +684,33 @@ const URLS = {
 
 /* ── Retagging: April 4 2026 ── */
 const RETAG_DATE_STR = 'April 4th';
-const RETAG_DATE = new Date(2026, 3, 4); // month is 0-indexed
-// Maps old ID → new ID
+const RETAG_DATE = new Date(2026, 3, 4);
 const RETAG_OLD_TO_NEW = { '68':'65', '84':'67', '86':'69', '88':'71' };
-// Maps new ID → old ID
 const RETAG_NEW_TO_OLD = { '65':'68', '67':'84', '69':'86', '71':'88' };
 
 /* ── Hardcoded status buckets ── */
-const RECOVERED_IDS      = new Set(['35','36','64','66','70','76','98']);  // 7
-const MISSING_START_IDS  = new Set(['30','33','34','96']);                 // 4
-const WATER_IDS          = new Set(['31','38','72']);                      // 3
-const HARD_MISSING_IDS   = new Set(['39','40','62','82']);                 // 4 (+ dynamic)
-const HARD_ACTIVE_IDS    = new Set(['32','37','65','67','69','71','74','78','80','90','92','94']); // 12 (+ dynamic)
+const RECOVERED_IDS      = new Set(['35','36','64','66','70','76','98']);
+const MISSING_START_IDS  = new Set(['30','33','34','96']);
+const WATER_IDS          = new Set(['31','38','72']);
+const HARD_MISSING_IDS   = new Set(['39','40','62','82']);
+const HARD_ACTIVE_IDS    = new Set(['32','37','65','67','69','71','74','78','80','90','92','94']);
 
-/* ── Status display metadata ── */
+/* ── REQ 5: Updated Status display metadata ── */
 const STATUS_COLORS = {
-  active:        { color:'#fff',  bg:'var(--col-active)',        border:'#16a34a',   label:'Active'             },
-  recovered:     { color:'#fff',  bg:'var(--col-recovered)',     border:'#0891b2',   label:'Recovered'          },
-  water:         { color:'#fff',  bg:'var(--col-water)',         border:'#2563eb',   label:'Radio in Water'     },
-  missing_start: { color:'#fff',  bg:'var(--col-missing-start)', border:'#64748b',   label:'Missing from Start' },
-  missing:       { color:'#fff',  bg:'var(--col-missing)',       border:'#d97706',   label:'Missing'            }
+  active:        { color:'#fff', bg:'#16a34a',  border:'#16a34a',  label:'Active'                    },
+  missing:       { color:'#fff', bg:'#d97706',  border:'#d97706',  label:'Missing'                   },
+  missing_start: { color:'#fff', bg:'#7c3aed',  border:'#7c3aed',  label:'Missing Soon After Release' },
+  water:         { color:'#fff', bg:'#2563eb',  border:'#2563eb',  label:'Radio in Water'            },
+  recovered:     { color:'#fff', bg:'#dc2626',  border:'#dc2626',  label:'Recovered'                 }
 };
 
+/* ── REQ 5: Updated Marker colours ── */
 const MARKER_COLORS = {
-  active:'#16a34a', recovered:'#0891b2', water:'#2563eb',
-  missing_start:'#64748b', missing:'#d97706'
+  active:        '#16a34a',   /* Green  */
+  missing:       '#d97706',   /* Amber  */
+  missing_start: '#7c3aed',   /* Purple */
+  water:         '#2563eb',   /* Blue   */
+  recovered:     '#dc2626'    /* Red    */
 };
 
 const MAP_CENTER = [25.84, 76.56];
@@ -660,11 +727,12 @@ let heatLayer = null, kdeLayer = null;
 let heatmapOn = false, kdeOn = false;
 let bottomCollapsed = false, bottomHeight = 250;
 let filterBarHidden = false;
-let activeBucket = null;        // currently selected status bucket key
+let legendCollapsed = false;
+let activeBucket = null;
 
-let masterMap   = {};   // rawId (normalized) → master row
-let entities    = [];   // all hatchling entities after retagging
-let displayed   = [];   // currently visible entities
+let masterMap   = {};
+let entities    = [];
+let displayed   = [];
 let displayRows = [];
 let updatesRows = [];
 let geojsonData = null;
@@ -699,19 +767,49 @@ function parsePaliDate(val){
   return isNaN(d) ? null : d;
 }
 
+/* REQ 4: Enhanced date parsing to handle more sheet formats including
+   plain text like "April 10 2025", "10 April 2025", "10-Apr-25", ISO strings, etc. */
 function parseTagDate(val){
   if(!val) return null;
   const s = String(val).trim();
   if(!s || ['na','n/a','-','—','null'].includes(s.toLowerCase())) return null;
-  const MON={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
-  // D-Mon-YYYY
-  const m1=s.match(/^(\d{1,2})[\s\-\/]([A-Za-z]{3,})[\s\-\/](\d{2,4})$/i);
-  if(m1){const d=+m1[1],mIdx=MON[m1[2].toLowerCase().slice(0,3)];let y=+m1[3];if(y<100)y+=y<50?2000:1900;if(mIdx!=null){const dt=new Date(y,mIdx,d);if(!isNaN(dt))return dt;}}
-  // DD/MM/YYYY
-  const m2=s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/);
-  if(m2){const d=+m2[1],mo=+m2[2]-1,y=+m2[3];const dt=new Date(y,mo,d);if(!isNaN(dt))return dt;}
-  const iso=new Date(s);
-  return isNaN(iso)?null:iso;
+
+  const MON = {
+    jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11,
+    january:0,february:1,march:2,april:3,may2:4,june:5,july:6,august:7,
+    september:8,october:9,november:10,december:11
+  };
+
+  // Try native Date first for ISO-ish strings
+  const iso = new Date(s);
+  if(!isNaN(iso) && iso.getFullYear() > 2000) return iso;
+
+  // D-Mon-YYYY or D Month YYYY
+  const m1 = s.match(/^(\d{1,2})[\s\-\/]([A-Za-z]{3,})[\s\-\/,]*(\d{2,4})$/i);
+  if(m1){
+    const monKey = m1[2].toLowerCase();
+    const mIdx = MON[monKey] ?? MON[monKey.slice(0,3)];
+    let y = +m1[3]; if(y<100) y += y<50?2000:1900;
+    if(mIdx !== undefined){ const dt = new Date(y,mIdx,+m1[1]); if(!isNaN(dt)) return dt; }
+  }
+
+  // Month D, YYYY  (e.g. "April 10, 2025" or "April 10 2025")
+  const m2 = s.match(/^([A-Za-z]{3,})\s+(\d{1,2})[,\s]+(\d{4})$/i);
+  if(m2){
+    const monKey = m2[1].toLowerCase();
+    const mIdx = MON[monKey] ?? MON[monKey.slice(0,3)];
+    if(mIdx !== undefined){ const dt = new Date(+m2[3],mIdx,+m2[2]); if(!isNaN(dt)) return dt; }
+  }
+
+  // DD/MM/YYYY or DD-MM-YYYY
+  const m3 = s.match(/^(\d{1,2})[\-\/](\d{1,2})[\-\/](\d{4})/);
+  if(m3){ const dt = new Date(+m3[3],+m3[2]-1,+m3[1]); if(!isNaN(dt)) return dt; }
+
+  // YYYY-MM-DD
+  const m4 = s.match(/^(\d{4})[\-\/](\d{1,2})[\-\/](\d{1,2})/);
+  if(m4){ const dt = new Date(+m4[1],+m4[2]-1,+m4[3]); if(!isNaN(dt)) return dt; }
+
+  return null;
 }
 
 function daysSince(ts){
@@ -744,7 +842,6 @@ function getPaliStatus(id, daysSinceLastFix){
   if(MISSING_START_IDS.has(sid)) return 'missing_start';
   if(WATER_IDS.has(sid))         return 'water';
   if(HARD_MISSING_IDS.has(sid))  return 'missing';
-  // Dynamic: no signal in 14 days → missing
   if(daysSinceLastFix === null || daysSinceLastFix > 14) return 'missing';
   return 'active';
 }
@@ -788,8 +885,6 @@ function setLD(id,ok){ const el=document.getElementById(id);if(el){el.classList.
 /* ═══════════════════════════════════════════════
    DATA INGESTION
    ═══════════════════════════════════════════════ */
-
-/** Build masterMap from Radio_Master rows */
 function buildMasterMap(rows){
   masterMap = {};
   rows.forEach(row=>{
@@ -799,28 +894,17 @@ function buildMasterMap(rows){
   });
 }
 
-/**
- * Build entities from Radio_Log rows, applying retag remapping.
- * Returns { [newId]: {fixes:[], retagHistory?:string, originalId?:string} }
- */
 function buildEntitiesFromLog(rows){
-  const buckets = {}; // newId → { fixes:[] }
-
+  const buckets = {};
   rows.forEach(row=>{
     let rawId = normId(gc(row,'Radio_ID','RadioID','Radio ID','Animal ID','AnimalID','ID'));
     if(!rawId) return;
-
-    // Apply retag remap: if old ID → use new ID instead
     const remappedId = RETAG_OLD_TO_NEW[rawId] || rawId;
-
     const lat = parseFloat(gc(row,'Latitude','Lat'));
     const lon = parseFloat(gc(row,'Longitude','Lon','Long'));
     if(!Number.isFinite(lat)||!Number.isFinite(lon)) return;
-
     const ts = parsePaliDate(gc(row,'Timestamp','Date','DateTime','date','timestamp'));
-
     if(!buckets[remappedId]) buckets[remappedId] = { fixes:[], originalOldId: RETAG_OLD_TO_NEW[rawId]?rawId:null };
-
     buckets[remappedId].fixes.push({
       lat, lon, ts,
       signal: gc(row,'Signal','signal'),
@@ -829,53 +913,32 @@ function buildEntitiesFromLog(rows){
       fromOldId: (RETAG_OLD_TO_NEW[rawId] ? rawId : null)
     });
   });
-
   return buckets;
 }
 
-/** Merge master + log buckets into entity list */
 function mergeEntities(logBuckets){
-  // Collect all IDs: union of master + log, excluding old retag IDs
-  const allIds = new Set([
-    ...Object.keys(masterMap),
-    ...Object.keys(logBuckets)
-  ]);
-  // Remove old retag IDs from the set
+  const allIds = new Set([...Object.keys(masterMap),...Object.keys(logBuckets)]);
   Object.keys(RETAG_OLD_TO_NEW).forEach(oldId => allIds.delete(oldId));
-
   entities = [];
-
   allIds.forEach(id=>{
-    // Never include old retag IDs
     if(RETAG_OLD_TO_NEW[id]) return;
-
     const bucket = logBuckets[id] || { fixes:[] };
     const masterRow = masterMap[id] || {};
-
-    // For retagged animals: use old ID's master row for release date
     const oldId = RETAG_NEW_TO_OLD[id];
     const oldMasterRow = oldId ? (masterMap[oldId] || {}) : null;
-
-    // Release date: prefer old master row's date for retagged animals
     const relDateRaw = gc(oldMasterRow||masterRow,
       'Tag Date/Release Date','Tag Date','Release Date','TagDate','ReleaseDate','Tag_Date','Release_Date','Tagging Date');
     const tagDate = parseTagDate(relDateRaw);
-
-    // Sort fixes by timestamp
     const fixes = bucket.fixes.slice().sort((a,b)=>{
       const ta=a.ts?a.ts.getTime():-Infinity, tb=b.ts?b.ts.getTime():-Infinity;
       return ta-tb;
     });
-
     const latestFix = fixes.length ? fixes[fixes.length-1] : null;
     const daysSinceLastFix = latestFix?.ts ? daysSince(latestFix.ts) : null;
     const status = getPaliStatus(id, daysSinceLastFix);
-
-    // Retag history string
     const retagHistory = oldId
       ? `Previously ${oldId}, retagged on ${RETAG_DATE_STR}.`
       : null;
-
     entities.push({
       id,
       category: gc(masterRow,'Category','Type','Tag Type','TagType') || 'Pali FTH 2025',
@@ -893,12 +956,11 @@ function mergeEntities(logBuckets){
       zone: latestFix?.zone || '-'
     });
   });
-
   entities.sort((a,b)=>String(a.id).localeCompare(String(b.id),undefined,{numeric:true,sensitivity:'base'}));
 }
 
 /* ═══════════════════════════════════════════════
-   ZONE ASSIGNMENT
+   REQ 1: ZONE ASSIGNMENT – uses map GeoJSON strictly for polygon calculation
    ═══════════════════════════════════════════════ */
 function getZoneName(f){
   return f?.properties?.name||f?.properties?.Name||f?.properties?.ZONE||f?.properties?.zone||f?.properties?.STRETCH||'-';
@@ -906,7 +968,8 @@ function getZoneName(f){
 
 function assignZones(){
   if(!geojsonData?.features) return;
-  zonePolygons = geojsonData.features.filter(f=>f.geometry&&(f.geometry.type==='Polygon'||f.geometry.type==='MultiPolygon'));
+  zonePolygons = geojsonData.features.filter(f=>f.geometry&&
+    (f.geometry.type==='Polygon'||f.geometry.type==='MultiPolygon'));
 
   entities.forEach(entity=>{
     entity.fixes.forEach(fix=>{
@@ -919,7 +982,12 @@ function assignZones(){
       if(found==='-'){
         let best=Infinity, bestName='-';
         for(const feat of zonePolygons){
-          try{const ol=turf.polygonToLine(feat),np=turf.nearestPointOnLine(ol,pt),d=turf.distance(pt,np,{units:'kilometers'});if(d<best){best=d;bestName=getZoneName(feat);}}catch(e){}
+          try{
+            const ol=turf.polygonToLine(feat);
+            const np=turf.nearestPointOnLine(ol,pt);
+            const d=turf.distance(pt,np,{units:'kilometers'});
+            if(d<best){best=d;bestName=getZoneName(feat);}
+          }catch(e){}
         }
         found = best<=ZONE_SNAP_MAX_KM ? bestName : 'Outside Defined Zones';
       }
@@ -936,12 +1004,22 @@ function ensureZoneLayer(){
     onEachFeature(f,layer){layer.bindTooltip(getZoneName(f),{className:'zone-label',direction:'center'});}
   });
 }
+
+/* REQ 1: River GeoJSON rendered as a simple non-interactive blue polyline (no fill).
+   Used ONLY for visual context – NOT for zone calculations. */
 function ensureRiverLayer(){
   if(riverGeoLayer||!riverData) return;
   riverGeoLayer = L.geoJSON(riverData,{
-    style:{color:'rgba(37,99,235,.5)',weight:2,dashArray:'6 10',fillColor:'rgba(37,99,235,.06)',fillOpacity:.7}
+    style:{
+      color:'#3b82f6',
+      weight:2.5,
+      opacity:0.65,
+      fill:false        // no fill – purely a centerline polyline
+    },
+    interactive: false  // non-interactive (REQ 1)
   });
 }
+
 function showZoneLayer(visible){
   ensureZoneLayer();
   if(!zoneGeoLayer) return;
@@ -956,12 +1034,12 @@ function showRiverLayer(visible){
 }
 
 /* ═══════════════════════════════════════════════
-   STATUS BLOCKS
+   REQ 2: STATUS BLOCKS – updated order & labels
    ═══════════════════════════════════════════════ */
 function updateStatusBlocks(){
   const counts = {active:0,recovered:0,water:0,missing_start:0,missing:0};
   entities.forEach(e=>{ if(counts[e.status]!==undefined) counts[e.status]++; });
-  ['active','recovered','water','missing_start','missing'].forEach(bucket=>{
+  ['active','missing','missing_start','water','recovered'].forEach(bucket=>{
     const el = document.getElementById('sbc-'+bucket);
     if(el) el.textContent = counts[bucket];
     const btn = document.getElementById('sb-'+bucket);
@@ -971,7 +1049,6 @@ function updateStatusBlocks(){
 
 function toggleBucket(bucket){
   activeBucket = activeBucket===bucket ? null : bucket;
-  // Sync status filter dropdown
   document.querySelectorAll('#msi-status input[type=checkbox]').forEach(inp=>{
     inp.checked = activeBucket ? inp.value===activeBucket : true;
   });
@@ -981,38 +1058,56 @@ function toggleBucket(bucket){
 }
 
 /* ═══════════════════════════════════════════════
-   LEGEND
+   REQ 3: LEGEND – collapsible toggle
    ═══════════════════════════════════════════════ */
+function toggleLegend(){
+  legendCollapsed = !legendCollapsed;
+  const legendEl = document.getElementById('legend');
+  const toggleBtn = document.getElementById('legend-toggle-btn');
+  legendEl.classList.toggle('collapsed', legendCollapsed);
+  if(toggleBtn) toggleBtn.textContent = legendCollapsed ? '+' : '−';
+}
+
 function renderLegend(){
-  const legend = document.getElementById('legend');
+  /* REQ 2 & REQ 5: legend rows in the new order with updated colours */
   const rows = [
-    {label:'Active (VHF ≤ 14d)',    color:MARKER_COLORS.active},
-    {label:'Recovered',              color:MARKER_COLORS.recovered},
-    {label:'Radio in Water',         color:MARKER_COLORS.water},
-    {label:'Missing from Start',     color:MARKER_COLORS.missing_start},
-    {label:'Missing (> 14d)',        color:MARKER_COLORS.missing}
+    {label:'Active (VHF ≤ 14d)',           color:MARKER_COLORS.active},
+    {label:'Missing (> 14d)',               color:MARKER_COLORS.missing},
+    {label:'Missing Soon After Release',    color:MARKER_COLORS.missing_start},
+    {label:'Radio in Water',                color:MARKER_COLORS.water},
+    {label:'Recovered',                     color:MARKER_COLORS.recovered}
   ];
-  legend.innerHTML = '<div class="legend-title">Legend</div>'+
-    rows.map(r=>`<div class="legend-row"><span class="legend-dot" style="background:${r.color}"></span>${escapeHtml(r.label)}</div>`).join('');
+  const body = document.getElementById('legend-body');
+  if(body){
+    body.innerHTML = rows.map(r=>
+      `<div class="legend-row"><span class="legend-dot" style="background:${r.color}"></span>${escapeHtml(r.label)}</div>`
+    ).join('');
+  }
 }
 
 /* ═══════════════════════════════════════════════
    FILTER DROPDOWNS
    ═══════════════════════════════════════════════ */
 function rebuildFilters(){
-  // Radio IDs (only those with data or in master, excluding old retag IDs)
   const allIds = [...new Set(entities.map(e=>e.id))].sort((a,b)=>
     String(a).localeCompare(String(b),undefined,{numeric:true,sensitivity:'base'}));
   buildMSOptions('rid', allIds);
 
-  // Zones from latest fixes
+  /* REQ 1: Zone filter – populated from actual zone assignments via Turf.js */
   const zoneCounts={};
-  entities.forEach(e=>{const z=e.zone||'-';if(z&&z!=='-')zoneCounts[z]=(zoneCounts[z]||0)+1;});
+  entities.forEach(e=>{
+    const z=e.zone||'-';
+    if(z&&z!=='-'&&z!=='Outside Defined Zones') zoneCounts[z]=(zoneCounts[z]||0)+1;
+  });
+  // Also include 'Outside Defined Zones' if present
+  entities.forEach(e=>{
+    if(e.zone==='Outside Defined Zones') zoneCounts['Outside Defined Zones']=(zoneCounts['Outside Defined Zones']||0)+1;
+  });
   const sortedZones=Object.keys(zoneCounts).sort((a,b)=>zoneCounts[b]-zoneCounts[a]);
   buildMSOptions('zone', sortedZones, z=>z+' ('+zoneCounts[z]+')');
 
-  // Status buckets
-  const statuses = ['active','recovered','water','missing_start','missing'];
+  /* REQ 2: Status buckets in the new order */
+  const statuses = ['active','missing','missing_start','water','recovered'];
   buildMSOptions('status', statuses, s=>statusLabel(s));
 
   updateStatusBlocks();
@@ -1024,9 +1119,7 @@ function buildMSOptions(key, options, formatter){
   const btn=document.getElementById('msb-'+key), list=document.getElementById('msi-'+key);
   btn.classList.remove('disabled');
   list.innerHTML='';
-  if(!options.length){
-    resetMS(key,'No options');return;
-  }
+  if(!options.length){resetMS(key,'No options');return;}
   options.forEach(option=>{
     const label=document.createElement('label'); label.className='ms-item';
     const input=document.createElement('input'); input.type='checkbox'; input.value=option;
@@ -1087,6 +1180,7 @@ function applyFilters(){
   const idFilter=selectedSet('rid'), zoneFilter=selectedSet('zone'), statusFilter=selectedSet('status');
   displayed = entities.filter(e=>{
     if(idFilter && !idFilter.has(e.id)) return false;
+    /* REQ 1: zone filter is active and populated */
     if(zoneFilter && !zoneFilter.has(e.zone||'-')) return false;
     if(statusFilter && !statusFilter.has(e.status)) return false;
     return true;
@@ -1102,9 +1196,34 @@ function applyFilters(){
   updateMapFoot();
 }
 
+/* REQ 6: clearFilters also tears down heatmap/KDE overlays */
 function clearFilters(){
-  activeBucket=null;
+  activeBucket = null;
   document.querySelectorAll('.ms-drop').forEach(d=>d.classList.remove('open'));
+
+  // Disable Heatmap overlay
+  if(heatmapOn || heatLayer){
+    heatmapOn = false;
+    if(heatLayer){ map.removeLayer(heatLayer); heatLayer = null; }
+    const hBtn  = document.getElementById('heatBtn');
+    const mhBtn = document.getElementById('mob-heatBtn');
+    if(hBtn)  hBtn.classList.remove('on');
+    if(mhBtn) mhBtn.classList.remove('on');
+  }
+
+  // Disable KDE overlay
+  if(kdeOn || kdeLayer){
+    kdeOn = false;
+    if(kdeLayer){ map.removeLayer(kdeLayer); kdeLayer = null; }
+    const kBtn  = document.getElementById('kdeBtn');
+    const mkBtn = document.getElementById('mob-kdeBtn');
+    if(kBtn)  kBtn.classList.remove('on');
+    if(mkBtn) mkBtn.classList.remove('on');
+  }
+
+  // Restore standard marker view if markerLayer was hidden
+  if(markerLayer && !map.hasLayer(markerLayer)) markerLayer.addTo(map);
+
   rebuildFilters();
   applyFilters();
 }
@@ -1123,6 +1242,7 @@ function markerIcon(entity){
   });
 }
 
+/* REQ 7: Retag History is kept ONLY in popups, not the table */
 function popupHtml(entity){
   const fix = entity.latestFix;
   const color = MARKER_COLORS[entity.status]||MARKER_COLORS.missing;
@@ -1202,7 +1322,7 @@ function focusTableRow(id){
 }
 
 /* ═══════════════════════════════════════════════
-   TABLE
+   TABLE – REQ 7: Retag History column REMOVED
    ═══════════════════════════════════════════════ */
 function renderTable(){
   const body = document.getElementById('tableBody');
@@ -1210,7 +1330,8 @@ function renderTable(){
   displayRows = displayed;
   document.getElementById('tableBadge').textContent = displayed.length+' records';
   if(!displayed.length){
-    body.innerHTML='<tr class="no-data"><td colspan="14">No records match the current filters.</td></tr>';return;
+    /* REQ 7: colspan is now 13 (was 14) */
+    body.innerHTML='<tr class="no-data"><td colspan="13">No records match the current filters.</td></tr>';return;
   }
   displayed.forEach(entity=>{
     const fix = entity.latestFix;
@@ -1219,13 +1340,14 @@ function renderTable(){
     const color = MARKER_COLORS[entity.status]||MARKER_COLORS.missing;
     const tr = document.createElement('tr');
     tr.dataset.rowId = entity.id;
+    /* REQ 7: No Retag History td */
     tr.innerHTML =
       `<td><strong style="color:${color}">${escapeHtml(entity.id)}</strong></td>`+
       `<td>${escapeHtml(entity.category||'-')}</td>`+
       `<td>${escapeHtml(entity.sex||'-')}</td>`+
       `<td>${escapeHtml(entity.tl||'-')}</td>`+
       `<td>${escapeHtml(entity.tagPlace||'-')}</td>`+
-      `<td>${escapeHtml(entity.retagHistory||'-')}</td>`+
+      /* Retag History td REMOVED */
       `<td>${escapeHtml(fmtDateTime(fix?.ts))}</td>`+
       `<td>${escapeHtml(String(daysRelease))}</td>`+
       `<td>${escapeHtml(String(daysFix))}</td>`+
@@ -1323,13 +1445,13 @@ function toggleKDE(){
    ═══════════════════════════════════════════════ */
 function exportCSV(){
   if(!displayRows.length){toast('No visible records to export.');return;}
-  const header=['Radio_ID','Category','Sex','TL_cm','Tag_Place','Retag_History','Latest_VHF_Signal','Days_Since_Release','Days_Since_Last_Fix','Current_Status','Zone','Latitude','Longitude','Remarks'];
+  /* REQ 7: Retag History removed from CSV export header as well */
+  const header=['Radio_ID','Category','Sex','TL_cm','Tag_Place','Latest_VHF_Signal','Days_Since_Release','Days_Since_Last_Fix','Current_Status','Zone','Latitude','Longitude','Remarks'];
   const rows = [header];
   displayRows.forEach(e=>{
     const fix=e.latestFix;
     rows.push([
       e.id, e.category||'-', e.sex||'-', e.tl||'-', e.tagPlace||'-',
-      e.retagHistory||'-',
       fmtDateTime(fix?.ts),
       e.tagDate ? daysSince(e.tagDate) : '-',
       e.daysSinceLastFix !== null ? e.daysSinceLastFix : '-',
@@ -1348,11 +1470,20 @@ function exportCSV(){
 }
 
 /* ═══════════════════════════════════════════════
-   FIELD UPDATES PANEL
+   REQ 4: FIELD UPDATES PANEL – robust date parsing
    ═══════════════════════════════════════════════ */
+
+/** Try every known column name variant for the update date */
 function getUpdateDate(row){
-  const raw=gc(row,'Date','date','Update Date','UpdateDate','Timestamp','timestamp','Posted','Field Date','Log Date');
-  return parseTagDate(raw);
+  // Try a broad set of possible column names in the Field_Updates sheet
+  const raw = gc(row,
+    'Date','date','Update Date','UpdateDate','Timestamp','timestamp',
+    'Posted','Field Date','Log Date','Entry Date','Record Date',
+    'Update_Date','FieldDate','Post Date','DatePosted'
+  );
+  if(!raw) return null;
+  // Try parsePaliDate first (DD/MM/YYYY HH:MM), then parseTagDate for text dates
+  return parsePaliDate(raw) || parseTagDate(raw);
 }
 
 function formatUpdateText(text){
@@ -1367,25 +1498,52 @@ function formatUpdateText(text){
 function loadUpdates(rows){
   updatesRows = rows||[];
   const sorted=updatesRows.filter(row=>{
-    return !!(getUpdateDate(row)||gc(row,'Update','update','Notes','Text','notes','Content','content'));
+    const hasDate=!!getUpdateDate(row);
+    const hasText=!!(gc(row,'Update','update','Notes','Text','notes','Content','content','Update_Text','UpdateText','Details','detail'));
+    return hasDate||hasText;
   }).sort((a,b)=>{
-    const ta=getUpdateDate(a)?.getTime()||-Infinity, tb=getUpdateDate(b)?.getTime()||-Infinity;
+    const ta=getUpdateDate(a)?.getTime()||-Infinity;
+    const tb=getUpdateDate(b)?.getTime()||-Infinity;
     return tb-ta;
   });
-  const latestDate=document.getElementById('fuDate'), latestText=document.getElementById('fuText'), list=document.getElementById('fuList');
+
+  const latestDate=document.getElementById('fuDate');
+  const latestText=document.getElementById('fuText');
+  const list=document.getElementById('fuList');
   list.innerHTML='';
+
   if(!sorted.length){
-    latestDate.textContent='No updates';latestText.innerHTML='';
-    list.innerHTML='<div class="fu"><div class="update-content">No field updates available.</div></div>';return;
+    latestDate.textContent='No updates available';
+    latestText.innerHTML='';
+    list.innerHTML='<div class="fu"><div class="update-content">No field updates available.</div></div>';
+    return;
   }
-  const rd=getUpdateDate(sorted[0]);
-  latestDate.textContent=rd?fmtDateOnly(rd):(gc(sorted[0],'Date','date','Timestamp','Posted')||'Unknown date');
-  latestText.innerHTML=formatUpdateText(gc(sorted[0],'Update','update','Notes','Text','notes','Content','content'));
+
+  // Latest entry
+  const rd = getUpdateDate(sorted[0]);
+  /* REQ 4: Use fmtDateOnly if date parsed, otherwise fall back to raw string */
+  if(rd){
+    latestDate.textContent = fmtDateOnly(rd);
+  } else {
+    const rawVal = gc(sorted[0],'Date','date','Update Date','UpdateDate','Timestamp','timestamp','Posted','Field Date');
+    latestDate.textContent = rawVal || 'Date unavailable';
+  }
+  const textContent = gc(sorted[0],'Update','update','Notes','Text','notes','Content','content','Update_Text','UpdateText','Details','detail');
+  latestText.innerHTML = formatUpdateText(textContent);
+
+  // Previous entries
   sorted.slice(1).forEach(row=>{
     const rowDate=getUpdateDate(row);
     const item=document.createElement('div'); item.className='fu';
-    item.innerHTML='<div class="fu-date">'+escapeHtml(rowDate?fmtDateOnly(rowDate):'Unknown date')+'</div>'+
-      '<div class="update-content">'+formatUpdateText(gc(row,'Update','update','Notes','Text','notes','Content','content'))+'</div>';
+    let dateStr;
+    if(rowDate){
+      dateStr = fmtDateOnly(rowDate);
+    } else {
+      dateStr = gc(row,'Date','date','Update Date','UpdateDate','Timestamp','timestamp','Posted','Field Date') || 'Unknown date';
+    }
+    const rowText = gc(row,'Update','update','Notes','Text','notes','Content','content','Update_Text','UpdateText','Details','detail');
+    item.innerHTML='<div class="fu-date">'+escapeHtml(dateStr)+'</div>'+
+      '<div class="update-content">'+formatUpdateText(rowText)+'</div>';
     list.appendChild(item);
   });
 }
@@ -1403,6 +1561,16 @@ function toggleFilterBar(){
   document.getElementById('fbar').classList.toggle('hidden',filterBarHidden);
   document.getElementById('filterToggleBtn').classList.toggle('on',!filterBarHidden);
   document.getElementById('map-wrap').style.top=filterBarHidden?'var(--hdr)':'calc(var(--hdr) + var(--fbar))';
+  /* REQ 4: Also update #fp top position when filter bar is toggled */
+  const fp = document.getElementById('fp');
+  if(fp && !isMobile()){
+    fp.style.top = filterBarHidden
+      ? 'var(--hdr)'
+      : 'calc(var(--hdr) + var(--fbar))';
+    fp.style.height = filterBarHidden
+      ? 'calc(100vh - var(--hdr))'
+      : 'calc(100vh - var(--hdr) - var(--fbar))';
+  }
   setTimeout(()=>map.invalidateSize(),220);
 }
 
@@ -1462,7 +1630,8 @@ function rebuildMobileFilters(){
   entities.forEach(e=>{const z=e.zone||'-';if(z&&z!=='-')zoneCounts[z]=(zoneCounts[z]||0)+1;});
   const sortedZones=Object.keys(zoneCounts).sort((a,b)=>zoneCounts[b]-zoneCounts[a]);
   buildMobMSOptions('zone',sortedZones,z=>z+' ('+zoneCounts[z]+')');
-  const statuses=['active','recovered','water','missing_start','missing'];
+  /* REQ 2: status order in mobile */
+  const statuses=['active','missing','missing_start','water','recovered'];
   buildMobMSOptions('status',statuses,s=>statusLabel(s));
 }
 
@@ -1556,7 +1725,7 @@ async function loadAllData(){
     mergeEntities(logBuckets);
 
     geojsonData = zonesData; riverData = riverGeoData;
-    document.getElementById('loadingCopy').textContent='Assigning zones to fixes...';
+    document.getElementById('loadingCopy').textContent='Assigning zones to fixes (Turf.js)...';
     if(geojsonData) assignZones();
 
     loadUpdates(updateRows);
