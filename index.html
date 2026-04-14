@@ -735,12 +735,6 @@ let entityMarkerMap = {};
    ═══════════════════════════════════════════════ */
 function normId(raw){ return String(raw||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,''); }
 
-/**
- * gc – get cell value from a row object by trying multiple column-name aliases.
- * Column keys are normalised (lowercased, whitespace/punctuation stripped) before
- * comparison so variants like "Signal Strength", "signal_strength", "SignalStrength"
- * all resolve to the same field.
- */
 function gc(row,...keys){
   const rk = Object.keys(row||{});
   for(const key of keys){
@@ -897,11 +891,9 @@ function buildEntitiesFromLog(rows){
     if(!buckets[remappedId]) buckets[remappedId] = { fixes:[], originalOldId: RETAG_OLD_TO_NEW[rawId]?rawId:null };
     buckets[remappedId].fixes.push({
       lat, lon, ts,
-      /* ── PATCH 1: telemetry field extraction ── */
       place:    gc(row,'Place','place','Current Place','CurrentPlace','Locality','Site','Location'),
       activity: gc(row,'Activity','activity','Behaviour','Behavior','Activity_Type','Activity Type'),
       signal:   gc(row,'Signal','signal','Signal Strength','SignalStrength','Signal_Strength'),
-      /* ────────────────────────────────────────── */
       remarks:  gc(row,'Remarks','Notes','remarks'),
       zone: '-',
       fromOldId: (RETAG_OLD_TO_NEW[rawId] ? rawId : null)
@@ -954,88 +946,106 @@ function mergeEntities(logBuckets){
 }
 
 /* ═══════════════════════════════════════════════
-   ZONE ASSIGNMENT - REWRITTEN FOR GEOMETRY ROBUSTNESS
-   Uses ONLY map (1).geojson (loaded as geojsonData / URLS.zones).
+   ZONE NAME RESOLVER
+   Handles all known malformed property patterns in map (1).geojson:
+     • Standard:          {"name": "Pali Nesting Stretch"}
+     • Trailing-space:    {"name ": "Pali RJ Island"}
+     • Key-as-name:       {"Bagdiya Upside": ""} or {"Jamurdi": ""}
    ═══════════════════════════════════════════════ */
-function getZoneName(f) {
-  if (!f || !f.properties) return '-';
-  const p = f.properties;
-  
-  // 1. Check standard keys
-  if (p.name) return p.name;
-  if (p.Name) return p.Name;
-  if (p.ZONE) return p.ZONE;
-  if (p.zone) return p.zone;
-  if (p.STRETCH) return p.STRETCH;
-  
-  // 2. Check for typo key
-  if (p['name ']) return p['name '];
-  
-  // 3. Fallback to extracting the very first key if no standard ones are present
+function getZoneName(f){
+  const p = f?.properties;
+  if(!p) return '-';
+
+  // 1. Check standard / common keys (value must be non-empty)
+  if(p['name']    && String(p['name']).trim())    return String(p['name']).trim();
+  if(p['Name']    && String(p['Name']).trim())    return String(p['Name']).trim();
+  if(p['ZONE']    && String(p['ZONE']).trim())    return String(p['ZONE']).trim();
+  if(p['zone']    && String(p['zone']).trim())    return String(p['zone']).trim();
+  if(p['STRETCH'] && String(p['STRETCH']).trim()) return String(p['STRETCH']).trim();
+
+  // 2. Trailing-space typo key ("name ")
+  if(p['name '] && String(p['name ']).trim()) return String(p['name ']).trim();
+
+  // 3. Zone name IS the key itself with an empty-string value
+  //    e.g. {"Bagdiya Upside": ""} or {"Jamurdi": ""}
+  //    Take the first key of the properties object and use it as the name.
   const keys = Object.keys(p);
-  if (keys.length > 0) {
-    return keys[0];
+  if(keys.length > 0){
+    const firstKey = keys[0].trim();
+    if(firstKey) return firstKey;
   }
-  
-  // 4. Ultimate fallback
+
   return '-';
 }
 
+/* ═══════════════════════════════════════════════
+   ZONE ASSIGNMENT
+   Uses ONLY geojsonData (map (1).geojson).
+   riverData is NEVER touched here — visual overlay only.
+   ═══════════════════════════════════════════════ */
 function assignZones(){
-  /* Guard: only proceed if map (1).geojson has loaded */
+  // Guard: only proceed if map (1).geojson (geojsonData) has loaded.
+  // NEVER use riverData here — it is a visual overlay only.
   if(!geojsonData?.features) return;
 
-  /* Extract all features with geometry from map (1).geojson 
-     Allows for Polygons, LineStrings, etc. */
-  const zoneFeatures = geojsonData.features.filter(f=>f.geometry);
+  // Extract only features with valid geometry — strictly from geojsonData.
+  const zoneFeatures = geojsonData.features.filter(f => f.geometry);
 
-  entities.forEach(entity=>{
-    entity.fixes.forEach(fix=>{
-      if(!Number.isFinite(fix.lat)||!Number.isFinite(fix.lon)){fix.zone='-';return;}
+  entities.forEach(entity => {
+    entity.fixes.forEach(fix => {
+      if(!Number.isFinite(fix.lat) || !Number.isFinite(fix.lon)){
+        fix.zone = '-';
+        return;
+      }
+
       const pt = turf.point([fix.lon, fix.lat]);
-      
       let bestDist = Infinity;
       let bestName = '-';
 
       for(const feat of zoneFeatures){
         try {
-          const type = feat.geometry.type;
-          
-          /* Step 1: If it's a polygon, check if the point is strictly inside */
-          if((type === 'Polygon' || type === 'MultiPolygon') && turf.booleanPointInPolygon(pt, feat)){
-            bestDist = 0;
-            bestName = getZoneName(feat);
-            break; 
+          const type = feat.geometry?.type;
+          if(!type) continue;
+
+          // Step 1: strict inside-polygon check — fastest resolution, break immediately
+          if(type === 'Polygon' || type === 'MultiPolygon'){
+            if(turf.booleanPointInPolygon(pt, feat)){
+              bestDist = 0;
+              bestName = getZoneName(feat);
+              break; // exact match found, no need to check further
+            }
           }
-          
-          /* Step 2: Calculate the nearest distance to the feature 
-             (Works natively for LineStrings, MultiLineStrings, Polygons) */
-          const dist = turf.pointToLineDistance(pt, feat, {units: 'kilometers'});
+
+          // Step 2: nearest-distance fallback
+          // turf.pointToLineDistance works for LineString, MultiLineString, Polygon edges
+          let dist = Infinity;
+          try {
+            dist = turf.pointToLineDistance(pt, feat, { units: 'kilometers' });
+          } catch(e1){
+            // Fallback for geometry types pointToLineDistance can't handle (e.g. Point features):
+            // calculate distance to nearest vertex manually
+            try {
+              const coords = turf.coordAll(feat);
+              coords.forEach(coord => {
+                const d = turf.distance(pt, turf.point(coord), { units: 'kilometers' });
+                if(d < dist) dist = d;
+              });
+            } catch(e2){ /* skip this feature entirely */ }
+          }
+
           if(dist < bestDist){
             bestDist = dist;
             bestName = getZoneName(feat);
           }
-        } catch(e) {
-          /* Fallback: In case of unexpected geometry or turf errors, 
-             calculate distance to the nearest vertex manually */
-          try {
-            const coords = turf.coordAll(feat);
-            coords.forEach(coord => {
-              const d = turf.distance(pt, turf.point(coord), {units: 'kilometers'});
-              if(d < bestDist) {
-                bestDist = d;
-                bestName = getZoneName(feat);
-              }
-            });
-          } catch(e2){}
-        }
+
+        } catch(e){ /* skip malformed feature */ }
       }
 
-      /* Apply snap tolerance (0.5km) */
-      fix.zone = bestDist <= ZONE_SNAP_MAX_KM ? bestName : 'Outside Defined Zones';
+      // Apply snap tolerance: assign zone only if within ZONE_SNAP_MAX_KM (0.5 km)
+      fix.zone = (bestDist <= ZONE_SNAP_MAX_KM) ? bestName : 'Outside Defined Zones';
     });
 
-    /* Propagate latest fix zone to the entity-level zone property */
+    // Propagate the latest fix zone up to the entity level
     if(entity.latestFix) entity.zone = entity.latestFix.zone || '-';
   });
 }
