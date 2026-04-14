@@ -447,7 +447,6 @@ path.leaflet-interactive:focus{outline:none!important;box-shadow:none!important}
   </div>
 </header>
 
-<!-- Filter Bar -->
 <div id="fbar">
   <div id="fbar-inner">
     <div class="fg">
@@ -505,7 +504,6 @@ path.leaflet-interactive:focus{outline:none!important;box-shadow:none!important}
   </div>
 </div>
 
-<!-- Mobile Drawer -->
 <div id="drawerBg" onclick="closeMobileDrawer()"></div>
 <div id="mobileDrawer" role="dialog" aria-modal="true" aria-label="Filters">
   <div class="drawer-handle"></div>
@@ -582,7 +580,6 @@ path.leaflet-interactive:focus{outline:none!important;box-shadow:none!important}
   </div>
 </div>
 
-<!-- Map -->
 <div id="map-wrap">
   <div id="map"></div>
   <div class="map-fab">
@@ -602,7 +599,6 @@ path.leaflet-interactive:focus{outline:none!important;box-shadow:none!important}
   </div>
 </div>
 
-<!-- Field Updates Sidebar -->
 <div id="fpBg" onclick="closeFieldPanel()"></div>
 <aside id="fp">
   <div class="fp-hdr">
@@ -622,7 +618,6 @@ path.leaflet-interactive:focus{outline:none!important;box-shadow:none!important}
   </div>
 </aside>
 
-<!-- Bottom Table Panel -->
 <div id="btm">
   <div id="resizeBar"></div>
   <div id="btmHdr">
@@ -889,16 +884,6 @@ function buildMasterMap(rows){
   });
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   buildEntitiesFromLog
-   Parses every row of the Radio Log (telemetry) sheet.
-   CHANGE: Each fix object now captures three additional columns from the sheet:
-     • place    – the location name recorded at the fix (Place / Current Place / Locality)
-     • activity – the observed behaviour (Activity / Behaviour / Behavior)
-     • signal   – the VHF signal strength reading (Signal / Signal Strength)
-   These are surfaced in the popup via popupHtml().
-   Zone assignment happens separately in assignZones() using map (1).geojson only.
-───────────────────────────────────────────────────────────────────────────── */
 function buildEntitiesFromLog(rows){
   const buckets = {};
   rows.forEach(row=>{
@@ -969,10 +954,8 @@ function mergeEntities(logBuckets){
 }
 
 /* ═══════════════════════════════════════════════
-   ZONE ASSIGNMENT
+   ZONE ASSIGNMENT - REWRITTEN FOR GEOMETRY ROBUSTNESS
    Uses ONLY map (1).geojson (loaded as geojsonData / URLS.zones).
-   The river GeoJSON (URLS.river) is never touched here – it is used
-   exclusively for the visual river-line overlay on the map.
    ═══════════════════════════════════════════════ */
 function getZoneName(f){
   return f?.properties?.name
@@ -987,42 +970,54 @@ function assignZones(){
   /* Guard: only proceed if map (1).geojson has loaded */
   if(!geojsonData?.features) return;
 
-  /* Extract polygon features from map (1).geojson only */
-  zonePolygons = geojsonData.features.filter(f=>f.geometry&&
-    (f.geometry.type==='Polygon'||f.geometry.type==='MultiPolygon'));
+  /* Extract all features with geometry from map (1).geojson 
+     Allows for Polygons, LineStrings, etc. */
+  const zoneFeatures = geojsonData.features.filter(f=>f.geometry);
 
   entities.forEach(entity=>{
     entity.fixes.forEach(fix=>{
       if(!Number.isFinite(fix.lat)||!Number.isFinite(fix.lon)){fix.zone='-';return;}
       const pt = turf.point([fix.lon, fix.lat]);
-      let found = '-';
+      
+      let bestDist = Infinity;
+      let bestName = '-';
 
-      /* Step 1: point-in-polygon test against map (1).geojson polygons */
-      for(const feat of zonePolygons){
-        try{
-          if(turf.booleanPointInPolygon(pt, feat)){
-            found = getZoneName(feat);
-            break;
+      for(const feat of zoneFeatures){
+        try {
+          const type = feat.geometry.type;
+          
+          /* Step 1: If it's a polygon, check if the point is strictly inside */
+          if((type === 'Polygon' || type === 'MultiPolygon') && turf.booleanPointInPolygon(pt, feat)){
+            bestDist = 0;
+            bestName = getZoneName(feat);
+            break; 
           }
-        }catch(e){}
-      }
-
-      /* Step 2: if no polygon contains the point, snap to nearest polygon
-         boundary (max ZONE_SNAP_MAX_KM km) */
-      if(found==='-'){
-        let best = Infinity, bestName = '-';
-        for(const feat of zonePolygons){
-          try{
-            const ol = turf.polygonToLine(feat);
-            const np = turf.nearestPointOnLine(ol, pt);
-            const d  = turf.distance(pt, np, {units:'kilometers'});
-            if(d < best){ best = d; bestName = getZoneName(feat); }
-          }catch(e){}
+          
+          /* Step 2: Calculate the nearest distance to the feature 
+             (Works natively for LineStrings, MultiLineStrings, Polygons) */
+          const dist = turf.pointToLineDistance(pt, feat, {units: 'kilometers'});
+          if(dist < bestDist){
+            bestDist = dist;
+            bestName = getZoneName(feat);
+          }
+        } catch(e) {
+          /* Fallback: In case of unexpected geometry or turf errors, 
+             calculate distance to the nearest vertex manually */
+          try {
+            const coords = turf.coordAll(feat);
+            coords.forEach(coord => {
+              const d = turf.distance(pt, turf.point(coord), {units: 'kilometers'});
+              if(d < bestDist) {
+                bestDist = d;
+                bestName = getZoneName(feat);
+              }
+            });
+          } catch(e2){}
         }
-        found = best <= ZONE_SNAP_MAX_KM ? bestName : 'Outside Defined Zones';
       }
 
-      fix.zone = found;
+      /* Apply snap tolerance (0.5km) */
+      fix.zone = bestDist <= ZONE_SNAP_MAX_KM ? bestName : 'Outside Defined Zones';
     });
 
     /* Propagate latest fix zone to the entity-level zone property */
@@ -1260,16 +1255,6 @@ function markerIcon(entity){
   });
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   popupHtml
-   CHANGE: Added three new rows in the "Telemetry Details" block:
-     • Zone          – computed from map (1).geojson via Turf.js
-     • Current Place – extracted from the Place column of the radio log
-     • Activity      – extracted from the Activity / Behaviour column
-     • Signal Strength – extracted from the Signal column
-   These rows are grouped below a visual separator after the core identification
-   rows, and above the Coordinates row.
-───────────────────────────────────────────────────────────────────────────── */
 function popupHtml(entity){
   const fix = entity.latestFix;
   const color = MARKER_COLORS[entity.status]||MARKER_COLORS.missing;
@@ -1294,7 +1279,6 @@ function popupHtml(entity){
       <div class="pop-row"><span class="pop-label">Days Since Release</span><span class="pop-value" style="font-weight:700;color:var(--forest-2)">${escapeHtml(daysRelease)}</span></div>
       <div class="pop-row"><span class="pop-label">Days Since Last Fix</span><span class="pop-value">${escapeHtml(daysFix)}</span></div>
 
-      <!-- ── PATCH 2: spatial & telemetry detail rows ── -->
       <div class="pop-telemetry-sep"></div>
       <div class="pop-row">
         <span class="pop-label">Zone</span>
@@ -1312,8 +1296,6 @@ function popupHtml(entity){
         <span class="pop-label">Signal Strength</span>
         <span class="pop-value">${escapeHtml(fix?.signal||'-')}</span>
       </div>
-      <!-- ──────────────────────────────────────────── -->
-
       <div class="pop-row"><span class="pop-label">Coordinates</span><span class="pop-value">${fix?fix.lat.toFixed(5)+', '+fix.lon.toFixed(5):'-'}</span></div>
       ${entity.remarks?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line);font:600 .66rem/1.5 var(--font);color:var(--muted)">${escapeHtml(entity.remarks)}</div>`:''}
     </div>
