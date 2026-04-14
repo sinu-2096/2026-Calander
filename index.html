@@ -1897,7 +1897,7 @@ function assignZones(){
 function ensureZoneLayer(){
   if(zoneGeoLayer||!geojsonData) return;
   zoneGeoLayer = L.geoJSON(geojsonData,{
-    style:{color:'#d97706',weight:2,fillColor:'#fcd34d',fillOpacity:.4}, // Updated for high visibility
+    style: { opacity: 0, fillOpacity: 0 }, // Updated for high visibility
     onEachFeature(f,layer){layer.bindTooltip(getZoneName(f),{className:'zone-label',direction:'center'});}
   });
 }
