@@ -216,8 +216,6 @@ path.leaflet-interactive:focus{outline:none!important;box-shadow:none!important}
     <div class="loading-list">
       <div class="loading-item" id="ld-master">Master Radio Dictionary</div>
       <div class="loading-item" id="ld-ats">ATS Satellite Log</div>
-      <div class="loading-item" id="ld-fl">Field Log (VHF)</div>
-      <div class="loading-item" id="ld-pali">Pali FT Hatchlings</div>
       <div class="loading-item" id="ld-zones">River Zones GeoJSON</div>
     </div>
   </div>
@@ -236,7 +234,7 @@ path.leaflet-interactive:focus{outline:none!important;box-shadow:none!important}
   <div class="hdr-divider"></div>
   <div class="hdr-brand">
     <div class="hdr-title">Gharial Ecology Project - Unified Telemetry Dashboard</div>
-    <div class="hdr-sub">Desktop telemetry monitor | ATS + VHF + hatchling routing</div>
+    <div class="hdr-sub">Desktop telemetry monitor | ATS Satellite routing</div>
   </div>
   <div id="statusBlocks">
     <button class="sblock muted" id="statusBlock0" type="button" onclick="toggleStatusBlock(0)"><span class="sblock-label">Awaiting Source</span><span class="sblock-count">-</span></button>
@@ -251,7 +249,6 @@ path.leaflet-interactive:focus{outline:none!important;box-shadow:none!important}
   <div class="hdr-actions">
     <button class="hbtn" id="refreshBtn" type="button" onclick="loadAllData()"><span class="spin-icon">R</span> Refresh</button>
     <button class="hbtn on" id="filterToggleBtn" type="button" onclick="toggleFilterBar()">Filters</button>
-    <button class="hbtn" id="fieldUpdatesBtn" type="button" onclick="toggleFieldPanel()" style="display:none">Field Updates</button>
   </div>
 </header>
 
@@ -261,9 +258,7 @@ path.leaflet-interactive:focus{outline:none!important;box-shadow:none!important}
       <label for="sourceFilter">Source</label>
       <select class="fsel" id="sourceFilter" onchange="onSourceChange()">
         <option value="">Select Source</option>
-        <option value="ATS">ATS Satellite</option>
-        <option value="FieldLog">Field Log (VHF)</option>
-        <option value="PaliFT">Pali FT (Hatchlings)</option>
+        <option value="ATS">ATS Satellite</option> 
       </select>
     </div>
     <div class="fsep"></div>
